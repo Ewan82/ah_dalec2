@@ -22,7 +22,7 @@ def ah_str2date(date_str):
     return dt.datetime.strptime(date_str, "%d/%m/%Y %H:%M")
 
 
-def add_data2netcdf(nc_file, csv_file, data_title, nc_title, date_col='date_combined'):
+def add_data2nc(nc_file, csv_file, data_title, nc_title, date_col='date_combined'):
     """ Adds data to a netCDF file
     :param nc_file: netCDF file location str
     :param csv_file: csv file location str

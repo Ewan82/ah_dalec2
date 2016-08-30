@@ -1,13 +1,36 @@
 import numpy as np
 import collections as col
-import netCDF4 as Nc
+import re
+import netCDF4 as nC
+import datetime as dt
 
 
-class DalecData():
+class DalecData:
+    """
+    Data class for the DALEC2 model
+    """
+    def __init__(self, start_date=None, end_date=None, ob_str=None, delta_t=None, k=None):
+        """ Extracts data from netcdf file
+        :param start_date: date for model runs to begin as an integer (year) or tuple (year, month, day)
+        :param end_date: date for model runs to end as an integer (year) or tuple (year, month, day)
+        :param ob_str: string containing observations that will be assimilated
+        :param delta_t: time step for model (this functionality has not been added yet)
+        :param k: int if you want to repeat data multiple times
+        :return:
+        """
+        # Extract the data
+        self.obs_str = ob_str
+        self.data = nC.Dataset('../../alice_holt_data/ah_data.nc', 'r')
+        self.time_units = self.data.variables['time'].units
+        self.k = k
+        self.start_idx = self.find_date_idx(start_date)
+        self.end_idx = self.find_date_idx(end_date)
+        self.dates = nC.num2date(self.data.variables['time'][self.start_idx:self.end_idx:48], self.time_units)
 
-    def __init__(self, start_date=None, end_date=None, ob_str=None, delta_t=None):
+        self.len_run = len(self.dates)
+        self.time_step = np.arange(self.len_run)
 
-        # 'I.C. for carbon pools gCm-2'   range
+        # I.C. for carbon pools gCm-2     range
         self.clab = 75.0               # (10,1e3)
         self.cf = 0.0                  # (10,1e3)
         self.cr = 135.0                # (10,1e3)
@@ -15,16 +38,16 @@ class DalecData():
         self.cl = 70.                  # (10,1e3)
         self.cs = 18624.0              # (1e3, 1e5)
 
-        # 'Parameters for optimization'                     range
-        self.p1 = 1.1e-5  # theta_min, cl to cs decomp      (1e-5 - 1e-2)day^-1
+        # Parameters for optimization                        range
+        self.p1 = 1.1e-5  # theta_min, cl to cs decomp      (1e-5 - 1e-2) day-1
         self.p2 = 0.45  # f_auto, fraction of GPP respired  (0.3 - 0.7)
         self.p3 = 0.01  # f_fol, frac GPP to foliage        (0.01 - 0.5)
         self.p4 = 0.457  # f_roo, frac GPP to fine roots    (0.01 - 0.5)
         self.p5 = 3.  # clspan, leaf lifespan               (1.0001 - 5)
-        self.p6 = 4.8e-5  # theta_woo, wood C turnover      (2.5e-5 - 1e-3)day^-1
-        self.p7 = 6.72e-3  # theta_roo, root C turnover rate(1e-4 - 1e-2)day^-1
-        self.p8 = 0.024  # theta_lit, litter C turnover     (1e-4 - 1e-2)day^-1
-        self.p9 = 2.4e-5  # theta_som, SOM C turnover       (1e-7 - 1e-3)day^-1
+        self.p6 = 4.8e-5  # theta_woo, wood C turnover      (2.5e-5 - 1e-3) day-1
+        self.p7 = 6.72e-3  # theta_roo, root C turnover rate(1e-4 - 1e-2) day-1
+        self.p8 = 0.024  # theta_lit, litter C turnover     (1e-4 - 1e-2) day-1
+        self.p9 = 2.4e-5  # theta_som, SOM C turnover       (1e-7 - 1e-3) day-1
         self.p10 = 0.0193  # Theta, temp dependence exp fact(0.018 - 0.08)
         self.p11 = 90.  # ceff, canopy efficiency param     (10 - 100)
         self.p12 = 140.  # d_onset, clab release date       (1 - 365) (60,150)
@@ -32,9 +55,9 @@ class DalecData():
         self.p14 = 27.  # cronset, clab release period      (10 - 100)
         self.p15 = 308.  # d_fall, date of leaf fall        (1 - 365) (242,332)
         self.p16 = 35.  # crfall, leaf fall period          (10 - 100)
-        self.p17 = 24.2  # clma, leaf mass per area         (10 - 400)gCm^-2
+        self.p17 = 24.2  # clma, leaf mass per area         (10 - 400) g C m-2
 
-        self.paramdict = col.OrderedDict([('theta_min', self.p1),
+        self.param_dict = col.OrderedDict([('theta_min', self.p1),
                                           ('f_auto', self.p2), ('f_fol', self.p3),
                                           ('f_roo', self.p4), ('clspan', self.p5),
                                           ('theta_woo', self.p6), ('theta_roo', self.p7),
@@ -46,56 +69,102 @@ class DalecData():
                                           ('clab', self.clab), ('cf', self.cf),
                                           ('cr', self.cr), ('cw', self.cw), ('cl', self.cl),
                                           ('cs', self.cs)])
-        self.paramdict2 = {'theta_min': self.p1, 'f_auto': self.p2, 'f_fol': self.p3,
-                            'f_roo': self.p4, 'clspan': self.p5, 'theta_woo': self.p6, 'theta_roo': self.p7,
-                            'theta_lit': self.p8, 'theta_som': self.p9, 'Theta': self.p10, 'ceff': self.p11,
-                            'd_onset': self.p12, 'f_lab': self.p13, 'cronset': self.p14, 'd_fall': self.p15,
-                            'crfall': self.p16, 'clma': self.p17, 'clab': self.clab, 'cf': self.cf,
-                            'cr': self.cr, 'cw': self.cw, 'cl': self.cl, 'cs': self.cs}
-        self.pvals = np.array(self.paramdict.values())
+        self.pvals = np.array(self.param_dict.values())
 
-        self.ahpvals = np.array([9.41e-04, 4.7e-01, 2.8e-01, 2.60e-01, 1.01e+00, 2.6e-04,
-                                 2.48e-03, 3.38e-03, 2.6e-06, 1.93e-02, 9.0e+01, 1.4e+02,
-                                 4.629e-01, 2.7e+01, 3.08e+02, 3.5e+01, 5.2e+01, 78.,
-                                 2., 134., 14257.32, 68.95, 18625.77])
+        self.ah_pvals = np.array([9.41e-04, 4.7e-01, 2.8e-01, 2.60e-01, 1.01e+00, 2.6e-04,
+                                  2.48e-03, 3.38e-03, 2.6e-06, 1.93e-02, 9.0e+01, 1.4e+02,
+                                  4.629e-01, 2.7e+01, 3.08e+02, 3.5e+01, 5.2e+01, 78.,
+                                  2., 134., 14257.32, 68.95, 18625.77])
 
-        self.edinburghpvals = np.array([0.000189966332469257, 0.565343476756027,
-                                        0.015313852599075, 0.229473358726997, 1.3820788381002,
-                                        2.56606744808776e-05, 0.000653099081656547, 0.00635847131570823,
-                                        4.32163613374937e-05, 0.0627274280370167, 66.4118798958804,
-                                        122.361932206327, 0.372217324163812, 114.092521668926,
-                                        308.106881011017, 63.6023224321684, 201.056970845445,
-                                        201.27512854457, 98.9874539256948, 443.230119619488,
-                                        20293.9092250464, 141.405866537237, 2487.84616355469])
+        self.edinburgh_median = np.array([2.29180076e-04,   5.31804031e-01,   6.69448981e-02,
+                                          4.46049258e-01,   1.18143120e+00,   5.31584216e-05,
+                                          2.25487423e-03,   2.44782152e-03,   7.71092378e-05,
+                                          3.82591095e-02,   7.47751776e+01,   1.16238252e+02,
+                                          3.26252225e-01,   4.18554035e+01,   2.27257813e+02,
+                                          1.20915004e+02,   1.15533213e+02,   1.27804720e+02,
+                                          6.02259491e+01,   2.09997016e+02,   4.22672530e+03,
+                                          3.67801053e+02,   1.62565304e+03])
+
+        self.edinburgh_mean = np.array([9.80983217e-04,   5.19025559e-01,   1.08612889e-01,
+                                        4.84356048e-01,   1.19950434e+00,   1.01336503e-04,
+                                        3.22465935e-03,   3.44239452e-03,   1.11320287e-04,
+                                        4.14726183e-02,   7.14355778e+01,   1.15778224e+02,
+                                        3.20361827e-01,   4.13391057e+01,   2.20529309e+02,
+                                        1.16768714e+02,   1.28460812e+02,   1.36541509e+02,
+                                        6.86396830e+01,   2.83782534e+02,   6.50600814e+03,
+                                        5.98832031e+02,   1.93625350e+03])
+
+        self.edinburgh_std = np.array([2.03001590e-03,   1.16829160e-01,   1.11585876e-01,
+                                       2.98860194e-01,   1.16141739e-01,   1.36472702e-04,
+                                       2.92998472e-03,   3.11712858e-03,   1.18105073e-04,
+                                       1.62308654e-02,   2.04219069e+01,   6.25696097e+00,
+                                       1.14535431e-01,   1.40482247e+01,   3.72380005e+01,
+                                       2.25938092e+01,   6.41030587e+01,   6.62621885e+01,
+                                       3.59002726e+01,   2.19315727e+02,   7.14323513e+03,
+                                       5.45013287e+02,   1.27646316e+03])
+
+        self.xa_edc = np.array([2.66484233e-03,   6.89756644e-01,   1.66384448e-01,
+                                3.57888821e-01,   1.34684316e+00,   2.65047400e-04,
+                                3.67648598e-03,   4.18406120e-03,   3.50010595e-05,
+                                3.64738010e-02,   6.38965123e+01,   1.13600440e+02,
+                                3.52356927e-01,   3.06998625e+01,   2.62826792e+02,
+                                8.86500000e+01,   1.28740516e+02,   1.56612431e+02,
+                                1.23603777e+02,   1.59089365e+02,   3.66706797e+03,
+                                1.84384480e+02,   3.36554580e+03])
 
         self.xb = self.pvals
+        self.B = self.make_b(self.edinburgh_std)
 
         self.bnds = ((1e-5, 1e-2), (0.3, 0.7), (0.01, 0.5), (0.01, 0.5), (1.0001, 10.),
                      (2.5e-5, 1e-3), (1e-4, 1e-2), (1e-4, 1e-2), (1e-7, 1e-3), (0.018, 0.08),
                      (10, 100), (1, 365), (0.01, 0.5), (10, 100), (1, 365), (10, 100), (10, 400),
                      (10, 1000), (10, 1000), (10, 1000), (100, 1e5), (10, 1000), (100, 2e5))
 
+        self.bnds_tst = ((1e-5, 1e-2), (0.3, 0.7), (0.01, 0.5), (0.01, 0.5), (1.0001, 10.),
+                         (2.5e-5, 1e-3), (1e-4, 1e-2), (1e-4, 1e-2), (1e-7, 1e-3), (0.018, 0.08),
+                         (10., 100.), (60., 150.), (0.01, 0.5), (10., 100.), (220., 332.), (10., 150.),
+                         (10., 400.), (10., 1000.), (10., 1000.), (10., 1000.), (100., 1e5), (10., 1000.),
+                         (100., 2e5))
+
         self.xa = None
 
+        # 'Daily temperatures degC'
+        self.t_mean = self.data.variables['daily_mean_temp'][self.start_idx:self.end_idx:48, 0, 0]
+        self.t_max = self.data.variables['daily_max_temp'][self.start_idx:self.end_idx:48, 0, 0]
+        self.t_min = self.data.variables['daily_min_temp'][self.start_idx:self.end_idx:48, 0, 0]
+        self.t_range = np.array(self.t_max) - np.array(self.t_min)
+        self.t_day = self.data.variables['mean_temp_day'][self.start_idx:self.end_idx:48, 0, 0]
+        self.t_night = self.data.variables['mean_temp_night'][self.start_idx:self.end_idx:48, 0, 0]
+
+        # 'Driving Data'
+        self.I = self.data.variables['rg_day'][self.start_idx:self.end_idx:48, 0, 0]  # incident radiation
+        self.ca = 390.0  # atmospheric carbon
+        self.D = self.data.variables['doy'][self.start_idx:self.end_idx:48]  # day of year
+        self.day_len = self.data.variables['day_length'][self.start_idx:self.end_idx:48, 0, 0]
+        self.night_len = self.data.variables['night_length'][self.start_idx:self.end_idx:48, 0, 0]
+        self.year = np.array([date.year for date in self.dates])  # year
+        self.month = np.array([date.month for date in self.dates])  # month
+        self.date = np.array([date.day for date in self.dates])  # date in month
+
         # Constants for ACM model
-        self.acmwilliamsxls = np.array([0.0155, 1.526, 324.1, 0.2017,
-                                        1.315, 2.595, 0.037, 0.2268,
-                                        0.9576])
-        self.acmreflex = np.array([0.0156935, 4.22273, 208.868, 0.0453194,
+        self.acm_williams_xls = np.array([0.0155, 1.526, 324.1, 0.2017,
+                                          1.315, 2.595, 0.037, 0.2268,
+                                          0.9576])
+        self.acm_reflex = np.array([0.0156935, 4.22273, 208.868, 0.0453194,
                                    0.37836, 7.19298, 0.011136, 2.1001,
                                    0.789798])
-        self.acm = self.acmreflex  # (currently using params from REFLEX)
+        self.acm = self.acm_reflex  # (currently using params from REFLEX)
         self.phi_d = -2.5  # max. soil leaf water potential difference
         self.R_tot = 1.  # total plant-soil hydrolic resistance
-        self.lat = 0.89133965  # latitutde of forest site in radians
-                               # lat = 51.153525 deg, lon = -0.858352 deg
+        self.lat = 0.89133965  # latitude of forest site in radians
+        #                        lat = 51.153525 deg, lon = -0.858352 deg
 
         # misc
         self.ca = 390.0  # atmospheric carbon
         self.radconv = 365.25 / np.pi
         self.delta_t = delta_t
 
-        # 'Background standard deviations for carbon pools & B matrix'
+        # Background standard deviations for carbon pools & B matrix
         self.sigb_clab = 7.5  # 20%
         self.sigb_cf = 10.0  # 20%
         self.sigb_cw = 1000.  # 20%
@@ -103,14 +172,16 @@ class DalecData():
         self.sigb_cl = 7.0  # 20%
         self.sigb_cs = 1500.  # 20%
 
-        # 'Observation standard deviations for carbon pools and NEE'
+        # Observation standard deviations for carbon pools and NEE
         self.sigo_clab = 7.5  # 10%
         self.sigo_cf = 10.0  # 10%
         self.sigo_cw = 1000.  # 10%
         self.sigo_cr = 13.5  # 30%
         self.sigo_cl = 7.0  # 30%
-        self.sigo_cs = 1500. # 30%
-        self.sigo_nee = 0.71  # gCm-2day-1
+        self.sigo_cs = 1500.  # 30%
+        self.sigo_nee = 0.71  # g C m-2 day-1
+        self.sigo_nee_day = 0.71
+        self.sigo_nee_night = 0.71
         self.sigo_lf = 0.5
         self.sigo_lw = 0.5
         self.sigo_litresp = 0.5
@@ -118,31 +189,56 @@ class DalecData():
         self.sigo_rtot = 0.71
         self.sigo_rh = 0.6
 
-        self.errdict = {'clab': self.sigo_clab, 'cf': self.sigo_cf,
-                        'cw': self.sigo_cw, 'cl': self.sigo_cl, 'cr': self.sigo_cr,
-                        'cs': self.sigo_cs, 'nee': self.sigo_nee,
-                        'lf': self.sigo_lf, 'lw': self.sigo_lw,
-                        'litresp': self.sigo_litresp,
-                        'soilresp': self.sigo_soilresp,
-                        'rtot': self.sigo_rtot,
-                        'rh': self.sigo_rh}
+        self.error_dict = {'clab': self.sigo_clab, 'cf': self.sigo_cf, 'cw': self.sigo_cw,
+                         'cl': self.sigo_cl, 'cr': self.sigo_cr, 'cs': self.sigo_cs,
+                         'nee': self.sigo_nee, 'nee_day': self.sigo_nee_day, 'nee_night': self.sigo_nee_night,
+                         'lf': self.sigo_lf, 'lw': self.sigo_lw, 'litresp': self.sigo_litresp,
+                         'soilresp': self.sigo_soilresp, 'rtot': self.sigo_rtot, 'rh': self.sigo_rh}
 
-    def extract_data(self):
-        data_set = Nc.Dataset(self.filename, 'a')
+        # Extract observations for assimilation
+        self.ob_dict, self.ob_err_dict = self.assimilation_obs(ob_str)
 
-        # 'Daily temperatures degC'
-        self.t_mean = self.fluxdata['t_mean']
-        self.t_max = self.fluxdata['t_max']
-        self.t_min = self.fluxdata['t_min']
-        self.t_range = np.array(self.t_max) - np.array(self.t_min)
+    def assimilation_obs(self, obs_str):
+        """ Extracts observations and errors for assimilation into dictionaries
+        :param obs_str: string of observations separated by commas
+        :return: dictionary of observation values, dictionary of corresponding observation errors
+        """
+        possible_obs = ['gpp', 'lf', 'lw', 'rt', 'nee', 'nee_day', 'nee_night', 'cf', 'cl',
+                       'cr', 'cw', 'cs', 'lai', 'clab', 'litresp', 'soilresp',
+                       'rtot', 'rh', 'rabg', 'd_onset', 'groundresp']
+        obs_lst = re.findall(r'[^,;\s]+', obs_str)
+        obs_dict = {}
+        obs_err_dict = {}
+        for ob in obs_lst:
+            if ob not in possible_obs:
+                raise Exception('Invalid observations entered, please check \
+                                 function input')
+            else:
+                obs = self.data.variables[ob][self.start_idx:self.end_idx:48, 0, 0]
+                obs_dict[ob] = obs
+                obs_err_dict[ob] = (obs/obs) * self.error_dict[ob]
 
-        # 'Driving Data'
-        self.I = self.fluxdata['i']  # incident radiation
-        self.ca = 390.0  # atmospheric carbon
-        self.D = self.fluxdata['day']  # day of year
-        self.year = self.fluxdata['year']  # Year
-        self.month = self.fluxdata['month']  # Month
-        self.date = self.fluxdata['date']  # Date in month
+        return obs_dict, obs_err_dict
 
+    def find_date_idx(self, date):
+        """ Finds index in netcdf file for given date
+        :param date: date in format specified in DalecData class
+        :return: date index
+        """
+        if type(date) == int:
+            d_time = dt.datetime(date, 1, 1)
+        elif type(date) == tuple:
+            d_time = dt.datetime(date[0], date[1], date[2])
+        else:
+            raise ValueError('Date wrong format, please check input')
+        times = self.data.variables['time']
+        return nC.date2index(d_time, times)
 
-#class AliceHolt(DalecData):
+    @staticmethod
+    def make_b(b_std):
+        """ Creates diagonal B matrix.
+        :param b_std: array of standard deviations corresponding to each model parameter
+        :return: 23 x 23 diagonal background error covariance matrix
+        """
+        b_mat = b_std**2 * np.eye(23)
+        return b_mat

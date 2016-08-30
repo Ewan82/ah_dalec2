@@ -42,7 +42,7 @@ class DalecModel():
 # ------------------------------------------------------------------------------
 
     @staticmethod
-    def fitpolynomial(ep, multfac):
+    def fit_polynomial(ep, multfac):
         """Polynomial used to find phi_f and phi (offset terms used in
         phi_onset and phi_fall), given an evaluation point for the polynomial
         and a multiplication term.
@@ -50,9 +50,9 @@ class DalecModel():
         cf = [2.359978471e-05, 0.000332730053021, 0.000901865258885,
               -0.005437736864888, -0.020836027517787, 0.126972018064287,
               -0.188459767342504]
-        polyval = cf[0]*ep**6 + cf[1]*ep**5 + cf[2]*ep**4 + cf[3]*ep**3 + cf[4]*ep**2 + \
+        poly_val = cf[0]*ep**6 + cf[1]*ep**5 + cf[2]*ep**4 + cf[3]*ep**3 + cf[4]*ep**2 + \
             cf[5]*ep**1 + cf[6]*ep**0
-        phi = polyval*multfac
+        phi = poly_val*multfac
         return phi
 
     def temp_term(self, Theta):
@@ -98,7 +98,7 @@ class DalecModel():
         """
         releasecoeff = np.sqrt(2.)*cronset / 2.
         magcoeff = (np.log(1.+1e-3) - np.log(1e-3)) / 2.
-        offset = self.fitpolynomial(1+1e-3, releasecoeff)
+        offset = self.fit_polynomial(1+1e-3, releasecoeff)
         phi_onset = (2. / np.sqrt(np.pi))*(magcoeff / releasecoeff) * \
             np.exp(-(np.sin((self.dC.D[self.x] - d_onset + offset) /
                      self.dC.radconv)*(self.dC.radconv / releasecoeff))**2)
@@ -111,7 +111,7 @@ class DalecModel():
         """
         releasecoeff = np.sqrt(2.)*crfall / 2.
         magcoeff = (np.log(clspan) - np.log(clspan - 1.)) / 2.
-        offset = self.fitpolynomial(clspan, releasecoeff)
+        offset = self.fit_polynomial(clspan, releasecoeff)
         phi_fall = (2. / np.sqrt(np.pi))*(magcoeff / releasecoeff) * \
             np.exp(-(np.sin((self.dC.D[self.x] - d_fall + offset) /
                    self.dC.radconv)*self.dC.radconv / releasecoeff)**2)
@@ -443,9 +443,9 @@ class DalecModel():
         yoblist = np.array([])
         yerrlist = np.array([])
         for t in xrange(self.startrun, self.endrun):
-            for ob in self.dC.obdict.iterkeys():
-                if np.isnan(self.dC.obdict[ob][t]) != True:
-                    yoblist = np.append(yoblist, self.dC.obdict[ob][t])
+            for ob in self.dC.ob_dict.iterkeys():
+                if np.isnan(self.dC.ob_dict[ob][t]) != True:
+                    yoblist = np.append(yoblist, self.dC.ob_dict[ob][t])
                     yerrlist = np.append(yerrlist,
                                          self.dC.oberrdict[ob+'_err'][t])
         return yoblist, yerrlist
@@ -458,8 +458,8 @@ class DalecModel():
         hx = np.array([])
         self.x = self.startrun
         for t in xrange(self.startrun, self.endrun):
-            for ob in self.dC.obdict.iterkeys():
-                if np.isnan(self.dC.obdict[ob][t]) != True:
+            for ob in self.dC.ob_dict.iterkeys():
+                if np.isnan(self.dC.ob_dict[ob][t]) != True:
                     hx = np.append(hx,
                                    self.modobdict[ob](pvallist[t-self.startrun]))
             self.x += 1
@@ -485,8 +485,8 @@ class DalecModel():
         self.x = self.startrun
         for t in xrange(self.startrun, self.endrun):
             temp = []
-            for ob in self.dC.obdict.iterkeys():
-                if np.isnan(self.dC.obdict[ob][t]) != True:
+            for ob in self.dC.ob_dict.iterkeys():
+                if np.isnan(self.dC.ob_dict[ob][t]) != True:
                     hx = np.append(hx,
                                    self.modobdict[ob](pvallist[t-self.startrun]))
                     temp.append([self.linob(ob, pvallist[t-self.startrun])])
