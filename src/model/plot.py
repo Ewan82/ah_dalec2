@@ -164,11 +164,10 @@ def plotscatterobs(ob, pvals, dC, awindl, bfa='a'):
     m = mc.DalecModel(dC)
     mod_lst = m.mod_list(pvals)
     obs_lst = m.oblist(ob, mod_lst)
-    y, yerr, ytimestep = m.obscost()
-    hx = m.hxcost(mod_lst)
     y_obs = dC.ob_dict[ob]
     plt_ob_lst = (y_obs/y_obs)*obs_lst
-    one_one = np.arange(int(min(min(y_obs), min(plt_ob_lst)))-1, int(max(max(y_obs), max(plt_ob_lst)))+1)
+    one_one = np.arange(int(min(min(y_obs[np.isnan(y_obs)!=True]), min(plt_ob_lst[np.isnan(y_obs)!=True])))-1,
+                        int(max(max(y_obs[np.isnan(y_obs)!=True]), max(plt_ob_lst[np.isnan(y_obs)!=True])))+1)
     plt.plot(one_one, one_one, color=palette[0])
     if bfa == 'b' or bfa == 'a':
         ax.plot(y_obs[0:awindl], plt_ob_lst[0:awindl], 'o', color=palette[1])
