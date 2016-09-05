@@ -165,7 +165,7 @@ def nc_day_len(is_day, day_len, times, time_lst):
 def nc_night_len(is_day, night_len, times, time_lst):
     """ Finds total daily global radiation from half hourly global radiation data
     :param is_day: half hourly 'is day' netcdf variable with values of 1 day or 0 night
-    :param day_len: empty day length netcdf variable (hours)
+    :param night_len: empty day length netcdf variable (hours)
     :param times: half hourly times as netcdf variable
     :param time_lst: list of daily datetime objects
     :return:
@@ -204,7 +204,7 @@ def nc_night_mean_temp(is_day, hh_temp, mean_t_night, times, time_lst):
     """ Finds total daily global radiation from half hourly global radiation data
     :param is_day: half hourly 'is day' netcdf variable with values of 1 day or 0 night
     :param hh_temp: half hourly temperatures netcdf variable
-    :param mean_t_day: netcdf variable to fill with mean nighttime temperatures
+    :param mean_t_night: netcdf variable to fill with mean nighttime temperatures
     :param times: half hourly times as netcdf variable
     :param time_lst: list of daily datetime objects
     :return:
@@ -273,8 +273,9 @@ def find_indices_year(times, year):
 
 def find_indices_month(time_arr, month, time_units):
     """ Returns the first and last time index for a given month
-    :param times: slice from a netcdf time variable
+    :param time_arr: slice from a netcdf time variable
     :param month: month to find indices for as an integer
+    :param time_units: units for time variable
     :return: first index, final index
     """
     month_entries = [x for x in time_arr if nC.num2date(x, time_units).month == month]
@@ -317,29 +318,47 @@ def quality_control_co2_flux(clipped_co2_flux, qc_co2_flux, nee, idx1, idx2, idx
     :param idx: start of day index
     :return:
     """
+    clip_nee = clipped_co2_flux[idx1:idx2, 0, 0]
+    clip_mean_pos = np.nanmean(clip_nee[clip_nee > 0])
+    clip_std_pos = np.nanstd(clip_nee[clip_nee > 0])
+    clip_mean_neg = np.nanmean(clip_nee[clip_nee < 0])
+    clip_std_neg = np.nanstd(clip_nee[clip_nee < 0])
     fill = 0
-    qc_flag = 0
+    qc_flag1 = 0
+    qc_flag2 = 0
 
     for x in xrange(idx1, idx2):
         if np.isnan(clipped_co2_flux[x, 0, 0]) == True:
             fill += 1
         elif qc_co2_flux[x, 0, 0] == 2:
-            qc_flag += 2
+            if clipped_co2_flux[x, 0, 0] > clip_mean_pos+2*clip_std_pos:
+                qc_flag2 += 1
+            elif clipped_co2_flux[x, 0, 0] < clip_mean_neg-2*clip_std_neg:
+                qc_flag2 += 1
+            else:
+                continue
         elif qc_co2_flux[x, 0, 0] == 1:
-             qc_flag += 1
+            if clipped_co2_flux[x, 0, 0] > clip_mean_pos+2*clip_std_pos:
+                qc_flag1 += 1
+            elif clipped_co2_flux[x, 0, 0] < clip_mean_neg-2*clip_std_neg:
+                qc_flag1 += 1
+            else:
+                continue
         else:
             continue
 
-    if fill > 0.:
+    if fill > 0:
         nee[idx, 0, 0] = float('NaN')
-    elif qc_flag > qc_tol:
+    elif qc_flag2 > 1:
+        nee[idx, 0, 0] = float('NaN')
+    elif qc_flag1 > qc_tol:
         nee[idx, 0, 0] = float('NaN')
     else:
         # u mol m-2 s-1 to g C m-2 day-1 (CHECK what units do we want day/night in?)
         nee[idx, 0, 0] = 12.011*1e-6 * (idx2-idx1)*30*60 * np.mean(clipped_co2_flux[idx1:idx2, 0, 0])
 
 
-def process_co2_flux_daily(clipped_co2_flux, qc_co2_flux, daily_nee, times, time_lst, qc_tol=3):
+def process_co2_flux_daily(clipped_co2_flux, qc_co2_flux, daily_nee, times, time_lst, qc_tol=5):
     """ Produces a daily NEE product
     :param clipped_co2_flux: half hourly clipped co2 flux as netcdf variable
     :param qc_co2_flux: qc flags as nc variable corresponding to half hourly co2 flux
@@ -354,7 +373,7 @@ def process_co2_flux_daily(clipped_co2_flux, qc_co2_flux, daily_nee, times, time
     return 'yay'
 
 
-def process_co2_flux_daytime(clipped_co2_flux, qc_co2_flux, nee_day, is_day, times, time_lst, qc_tol=3):
+def process_co2_flux_daytime(clipped_co2_flux, qc_co2_flux, nee_day, is_day, times, time_lst, qc_tol=4):
     """ Produces a daytime NEE product
     :param clipped_co2_flux: half hourly clipped co2 flux as netcdf variable
     :param qc_co2_flux: qc flags as nc variable corresponding to half hourly co2 flux
@@ -375,7 +394,7 @@ def process_co2_flux_nighttime(clipped_co2_flux, qc_co2_flux, nee_night, is_day,
     """ Produces a nighttime NEE product
     :param clipped_co2_flux: half hourly clipped co2 flux as netcdf variable
     :param qc_co2_flux: qc flags as nc variable corresponding to half hourly co2 flux
-    :param nee_day: nc variable to fill with processed data
+    :param nee_night: nc variable to fill with processed data
     :param times: half hourly times as netcdf variable
     :param time_lst: list of daily datetime objects
     :return:

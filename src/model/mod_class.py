@@ -893,7 +893,7 @@ class DalecModel():
 # ------------------------------------------------------------------------------
 
     def find_min_tnc(self, pvals, bnds='strict', dispp=None, maxits=2000,
-                   mini=0, f_tol=-1):
+                     mini=0, f_tol=-1):
         """Function which minimizes 4DVAR cost fn. Takes an initial state
         (pvals).
         """
@@ -907,8 +907,8 @@ class DalecModel():
                                 disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         return find_min
 
-    def find_min_tnc_cvt(self, pvals, bnds='strict', dispp=5, maxits=1000,
-                   mini=0, f_tol=1e-4):
+    def find_min_tnc_cvt(self, pvals, f_name, bnds='strict', dispp=5, maxits=1000,
+                         mini=0, f_tol=1e-4):
         """Function which minimizes 4DVAR cost fn. Takes an initial state
         (pvals).
         """
@@ -922,6 +922,7 @@ class DalecModel():
                                 fprime=self.gradcost_cvt, bounds=bnds,
                                 disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         xa = self.zvals2pvals(find_min[0])
+        self.pickle_exp(pvals, find_min, xa, f_name)
         return find_min, xa
 
     def findminglob(self, pvals, meth='TNC', bnds='strict', it=300,
@@ -1100,3 +1101,30 @@ class DalecModel():
                 tick -= 1
         if tick != 0:
             return np.inf
+
+
+# ------------------------------------------------------------------------------
+# Misc
+# ------------------------------------------------------------------------------
+
+    def pickle_obs(self, f_name):
+        obs = {}
+        obs['obs'] = self.dC.ob_dict
+        obs['obs_err'] = self.dC.ob_err_dict
+        f = open('obs_exps/'+f_name, 'w')
+        pickle.dump(obs, f)
+        f.close()
+        return 'Observations and error dictionaries pickled!'
+
+    def pickle_exp(self, xb, assim_res, xa, f_name):
+        exp = {}
+        exp['obs'] = self.dC.ob_dict
+        exp['obs_err'] = self.dC.ob_err_dict
+        exp['b_mat'] = self.dC.B
+        exp['xb'] = xb
+        exp['assim_res'] = assim_res
+        exp['xa'] = xa
+        f = open(f_name, 'w')
+        pickle.dump(exp, f)
+        f.close()
+        return 'Experiment assimilation results pickled!'

@@ -1,6 +1,8 @@
 import numpy as np
 import collections as col
 import re
+import random
+import mod_class as mc
 import netCDF4 as nC
 import datetime as dt
 
@@ -9,24 +11,24 @@ class DalecData:
     """
     Data class for the DALEC2 model
     """
-    def __init__(self, start_date=None, end_date=None, ob_str=None, delta_t=None, k=None):
+    def __init__(self, start_date=None, end_date=None, ob_str=None, nc_file='../../alice_holt_data/ah_data.nc',
+                 delta_t=None, k=None):
         """ Extracts data from netcdf file
         :param start_date: date for model runs to begin as an integer (year) or tuple (year, month, day)
         :param end_date: date for model runs to end as an integer (year) or tuple (year, month, day)
         :param ob_str: string containing observations that will be assimilated
+        :param nc_file: location of netcdf file to extract data from
         :param delta_t: time step for model (this functionality has not been added yet)
         :param k: int if you want to repeat data multiple times
         :return:
         """
         # Extract the data
-        self.obs_str = ob_str
-        self.data = nC.Dataset('../../alice_holt_data/ah_data.nc', 'r')
-        self.time_units = self.data.variables['time'].units
+        data = nC.Dataset(nc_file, 'r')
+        self.time_units = data.variables['time'].units
+        self.start_idx = self.find_date_idx(start_date, data)
+        self.end_idx = self.find_date_idx(end_date, data)
+        self.dates = nC.num2date(data.variables['time'][self.start_idx:self.end_idx:48], self.time_units)
         self.k = k
-        self.start_idx = self.find_date_idx(start_date)
-        self.end_idx = self.find_date_idx(end_date)
-        self.dates = nC.num2date(self.data.variables['time'][self.start_idx:self.end_idx:48], self.time_units)
-
         self.len_run = len(self.dates)
         self.time_step = np.arange(self.len_run)
 
@@ -129,19 +131,19 @@ class DalecData:
         self.xa = None
 
         # 'Daily temperatures degC'
-        self.t_mean = self.data.variables['daily_mean_temp'][self.start_idx:self.end_idx:48, 0, 0]
-        self.t_max = self.data.variables['daily_max_temp'][self.start_idx:self.end_idx:48, 0, 0]
-        self.t_min = self.data.variables['daily_min_temp'][self.start_idx:self.end_idx:48, 0, 0]
+        self.t_mean = data.variables['daily_mean_temp'][self.start_idx:self.end_idx:48, 0, 0]
+        self.t_max = data.variables['daily_max_temp'][self.start_idx:self.end_idx:48, 0, 0]
+        self.t_min = data.variables['daily_min_temp'][self.start_idx:self.end_idx:48, 0, 0]
         self.t_range = np.array(self.t_max) - np.array(self.t_min)
-        self.t_day = self.data.variables['mean_temp_day'][self.start_idx:self.end_idx:48, 0, 0]
-        self.t_night = self.data.variables['mean_temp_night'][self.start_idx:self.end_idx:48, 0, 0]
+        self.t_day = data.variables['mean_temp_day'][self.start_idx:self.end_idx:48, 0, 0]
+        self.t_night = data.variables['mean_temp_night'][self.start_idx:self.end_idx:48, 0, 0]
 
         # 'Driving Data'
-        self.I = self.data.variables['rg_day'][self.start_idx:self.end_idx:48, 0, 0]  # incident radiation
+        self.I = data.variables['rg_day'][self.start_idx:self.end_idx:48, 0, 0]  # incident radiation
         self.ca = 390.0  # atmospheric carbon
-        self.D = self.data.variables['doy'][self.start_idx:self.end_idx:48]  # day of year
-        self.day_len = self.data.variables['day_length'][self.start_idx:self.end_idx:48, 0, 0]
-        self.night_len = self.data.variables['night_length'][self.start_idx:self.end_idx:48, 0, 0]
+        self.D = data.variables['doy'][self.start_idx:self.end_idx:48]  # day of year
+        self.day_len = data.variables['day_length'][self.start_idx:self.end_idx:48, 0, 0]
+        self.night_len = data.variables['night_length'][self.start_idx:self.end_idx:48, 0, 0]
         self.year = np.array([date.year for date in self.dates])  # year
         self.month = np.array([date.month for date in self.dates])  # month
         self.date = np.array([date.day for date in self.dates])  # date in month
@@ -168,7 +170,7 @@ class DalecData:
         self.sigb_clab = 7.5  # 20%
         self.sigb_cf = 10.0  # 20%
         self.sigb_cw = 1000.  # 20%
-        self.sigb_cr = 13.5 # 20%
+        self.sigb_cr = 13.5  # 20%
         self.sigb_cl = 7.0  # 20%
         self.sigb_cs = 1500.  # 20%
 
@@ -190,23 +192,24 @@ class DalecData:
         self.sigo_rh = 0.6
 
         self.error_dict = {'clab': self.sigo_clab, 'cf': self.sigo_cf, 'cw': self.sigo_cw,
-                         'cl': self.sigo_cl, 'cr': self.sigo_cr, 'cs': self.sigo_cs,
-                         'nee': self.sigo_nee, 'nee_day': self.sigo_nee_day, 'nee_night': self.sigo_nee_night,
-                         'lf': self.sigo_lf, 'lw': self.sigo_lw, 'litresp': self.sigo_litresp,
-                         'soilresp': self.sigo_soilresp, 'rtot': self.sigo_rtot, 'rh': self.sigo_rh}
+                           'cl': self.sigo_cl, 'cr': self.sigo_cr, 'cs': self.sigo_cs,
+                           'nee': self.sigo_nee, 'nee_day': self.sigo_nee_day, 'nee_night': self.sigo_nee_night,
+                           'lf': self.sigo_lf, 'lw': self.sigo_lw, 'litresp': self.sigo_litresp,
+                           'soilresp': self.sigo_soilresp, 'rtot': self.sigo_rtot, 'rh': self.sigo_rh}
 
         # Extract observations for assimilation
-        self.ob_dict, self.ob_err_dict = self.assimilation_obs(ob_str)
+        self.ob_dict, self.ob_err_dict = self.assimilation_obs(ob_str, data)
+        data.close()
 
-    def assimilation_obs(self, obs_str):
+    def assimilation_obs(self, ob_str, data):
         """ Extracts observations and errors for assimilation into dictionaries
         :param obs_str: string of observations separated by commas
         :return: dictionary of observation values, dictionary of corresponding observation errors
         """
         possible_obs = ['gpp', 'lf', 'lw', 'rt', 'nee', 'nee_day', 'nee_night', 'cf', 'cl',
-                       'cr', 'cw', 'cs', 'lai', 'clab', 'litresp', 'soilresp',
-                       'rtot', 'rh', 'rabg', 'd_onset', 'groundresp']
-        obs_lst = re.findall(r'[^,;\s]+', obs_str)
+                        'cr', 'cw', 'cs', 'lai', 'clab', 'litresp', 'soilresp',
+                        'rtot', 'rh', 'rabg', 'd_onset', 'groundresp']
+        obs_lst = re.findall(r'[^,;\s]+', ob_str)
         obs_dict = {}
         obs_err_dict = {}
         for ob in obs_lst:
@@ -214,13 +217,14 @@ class DalecData:
                 raise Exception('Invalid observations entered, please check \
                                  function input')
             else:
-                obs = self.data.variables[ob][self.start_idx:self.end_idx:48, 0, 0]
+                obs = data.variables[ob][self.start_idx:self.end_idx:48, 0, 0]
                 obs_dict[ob] = obs
                 obs_err_dict[ob] = (obs/obs) * self.error_dict[ob]
 
         return obs_dict, obs_err_dict
 
-    def find_date_idx(self, date):
+    @staticmethod
+    def find_date_idx(date, data):
         """ Finds index in netcdf file for given date
         :param date: date in format specified in DalecData class
         :return: date index
@@ -231,7 +235,7 @@ class DalecData:
             d_time = dt.datetime(date[0], date[1], date[2])
         else:
             raise ValueError('Date wrong format, please check input')
-        times = self.data.variables['time']
+        times = data.variables['time']
         return nC.date2index(d_time, times)
 
     @staticmethod
@@ -242,3 +246,87 @@ class DalecData:
         """
         b_mat = b_std**2 * np.eye(23)
         return b_mat
+
+
+class DalecDataTwin(DalecData):
+    def __init__(self, start_date, end_date, ob_str, nc_file='../../alice_holt_data/ah_data.nc'):
+        DalecData.__init__(self, start_date, end_date, ob_str, nc_file)
+
+        # self.d = DalecData(start_date, end_date, ob_str, nc_file)
+        self.m = mc.DalecModel(self)
+
+        # Define truth and background
+        self.x_truth = self.edinburgh_median
+        self.st_dev = 0.10*self.x_truth
+        # self.xb = self.random_pert(self.random_pert(self.x_truth))
+        self.xb = np.array([2.54302631e-04,   5.28092966e-01,   6.93346669e-02,
+                            4.39740114e-01,   1.39293033e+00,   5.09221918e-05,
+                            2.33549455e-03,   2.23187096e-03,   7.89451928e-05,
+                            3.13186226e-02,   8.71869621e+01,   1.04892449e+02,
+                            2.59341363e-01,   4.43728075e+01,   2.06328337e+02,
+                            9.27858949e+01,   1.06152191e+02,   1.23028740e+02,
+                            5.81783183e+01,   1.60753788e+02,   3.80699853e+03,
+                            4.52174716e+02,   1.27395426e+03])
+        # Extract observations for assimilation
+        self.ob_dict, self.ob_err_dict = self.create_twin_data(ob_str)
+
+    def create_twin_data(self, ob_str, err_scale=0.25):
+        """ Creates a set of twin modelled observations corresponding to the same positions as the true observations
+        :param ob_str: str of observations
+        :param err_scale: factor by which to scale observation error and added gaussian noise
+        :return: observation dictionary, observation error dictionary
+        """
+        possible_obs = ['gpp', 'lf', 'lw', 'rt', 'nee', 'nee_day', 'nee_night', 'cf', 'cl',
+                        'cr', 'cw', 'cs', 'lai', 'clab', 'litresp', 'soilresp',
+                        'rtot', 'rh', 'rabg', 'd_onset', 'groundresp']
+        obs_lst = re.findall(r'[^,;\s]+', ob_str)
+        obs_dict = {}
+        obs_err_dict = {}
+        mod_lst = self.m.mod_list(self.x_truth)
+        for ob in obs_lst:
+            if ob not in possible_obs:
+                raise Exception('Invalid observations entered, please check \
+                                 function input')
+            else:
+                obs = self.ob_dict[ob]  # actual observations
+                mod_obs = (obs/obs) * self.m.oblist(ob, mod_lst)  # modelled observation corresponding to same
+                # position as actual obs
+                # adding error to modelled observations
+                mod_ob_assim = np.array([mod_ob + random.gauss(0, err_scale*self.error_dict[ob])
+                                         for mod_ob in mod_obs])
+                obs_dict[ob] = mod_ob_assim
+                obs_err_dict[ob] = err_scale*self.ob_err_dict[ob]
+        return obs_dict, obs_err_dict
+
+    def random_pert(self, pvals):
+        """ Perturbs parameter values with given standard deviation
+        :param pvals: parameter values to perturb
+        :return: perturbed parameters
+        """
+        pval_approx = np.ones(23)*-9999.
+        x = 0
+        for p in pvals:
+            pval_approx[x] = p + random.gauss(0, self.st_dev[x])
+            if self.bnds[x][1] < pval_approx[x]:
+                pval_approx[x] = self.bnds[x][1] - abs(random.gauss(0, self.bnds[x][1]*0.001))
+            elif self.bnds[x][0] > pval_approx[x]:
+                pval_approx[x] = self.bnds[x][0] + abs(random.gauss(0, self.bnds[x][0]*0.001))
+            x += 1
+
+        return pval_approx
+
+    def test_pvals(self, pvals):
+        """ Test if a parameter set falls within the bounds or not
+        :param pvals: parameter values to test
+        :return:
+        """
+        x = 0
+        for bnd in self.bnds:
+            if bnd[0] < pvals[x] < bnd[1]:
+                print '%x in bnds' %x
+            else:
+                print '%x not in bnds' %x
+            x += 1
+        return pvals
+
+

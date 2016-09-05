@@ -2,8 +2,10 @@
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import model2 as mc
-
+import matplotlib
+import matplotlib.mlab as mlab
+import matplotlib.gridspec as gridspec
+import mod_class as mc
 import seaborn as sns
 
 # ------------------------------------------------------------------------------
@@ -166,8 +168,8 @@ def plotscatterobs(ob, pvals, dC, awindl, bfa='a'):
     obs_lst = m.oblist(ob, mod_lst)
     y_obs = dC.ob_dict[ob]
     plt_ob_lst = (y_obs/y_obs)*obs_lst
-    one_one = np.arange(int(min(min(y_obs[np.isnan(y_obs)!=True]), min(plt_ob_lst[np.isnan(y_obs)!=True])))-1,
-                        int(max(max(y_obs[np.isnan(y_obs)!=True]), max(plt_ob_lst[np.isnan(y_obs)!=True])))+1)
+    one_one = np.arange(int(min(min(y_obs[np.isnan(y_obs) != True]), min(plt_ob_lst[np.isnan(y_obs) != True]))),
+                        int(max(max(y_obs[np.isnan(y_obs) != True]), max(plt_ob_lst[np.isnan(y_obs) != True]))))
     plt.plot(one_one, one_one, color=palette[0])
     if bfa == 'b' or bfa == 'a':
         ax.plot(y_obs[0:awindl], plt_ob_lst[0:awindl], 'o', color=palette[1])
@@ -187,6 +189,118 @@ def plotscatterobs(ob, pvals, dC, awindl, bfa='a'):
     #plt.ylim((-20, 15))
     return ax, fig
 
+
+def plottwinerr(truth, xb, xa):
+    """Plot error between truth and xa/xb shows as a bar chart.
+    """
+    sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth':1, 'lines.markersize':10})
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15,5))
+    sns.set_style('ticks')
+    n = 23
+    width = 0.35
+    ind = np.arange(n)
+    rects1 = ax.bar(ind, 100*abs(truth-xb)/xb, width, color=sns.xkcd_rgb["faded green"], label='xb_err')
+    rects2 = ax.bar(ind+width, 100*abs(truth-xa)/xa, width, color=sns.xkcd_rgb["pale red"], llabel='xa_err')
+    ax.set_ylabel('% error')
+    ax.set_title('% error in parameter values for xa and xb')
+    ax.set_xticks(ind+width)
+    keys = ['theta_min', 'f_auto', 'f_fol', 'f_roo', 'clspan', 'theta_woo',
+            'theta_roo', 'theta_lit', 'theta_som', 'Theta', 'ceff', 'd_onset',
+            'f_lab', 'cronset', 'd_fall', 'crfall', 'clma', 'clab', 'cf', 'cr',
+            'cw', 'cl', 'cs']
+    ax.set_xticklabels(keys, rotation=90)
+    ax.legend()
+    plt.show()
+
+
+def plot_a_inc_all(xb, xadiag, xaedc, xarcor, xaedcrcor):
+    """Plot error between truth and xa/xb shows as a bar chart.
+    """
+    sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth':1, 'lines.markersize':10})
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15,5))
+    sns.set_style('ticks')
+    n = 23
+    width = 0.22
+    ind = np.arange(n)
+    #fig = plt.figure()
+    #ax = fig.add_subplot(111)
+    rects1 = ax.bar(ind, (xadiag-xb)/xb, width, color=sns.xkcd_rgb["faded green"],
+                    label='A')
+    rects2 = ax.bar(ind+width, (xaedc-xb)/xb, width, color=sns.xkcd_rgb["pale red"],
+                    label='B')
+    rects3 = ax.bar(ind+width*2, (xarcor-xb)/xb, width, color=sns.xkcd_rgb["dusty purple"],
+                    label='C')
+    rects4 = ax.bar(ind+width*3, (xaedcrcor-xb)/xb, width, color=sns.xkcd_rgb["amber"],
+                    label='D')
+    ax.set_ylabel('Normalised analysis increment')
+    #ax.set_title('% error in parameter values for xa and xb')
+    ax.set_xticks(ind+width*2)
+    keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
+            r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
+            r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
+            r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
+    ax.set_xticklabels(keys, rotation=90)
+    ax.legend()
+    return ax, fig
+
+
+def plot_gaussian_dist(mu, sigma, bounds, xt=None, axx=None):
+    """
+    Plots a Gausian
+    :param mu: mean
+    :param sigma: standard deviation
+    :param bounds: paramter range
+    :param truth: optional truth value
+    :param axx: optional axes
+    :return: plot
+    """
+    points = np.linspace(bounds[0], bounds[1], 10000)
+
+    if axx == None:
+        if type(mu) is list:
+            for m in len(mu):
+                plt.plot(points, mlab.normpdf(points, mu[m], sigma[m]))
+        else:
+            plt.plot(points, mlab.normpdf(points, mu, sigma))
+        plt.axvline(xt, linestyle='--', linewidth=50, ms=10)
+    else:
+        if type(mu) is list:
+            for m in len(mu):
+                axx.plot(points, mlab.normpdf(points, mu[m], sigma[m]))
+        else:
+            axx.plot(points, mlab.normpdf(points, mu, sigma))
+        axx.axvline(xt, linestyle='--')
+        return axx
+
+
+def plot_many_guassian(mulst, siglst, bndlst, mulst2=None, siglst2=None, truth=None):
+    matplotlib.rcParams.update({'figure.autolayout': True})
+    sns.set_context('paper')
+    sns.set_style('ticks')
+    # define the figure size and grid layout properties
+    figsize = (15, 10)
+    cols = 5
+    gs = gridspec.GridSpec(len(mulst) // cols + 1, cols)
+
+    # plot each markevery case for linear x and y scales
+    fig1 = plt.figure(num=1, figsize=figsize)
+    ax = []
+    keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
+            r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
+            r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_f$',
+            r'$C_r$', r'$C_w$', r'$C_l$', r'$C_s$']
+    for i, case in enumerate(keys):
+        row = (i // cols)
+        col = i % cols
+        ax.append(fig1.add_subplot(gs[row, col]))
+        ax[-1].set_title(case)
+        if truth is not None:
+            plot_gaussian_dist(mulst[i], siglst[i], bndlst[i], axx=ax[-1], xt=truth[i])
+        else:
+            plot_gaussian_dist(mulst[i], siglst[i], bndlst[i], axx=ax[-1])
+        ax[-1].set_xlim((bndlst[i][0], bndlst[i][1]))
+        if mulst2 is not None:
+            plot_gaussian_dist(mulst2[i], siglst2[i], bndlst[i], axx=ax[-1])
 
 
 
