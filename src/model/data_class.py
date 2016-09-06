@@ -258,15 +258,16 @@ class DalecDataTwin(DalecData):
         # Define truth and background
         self.x_truth = self.edinburgh_median
         self.st_dev = 0.10*self.x_truth
+        self.B = self.make_b(self.st_dev)
         # self.xb = self.random_pert(self.random_pert(self.x_truth))
-        self.xb = np.array([2.54302631e-04,   5.28092966e-01,   6.93346669e-02,
-                            4.39740114e-01,   1.39293033e+00,   5.09221918e-05,
-                            2.33549455e-03,   2.23187096e-03,   7.89451928e-05,
-                            3.13186226e-02,   8.71869621e+01,   1.04892449e+02,
-                            2.59341363e-01,   4.43728075e+01,   2.06328337e+02,
-                            9.27858949e+01,   1.06152191e+02,   1.23028740e+02,
-                            5.81783183e+01,   1.60753788e+02,   3.80699853e+03,
-                            4.52174716e+02,   1.27395426e+03])
+        self.xb = np.array([2.53533992e-04,   5.85073161e-01,   7.43127332e-02,
+                            4.99707798e-01,   1.38993876e+00,   6.11913792e-05,
+                            2.58484324e-03,   2.79379720e-03,   8.72422101e-05,
+                            4.35144260e-02,   8.73669864e+01,   1.29813051e+02,
+                            3.87867223e-01,   4.69894281e+01,   2.78080852e+02,
+                            9.15080347e+01,   1.36269157e+02,   1.44176657e+02,
+                            6.71153814e+01,   2.42199267e+02,   4.96249386e+03,
+                            4.15128028e+02,   1.90797697e+03])
         # Extract observations for assimilation
         self.ob_dict, self.ob_err_dict = self.create_twin_data(ob_str)
 
@@ -311,8 +312,32 @@ class DalecDataTwin(DalecData):
                 pval_approx[x] = self.bnds[x][1] - abs(random.gauss(0, self.bnds[x][1]*0.001))
             elif self.bnds[x][0] > pval_approx[x]:
                 pval_approx[x] = self.bnds[x][0] + abs(random.gauss(0, self.bnds[x][0]*0.001))
+
             x += 1
 
+        return pval_approx
+
+    def random_pert_uniform(self, pvals):
+        """ Perturbs parameter values with given standard deviation
+        :param pvals: parameter values to perturb
+        :return: perturbed parameters
+        """
+        pval_approx = np.ones(23)*-9999.
+        xt = self.x_truth
+        x = 0
+        for p in pvals:
+            pval_approx[x] = p + random.uniform(-0.1*xt[x], 0.1*xt[x])
+            if 0.3 < abs(pval_approx[x] - self.x_truth[x])/self.x_truth[x]:
+                while 0.3 < abs(pval_approx[x] - self.x_truth[x])/self.x_truth[x]:
+                    pval_approx[x] = pval_approx[x] - abs(random.uniform(-0.1*xt[x], 0.1*xt[x]))
+            if abs(pval_approx[x] - self.x_truth[x])/self.x_truth[x] < 0.12:
+                while abs(pval_approx[x] - self.x_truth[x])/self.x_truth[x] < 0.12:
+                    pval_approx[x] = pval_approx[x] + abs(random.uniform(-0.1*xt[x], 0.1*xt[x]))
+            if self.bnds[x][1] < pval_approx[x]:
+                pval_approx[x] = self.bnds[x][1] - abs(random.gauss(0, self.bnds[x][1]*0.001))
+            elif self.bnds[x][0] > pval_approx[x]:
+                pval_approx[x] = self.bnds[x][0] + abs(random.gauss(0, self.bnds[x][0]*0.001))
+            x += 1
         return pval_approx
 
     def test_pvals(self, pvals):

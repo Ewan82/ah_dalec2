@@ -193,14 +193,14 @@ def plotscatterobs(ob, pvals, dC, awindl, bfa='a'):
 def plottwinerr(truth, xb, xa):
     """Plot error between truth and xa/xb shows as a bar chart.
     """
-    sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth':1, 'lines.markersize':10})
+    sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth': 1, 'lines.markersize': 10})
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15,5))
     sns.set_style('ticks')
     n = 23
     width = 0.35
     ind = np.arange(n)
-    rects1 = ax.bar(ind, 100*abs(truth-xb)/xb, width, color=sns.xkcd_rgb["faded green"], label='xb_err')
-    rects2 = ax.bar(ind+width, 100*abs(truth-xa)/xa, width, color=sns.xkcd_rgb["pale red"], llabel='xa_err')
+    rects1 = ax.bar(ind, 100*abs(truth-xb)/truth, width, color=sns.xkcd_rgb["faded green"], label='xb_err')
+    rects2 = ax.bar(ind+width, 100*abs(truth-xa)/truth, width, color=sns.xkcd_rgb["pale red"], label='xa_err')
     ax.set_ylabel('% error')
     ax.set_title('% error in parameter values for xa and xb')
     ax.set_xticks(ind+width)
