@@ -5,6 +5,7 @@ import random
 import mod_class as mc
 import netCDF4 as nC
 import datetime as dt
+import pickle
 
 
 class DalecData:
@@ -258,7 +259,12 @@ class DalecDataTwin(DalecData):
         # Define truth and background
         self.x_truth = self.edinburgh_median
         self.st_dev = 0.10*self.x_truth
-        self.B = self.make_b(self.st_dev)
+        # self.B = self.make_b(self.st_dev)
+
+        # Make EDC B
+        b_cor = pickle.load(open('b_edc_cor.p', 'r'))
+        b_std = self.make_b(np.sqrt(self.st_dev))
+        self.B = np.dot(np.dot(b_std, b_cor), b_std)
         # self.xb = self.random_pert(self.random_pert(self.x_truth))
         self.xb = np.array([2.53533992e-04,   5.85073161e-01,   7.43127332e-02,
                             4.99707798e-01,   1.38993876e+00,   6.11913792e-05,

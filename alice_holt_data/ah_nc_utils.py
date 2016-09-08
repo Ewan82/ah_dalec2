@@ -309,11 +309,12 @@ def clip_co2_flux_wrapper(co2_flux, clipped_co2_flux, times):
     return 'yay'
 
 
-def quality_control_co2_flux(clipped_co2_flux, qc_co2_flux, nee, idx1, idx2, idx, qc_tol=3):
+def quality_control_co2_flux(clipped_co2_flux, qc_co2_flux, nee, nee_std, idx1, idx2, idx, qc_tol=3):
     """ Quality controls flux data and processes it to daily or half daily
     :param clipped_co2_flux: half hourly clipped co2 flux as netcdf variable
     :param qc_co2_flux: qc flags as nc variable corresponding to half hourly co2 flux
     :param nee: nc variable to fill with processed data
+    :param nee: nc variable to fill with processed data standard deviation
     :param idx1: start index to being quality control and data averaging
     :param idx: start of day index
     :return:
@@ -331,16 +332,16 @@ def quality_control_co2_flux(clipped_co2_flux, qc_co2_flux, nee, idx1, idx2, idx
         if np.isnan(clipped_co2_flux[x, 0, 0]) == True:
             fill += 1
         elif qc_co2_flux[x, 0, 0] == 2:
-            if clipped_co2_flux[x, 0, 0] > clip_mean_pos+2*clip_std_pos:
+            if clipped_co2_flux[x, 0, 0] > clip_mean_pos + 3*clip_std_pos:
                 qc_flag2 += 1
-            elif clipped_co2_flux[x, 0, 0] < clip_mean_neg-2*clip_std_neg:
+            elif clipped_co2_flux[x, 0, 0] < clip_mean_neg - 3*clip_std_neg:
                 qc_flag2 += 1
             else:
                 continue
         elif qc_co2_flux[x, 0, 0] == 1:
-            if clipped_co2_flux[x, 0, 0] > clip_mean_pos+2*clip_std_pos:
+            if clipped_co2_flux[x, 0, 0] > clip_mean_pos + 3*clip_std_pos:
                 qc_flag1 += 1
-            elif clipped_co2_flux[x, 0, 0] < clip_mean_neg-2*clip_std_neg:
+            elif clipped_co2_flux[x, 0, 0] < clip_mean_neg - 3*clip_std_neg:
                 qc_flag1 += 1
             else:
                 continue
@@ -356,28 +357,31 @@ def quality_control_co2_flux(clipped_co2_flux, qc_co2_flux, nee, idx1, idx2, idx
     else:
         # u mol m-2 s-1 to g C m-2 day-1 (CHECK what units do we want day/night in?)
         nee[idx, 0, 0] = 12.011*1e-6 * (idx2-idx1)*30*60 * np.mean(clipped_co2_flux[idx1:idx2, 0, 0])
+        nee_std[idx, 0, 0] = 12.011*1e-6 * (idx2-idx1)*30*60 * np.std(clipped_co2_flux[idx1:idx2, 0, 0])
 
 
-def process_co2_flux_daily(clipped_co2_flux, qc_co2_flux, daily_nee, times, time_lst, qc_tol=5):
+def process_co2_flux_daily(clipped_co2_flux, qc_co2_flux, daily_nee, daily_nee_std, times, time_lst, qc_tol=5):
     """ Produces a daily NEE product
     :param clipped_co2_flux: half hourly clipped co2 flux as netcdf variable
     :param qc_co2_flux: qc flags as nc variable corresponding to half hourly co2 flux
     :param daily_nee: nc variable to fill with processed data
+    :param daily_nee: nc variable to fill with processed data standard deviation
     :param times: half hourly times as netcdf variable
     :param time_lst: list of daily datetime objects
     :return:
     """
     for t in time_lst:
         idx = nC.date2index(t, times)
-        quality_control_co2_flux(clipped_co2_flux, qc_co2_flux, daily_nee, idx, idx+48, idx, qc_tol)
+        quality_control_co2_flux(clipped_co2_flux, qc_co2_flux, daily_nee, daily_nee_std, idx, idx+48, idx, qc_tol)
     return 'yay'
 
 
-def process_co2_flux_daytime(clipped_co2_flux, qc_co2_flux, nee_day, is_day, times, time_lst, qc_tol=4):
+def process_co2_flux_daytime(clipped_co2_flux, qc_co2_flux, nee_day, nee_day_std, is_day, times, time_lst, qc_tol=4):
     """ Produces a daytime NEE product
     :param clipped_co2_flux: half hourly clipped co2 flux as netcdf variable
     :param qc_co2_flux: qc flags as nc variable corresponding to half hourly co2 flux
     :param nee_day: nc variable to fill with processed data
+    :param nee_day: nc variable to fill with processed data standard deviation
     :param times: half hourly times as netcdf variable
     :param time_lst: list of daily datetime objects
     :return:
@@ -385,16 +389,18 @@ def process_co2_flux_daytime(clipped_co2_flux, qc_co2_flux, nee_day, is_day, tim
     for t in time_lst:
         idx = nC.date2index(t, times)
         where_day = np.where(is_day[idx:idx+48, 0, 0] == 1)[0]
-        quality_control_co2_flux(clipped_co2_flux, qc_co2_flux, nee_day, idx+where_day[0], idx+where_day[-1],
-                                 idx, qc_tol)
+        quality_control_co2_flux(clipped_co2_flux, qc_co2_flux, nee_day, nee_day_std, idx+where_day[0],
+                                 idx+where_day[-1], idx, qc_tol)
     return 'yay'
 
 
-def process_co2_flux_nighttime(clipped_co2_flux, qc_co2_flux, nee_night, is_day, times, time_lst, qc_tol=1):
+def process_co2_flux_nighttime(clipped_co2_flux, qc_co2_flux, nee_night, nee_night_std, is_day, times, time_lst,
+                               qc_tol=1):
     """ Produces a nighttime NEE product
     :param clipped_co2_flux: half hourly clipped co2 flux as netcdf variable
     :param qc_co2_flux: qc flags as nc variable corresponding to half hourly co2 flux
     :param nee_night: nc variable to fill with processed data
+    :param nee_night_std: nc variable to fill with processed data standard deviation
     :param times: half hourly times as netcdf variable
     :param time_lst: list of daily datetime objects
     :return:
@@ -412,7 +418,8 @@ def process_co2_flux_nighttime(clipped_co2_flux, qc_co2_flux, nee_night, is_day,
             nee_night[idx, 0, 0] = float('NaN')
             break
         else:
-            quality_control_co2_flux(clipped_co2_flux, qc_co2_flux, nee_night, night_idx1, night_idx2-1, idx, qc_tol)
+            quality_control_co2_flux(clipped_co2_flux, qc_co2_flux, nee_night, nee_night_std, night_idx1, night_idx2-1,
+                                     idx, qc_tol)
             if nee_night[idx, 0, 0] < 0.5:
                 nee_night[idx, 0, 0] = float('NaN')
             else:

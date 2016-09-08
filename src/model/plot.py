@@ -12,18 +12,6 @@ import seaborn as sns
 # Plot observation time series
 # ------------------------------------------------------------------------------
 
-def plotgpp(cf, dC, start, fin):
-    """Plots gpp using acm equations given a cf value, a dataClass and a start
-    and finish point. NOTE cf is treated as constant in this plot
-    (unrealistic).
-    """
-    xlist = np.arange(start, fin, 1)
-    gpp = np.ones(fin - start)*-9999.
-    for x in xrange(start, fin):
-        gpp[x-start] = mc.acm(cf, dC.p17, dC.p11, dC, x)
-    plt.plot(xlist, gpp)
-    plt.show()
-
 
 def plotphi(onoff, pvals, dC, start, fin):
     """Plots phi using phi equations given a string "fall" or "onset", a
@@ -190,7 +178,106 @@ def plotscatterobs(ob, pvals, dC, awindl, bfa='a'):
     return ax, fig
 
 
-def plottwinerr(truth, xb, xa):
+def plot_scatter_twin(ob, pvals, dC, awindl, bfa='a'):
+    """Plots scatter plot of obs vs model predicted values. Takes an initial
+    parameter set, a dataClass (must have only desired ob for comparison
+    specified in dC), assimilation window length and whether a comparison of
+    background 'b', forecast 'f' or analysis 'a' is desired.
+    """
+    sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth': 1., 'lines.markersize': 6.})
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 10))
+    sns.set_style('ticks')
+    palette = sns.color_palette("colorblind", 11)
+    m = mc.DalecModel(dC)
+    mod_lst = m.mod_list(pvals)
+    mod_lst_truth = m.mod_list(dC.x_truth)
+    obs_lst = m.oblist(ob, mod_lst)
+    y_obs = m.oblist(ob, mod_lst_truth)
+    one_one = np.arange(int(min(min(y_obs), min(obs_lst))),
+                        int(max(max(y_obs), max(obs_lst))))
+    plt.plot(one_one, one_one, color=palette[0])
+    if bfa == 'b' or bfa == 'a':
+        ax.plot(y_obs[0:awindl], obs_lst[0:awindl], 'o', color=palette[1])
+        error = np.sqrt(np.nansum((y_obs[0:awindl] - obs_lst[0:awindl])**2)/len(y_obs[0:awindl]))
+        yhx = np.nanmean(y_obs[0:awindl] - obs_lst[0:awindl])
+        mod_obs_bar = np.mean(obs_lst[0:awindl])
+        std_mod_obs = np.std(obs_lst[0:awindl])
+        obs_bar = np.mean(y_obs[0:awindl])
+        std_obs = np.std(y_obs[0:awindl])
+        rms = np.sqrt(np.sum([((obs_lst[x]-mod_obs_bar)-(y_obs[x]-obs_bar))**2 for x in xrange(awindl)])/len(awindl))
+        corr_coef = (np.sum([((obs_lst[x]-mod_obs_bar)*(y_obs[x]-obs_bar)) for x in xrange(awindl)])/len(awindl))\
+                /(std_mod_obs*std_obs)
+    elif bfa == 'f':
+        ax.plot(y_obs[awindl:], obs_lst[awindl:], 'o', color=palette[1])
+        error = np.sqrt(np.nansum((y_obs[awindl:] - obs_lst[awindl:])**2)/len(y_obs[awindl:]))
+        yhx = np.nanmean(y_obs[awindl:] - obs_lst[awindl:])
+        mod_obs_bar = np.mean(obs_lst[awindl:])
+        std_mod_obs = np.std(obs_lst[awindl:])
+        obs_bar = np.mean(y_obs[awindl:])
+        std_obs = np.std(y_obs[awindl:])
+        rms = np.sqrt(np.sum([((obs_lst[x]-mod_obs_bar)-(y_obs[x]-obs_bar))**2
+                              for x in xrange(awindl,len(y_obs))])/len(y_obs[awindl:]))
+        corr_coef = (np.sum([((obs_lst[x]-mod_obs_bar)*(y_obs[x]-obs_bar))
+                             for x in xrange(awindl,len(y_obs))])/len(y_obs[awindl:]))/(std_mod_obs*std_obs)
+    else:
+        raise Exception('Please check function input for bfa variable')
+    plt.xlabel(ob.upper()+r' observations (g C m$^{-2}$ day$^{-1}$)')
+    plt.ylabel(ob.upper()+' model (g C m$^{-2}$ day$^{-1}$)')
+    plt.title('mean(y-hx)=%.2f, rms=%.2f, corr_coef=%.2f' %( yhx, rms, corr_coef))
+    print bfa+'_error=%f, mean(y-hx)=%f, rms=%f, corr_coef=%f' %(error, yhx, rms, corr_coef)
+    #plt.xlim((-20, 15))
+    #plt.ylim((-20, 15))
+    return ax, fig
+
+
+def plot_4dvar_twin(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=None):
+    """Plots a model predicted observation value for two initial states (xb,xa)
+    and also the actual observations taken of the physical quantity. Takes a ob
+    string, two initial states (xb,xa), a dataClass and a start and finish
+    time step.
+    """
+    sns.set_context(rc={'lines.linewidth':.8, 'lines.markersize':6})
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    palette = sns.color_palette("colorblind", 11)
+    m = mc.DalecModel(dC)
+    mod_lst = m.mod_list(dC.x_truth)
+    obs_lst = m.oblist(ob, mod_lst)
+    ax.plot(dC.dates, obs_lst, color=palette[3])
+    if xb != None:
+        mod_lst = m.mod_list(xb)
+        obs_lst = m.oblist(ob, mod_lst)
+        ax.plot(dC.dates, obs_lst, ':', color=palette[0])
+    if xa != None:
+        mod_lst = m.mod_list(xa)
+        obs_lst = m.oblist(ob, mod_lst)
+        ax.plot(dC.dates, obs_lst, color=palette[1])
+
+    mod_lst = m.mod_list(dC.x_truth)
+    obs_lst = m.oblist(ob, mod_lst)
+    ax.plot(dC.dates, obs_lst, '--', color=palette[3])
+
+    ob_dict = obdict_a
+    ob_err_dict = dC.ob_err_dict
+    #if ob in ob_dict.keys():
+    #    if erbars == True:
+    ##        ax.errorbar(dC.dates, ob_dict[ob], yerr=ob_err_dict[ob],
+    #                     fmt='o', label=ob+'_o', color=palette[2], alpha=0.7)
+    #    else:
+    #        ax.plot(dC.dates, ob_dict[ob], 'o', label=ob+'_o', color=palette[2])
+    if obdict_a != None:
+        ax.plot(dC.dates[0:awindl], obdict_a[ob], 'o', color=palette[2])
+
+    if awindl != None:
+        ax.axvline(x=dC.dates[awindl], color='k', ls='dashed')
+
+    ax.set_xlabel('Year')
+    ax.set_ylabel(ob)
+    plt.gcf().autofmt_xdate()
+
+    return ax, fig
+
+
+def plottwinerr(truth, xb, xa, xb_lab='xb', xa_lab='xa'):
     """Plot error between truth and xa/xb shows as a bar chart.
     """
     sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth': 1, 'lines.markersize': 10})
@@ -199,18 +286,18 @@ def plottwinerr(truth, xb, xa):
     n = 23
     width = 0.35
     ind = np.arange(n)
-    rects1 = ax.bar(ind, 100*abs(truth-xb)/truth, width, color=sns.xkcd_rgb["faded green"], label='xb_err')
-    rects2 = ax.bar(ind+width, 100*abs(truth-xa)/truth, width, color=sns.xkcd_rgb["pale red"], label='xa_err')
+    rects1 = ax.bar(ind, 100*abs(truth-xb)/truth, width, color=sns.xkcd_rgb["faded green"], label=xb_lab+'_err')
+    rects2 = ax.bar(ind+width, 100*abs(truth-xa)/truth, width, color=sns.xkcd_rgb["pale red"], label=xa_lab+'_err')
     ax.set_ylabel('% error')
-    ax.set_title('% error in parameter values for xa and xb')
+    ax.set_title('% error in parameter values for '+xa_lab+' and '+xb_lab)
     ax.set_xticks(ind+width)
-    keys = ['theta_min', 'f_auto', 'f_fol', 'f_roo', 'clspan', 'theta_woo',
-            'theta_roo', 'theta_lit', 'theta_som', 'Theta', 'ceff', 'd_onset',
-            'f_lab', 'cronset', 'd_fall', 'crfall', 'clma', 'clab', 'cf', 'cr',
-            'cw', 'cl', 'cs']
+    keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
+            r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
+            r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
+            r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
     ax.set_xticklabels(keys, rotation=90)
     ax.legend()
-    plt.show()
+    return ax, fig
 
 
 def plot_a_inc_all(xb, xadiag, xaedc, xarcor, xaedcrcor):

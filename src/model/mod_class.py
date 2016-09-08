@@ -30,8 +30,8 @@ class DalecModel():
                           'cw': self.cw, 'cl': self.cl, 'cs': self.cs,
                           'lf': self.lf, 'lw': self.lw, 'lai': self.lai,
                           'litresp': self.litresp, 'soilresp': self.soilresp,
-                          'rtot': self.rtot, 'rh': self.rh, 'd_onset': self.d_onset,
-                          'groundresp': self.groundresp}
+                          'rtot': self.rtot, 'rh': self.rh, 'ra': self.ra,
+                          'd_onset': self.d_onset, 'groundresp': self.groundresp}
         self.startrun = strtrun
         self.endrun = self.lenrun
         self.yoblist, self.yerroblist, self.ytimestep = self.obscost()
@@ -317,7 +317,7 @@ class DalecModel():
         """Function calculates soil respiration (soilresp). (heterotrophic)
         """
         soilresp = p[8]*p[22]*self.temp_term(p[9], self.dC.t_mean[self.x]) + \
-                   (1./3.)*p[1]*self.acm(p[18], p[16], p[10], self.dC.t_mean[self.x])
+                   (1./3.)*p[1]*self.acm(p[18], p[16], p[10], self.dC.acm)
         return soilresp
 
     def groundresp(self, p):
@@ -331,13 +331,19 @@ class DalecModel():
     def rh(self, p):
         """Fn calculates rh (soilresp+litrep).
         """
-        rh = self.litresp(p) + self.soilresp(p)
+        rh = (p[7]*p[21] + p[8]*p[22])*self.temp_term(p[9], self.dC.t_mean[self.x])
         return rh
+
+    def ra(self, p):
+        """Fn calculates ra (autotrophic resp.).
+        """
+        ra = p[1]*self.acm(p[18], p[16], p[10], self.dC.acm)
+        return ra
 
     def rtot(self, p):
         """Function calculates soil + root respiration (soilrootresp).
         """
-        rtot = p[8]*p[22]*self.temp_term(p[9], self.dC.t_mean[self.x]) + 5. #Figure this out boi
+        rtot = p[8]*p[22]*self.temp_term(p[9], self.dC.t_mean[self.x]) + 5. #Figure this out boi!
         return rtot
 
     def lai(self, p):
@@ -907,7 +913,7 @@ class DalecModel():
                                 disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         return find_min
 
-    def find_min_tnc_cvt(self, pvals, f_name, bnds='strict', dispp=5, maxits=1000,
+    def find_min_tnc_cvt(self, pvals, f_name=None, bnds='strict', dispp=5, maxits=1000,
                          mini=0, f_tol=1e-4):
         """Function which minimizes 4DVAR cost fn. Takes an initial state
         (pvals).
@@ -922,7 +928,8 @@ class DalecModel():
                                 fprime=self.gradcost_cvt, bounds=bnds,
                                 disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         xa = self.zvals2pvals(find_min[0])
-        self.pickle_exp(pvals, find_min, xa, f_name)
+        if f_name != None:
+            self.pickle_exp(pvals, find_min, xa, f_name)
         return find_min, xa
 
     def findminglob(self, pvals, meth='TNC', bnds='strict', it=300,
