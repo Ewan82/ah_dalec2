@@ -13,13 +13,13 @@ def day_night_twin_run(start, end, obs, f_name, obs_loc):
     assim_results, xa = m.find_min_tnc_cvt(d.xb, f_name+'assim_res')
     d2 = dc.DalecDataTwin(start, 2013, obs)
     # Plot 4dvar time series
-    ax, fig = p.plot_4dvar_twin('nee', d2, xa=xa, obdict_a=d.ob_dict)
+    ax, fig = p.plot_4dvar_twin('nee', d2, xa=xa)
     fig.savefig(f_name+'_nee.pdf', bbox_inches='tight')
-    ax, fig = p.plot_4dvar_twin('nee_day', d2, xa=xa, obdict_a=d.ob_dict)
+    ax, fig = p.plot_4dvar_twin('nee_day', d2, xa=xa)
     fig.savefig(f_name+'_need.pdf', bbox_inches='tight')
-    ax, fig = p.plot_4dvar_twin('nee_night', d2, xa=xa, obdict_a=d.ob_dict)
+    ax, fig = p.plot_4dvar_twin('nee_night', d2, xa=xa)
     fig.savefig(f_name+'_neen.pdf', bbox_inches='tight')
-    ax, fig = p.plot_4dvar_twin('lai', d2, xa=xa, obdict_a=d.ob_dict)
+    ax, fig = p.plot_4dvar_twin('lai', d2, xa=xa)
     fig.savefig(f_name+'_lai.pdf', bbox_inches='tight')
 
     # Plot scatter plots of obs
