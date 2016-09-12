@@ -256,16 +256,16 @@ def plot_4dvar_twin(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=No
     obs_lst = m.oblist(ob, mod_lst)
     ax.plot(dC.dates, obs_lst, '--', color=palette[3])
 
-    ob_dict = obdict_a
-    ob_err_dict = dC.ob_err_dict
-    #if ob in ob_dict.keys():
+    # ob_dict = obdict_a
+    # ob_err_dict = dC.ob_err_dict
+    # if ob in ob_dict.keys():
     #    if erbars == True:
-    ##        ax.errorbar(dC.dates, ob_dict[ob], yerr=ob_err_dict[ob],
+    #        ax.errorbar(dC.dates, ob_dict[ob], yerr=ob_err_dict[ob],
     #                     fmt='o', label=ob+'_o', color=palette[2], alpha=0.7)
     #    else:
     #        ax.plot(dC.dates, ob_dict[ob], 'o', label=ob+'_o', color=palette[2])
     if obdict_a != None:
-        ax.plot(dC.dates[0:awindl], obdict_a[ob], 'o', color=palette[2])
+        ax.plot(dC.dates[0:len(obdict_a[ob])], obdict_a[ob], 'o', color=palette[2])
 
     if awindl != None:
         ax.axvline(x=dC.dates[awindl], color='k', ls='dashed')
