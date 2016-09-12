@@ -156,23 +156,33 @@ def plotscatterobs(ob, pvals, dC, awindl, bfa='a'):
     obs_lst = m.oblist(ob, mod_lst)
     y_obs = dC.ob_dict[ob]
     plt_ob_lst = (y_obs/y_obs)*obs_lst
-    one_one = np.arange(int(min(min(y_obs[np.isnan(y_obs) != True]), min(plt_ob_lst[np.isnan(y_obs) != True]))),
-                        int(max(max(y_obs[np.isnan(y_obs) != True]), max(plt_ob_lst[np.isnan(y_obs) != True]))))
-    plt.plot(one_one, one_one, color=palette[0])
     if bfa == 'b' or bfa == 'a':
-        ax.plot(y_obs[0:awindl], plt_ob_lst[0:awindl], 'o', color=palette[1])
-        error = np.sqrt(np.nansum((y_obs[0:awindl] - plt_ob_lst[0:awindl])**2)/len(y_obs[0:awindl]))
-        yhx = np.nanmean(y_obs[0:awindl] - plt_ob_lst[0:awindl])
+        selection = xrange(0, awindl)
     elif bfa == 'f':
-        ax.plot(y_obs[awindl:], plt_ob_lst[awindl:], 'o', color=palette[1])
-        error = np.sqrt(np.nansum((y_obs[awindl:] - plt_ob_lst[awindl:])**2)/len(y_obs[awindl:]))
-        yhx = np.nanmean(y_obs[awindl:] - plt_ob_lst[awindl:])
+        selection = xrange(awindl, len(obs_lst))
     else:
         raise Exception('Please check function input for bfa variable')
+    ob_lst = plt_ob_lst[selection][np.isnan(y_obs[selection]) != True]
+    y_obs = y_obs[selection][np.isnan(y_obs[selection]) != True]
+
+    one_one = np.arange(int(min(min(y_obs), min(ob_lst))),int(max(max(y_obs), max(ob_lst))))
+    plt.plot(one_one, one_one, color=palette[0])
+
+    ax.plot(y_obs, ob_lst, 'o', color=palette[1])
+    error = np.sqrt(np.sum((y_obs - ob_lst)**2) / len(y_obs))
+    yhx = np.mean(y_obs - ob_lst)
+    mod_obs_bar = np.mean(ob_lst)
+    std_mod_obs = np.nanstd(ob_lst)
+    obs_bar = np.mean(y_obs)
+    std_obs = np.std(y_obs)
+    rms = np.sqrt(np.sum([((ob_lst[x]-mod_obs_bar)-(y_obs[x]-obs_bar))**2 for x in range(len(y_obs))]) / len(y_obs))
+    corr_coef = (np.sum([((ob_lst[x]-mod_obs_bar)*(y_obs[x]-obs_bar)) for x in range(len(y_obs))]) / len(y_obs)) / \
+                (std_mod_obs*std_obs)
+
     plt.xlabel(ob.upper()+r' observations (g C m$^{-2}$ day$^{-1}$)')
     plt.ylabel(ob.upper()+' model (g C m$^{-2}$ day$^{-1}$)')
-    #plt.title(bfa+'_error=%f, mean(y-hx)=%f' %(error,yhx))
-    print bfa+'_error=%f, mean(y-hx)=%f' %(error, yhx)
+    plt.title('mean(y-hx)=%.2f, rms=%.2f, corr_coef=%.2f' %( yhx, rms, corr_coef))
+    print bfa+'_error=%f, mean(y-hx)=%f, rms=%f, corr_coef=%f' %(error, yhx, rms, corr_coef)
     #plt.xlim((-20, 15))
     #plt.ylim((-20, 15))
     return ax, fig
@@ -193,34 +203,31 @@ def plot_scatter_twin(ob, pvals, dC, awindl, bfa='a'):
     mod_lst_truth = m.mod_list(dC.x_truth)
     obs_lst = m.oblist(ob, mod_lst)
     y_obs = m.oblist(ob, mod_lst_truth)
-    one_one = np.arange(int(min(min(y_obs), min(obs_lst))),
-                        int(max(max(y_obs), max(obs_lst))))
-    plt.plot(one_one, one_one, color=palette[0])
+    plt_ob_lst = (y_obs/y_obs)*obs_lst
     if bfa == 'b' or bfa == 'a':
-        ax.plot(y_obs[0:awindl], obs_lst[0:awindl], 'o', color=palette[1])
-        error = np.sqrt(np.nansum((y_obs[0:awindl] - obs_lst[0:awindl])**2)/len(y_obs[0:awindl]))
-        yhx = np.nanmean(y_obs[0:awindl] - obs_lst[0:awindl])
-        mod_obs_bar = np.mean(obs_lst[0:awindl])
-        std_mod_obs = np.std(obs_lst[0:awindl])
-        obs_bar = np.mean(y_obs[0:awindl])
-        std_obs = np.std(y_obs[0:awindl])
-        rms = np.sqrt(np.sum([((obs_lst[x]-mod_obs_bar)-(y_obs[x]-obs_bar))**2 for x in xrange(awindl)])/len(awindl))
-        corr_coef = (np.sum([((obs_lst[x]-mod_obs_bar)*(y_obs[x]-obs_bar)) for x in xrange(awindl)])/len(awindl))\
-                /(std_mod_obs*std_obs)
+        selection = xrange(0, awindl)
     elif bfa == 'f':
-        ax.plot(y_obs[awindl:], obs_lst[awindl:], 'o', color=palette[1])
-        error = np.sqrt(np.nansum((y_obs[awindl:] - obs_lst[awindl:])**2)/len(y_obs[awindl:]))
-        yhx = np.nanmean(y_obs[awindl:] - obs_lst[awindl:])
-        mod_obs_bar = np.mean(obs_lst[awindl:])
-        std_mod_obs = np.std(obs_lst[awindl:])
-        obs_bar = np.mean(y_obs[awindl:])
-        std_obs = np.std(y_obs[awindl:])
-        rms = np.sqrt(np.sum([((obs_lst[x]-mod_obs_bar)-(y_obs[x]-obs_bar))**2
-                              for x in xrange(awindl,len(y_obs))])/len(y_obs[awindl:]))
-        corr_coef = (np.sum([((obs_lst[x]-mod_obs_bar)*(y_obs[x]-obs_bar))
-                             for x in xrange(awindl,len(y_obs))])/len(y_obs[awindl:]))/(std_mod_obs*std_obs)
+        selection = xrange(awindl, len(obs_lst))
     else:
         raise Exception('Please check function input for bfa variable')
+    ob_lst = plt_ob_lst[selection][np.isnan(y_obs[selection]) != True]
+    y_obs = y_obs[selection][np.isnan(y_obs[selection]) != True]
+
+    one_one = np.arange(int(min(min(y_obs), min(ob_lst))), int(max(max(y_obs), max(ob_lst))))
+    plt.plot(one_one, one_one, color=palette[0])
+    print int(min(min(y_obs), min(ob_lst))), int(max(max(y_obs), max(ob_lst)))
+
+    ax.plot(y_obs, ob_lst, 'o', color=palette[1])
+    error = np.sqrt(np.sum((y_obs - ob_lst)**2) / len(y_obs))
+    yhx = np.mean(y_obs - ob_lst)
+    mod_obs_bar = np.mean(ob_lst)
+    std_mod_obs = np.nanstd(ob_lst)
+    obs_bar = np.mean(y_obs)
+    std_obs = np.std(y_obs)
+    rms = np.sqrt(np.sum([((ob_lst[x]-mod_obs_bar)-(y_obs[x]-obs_bar))**2 for x in range(len(y_obs))]) / len(y_obs))
+    corr_coef = (np.sum([((ob_lst[x]-mod_obs_bar)*(y_obs[x]-obs_bar)) for x in range(len(y_obs))]) / len(y_obs)) / \
+                (std_mod_obs*std_obs)
+
     plt.xlabel(ob.upper()+r' observations (g C m$^{-2}$ day$^{-1}$)')
     plt.ylabel(ob.upper()+' model (g C m$^{-2}$ day$^{-1}$)')
     plt.title('mean(y-hx)=%.2f, rms=%.2f, corr_coef=%.2f' %( yhx, rms, corr_coef))

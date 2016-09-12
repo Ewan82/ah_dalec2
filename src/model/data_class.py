@@ -250,7 +250,7 @@ class DalecData:
 
 
 class DalecDataTwin(DalecData):
-    def __init__(self, start_date, end_date, ob_str, nc_file='../../alice_holt_data/ah_data.nc'):
+    def __init__(self, start_date, end_date, ob_str, err_scale=0.25, nc_file='../../alice_holt_data/ah_data.nc'):
         DalecData.__init__(self, start_date, end_date, ob_str, nc_file)
 
         # self.d = DalecData(start_date, end_date, ob_str, nc_file)
@@ -258,7 +258,7 @@ class DalecDataTwin(DalecData):
 
         # Define truth and background
         self.x_truth = self.edinburgh_median
-        self.st_dev = 0.10*self.x_truth
+        self.st_dev = 0.05*self.x_truth
         # self.B = self.make_b(self.st_dev)
 
         # Make EDC B
@@ -275,7 +275,7 @@ class DalecDataTwin(DalecData):
                             6.71153814e+01,   2.42199267e+02,   4.96249386e+03,
                             4.15128028e+02,   1.90797697e+03])
         # Extract observations for assimilation
-        self.ob_dict, self.ob_err_dict = self.create_twin_data(ob_str)
+        self.ob_dict, self.ob_err_dict = self.create_twin_data(ob_str, err_scale)
 
     def create_twin_data(self, ob_str, err_scale=0.25):
         """ Creates a set of twin modelled observations corresponding to the same positions as the true observations
@@ -302,7 +302,10 @@ class DalecDataTwin(DalecData):
                 mod_ob_assim = np.array([mod_ob + random.gauss(0, err_scale*self.error_dict[ob])
                                          for mod_ob in mod_obs])
                 obs_dict[ob] = mod_ob_assim
-                obs_err_dict[ob] = err_scale*self.ob_err_dict[ob]
+                if err_scale == 0.0:
+                    obs_err_dict[ob] = 1e-5*self.ob_err_dict[ob]
+                else:
+                    obs_err_dict[ob] = err_scale*self.ob_err_dict[ob]
         return obs_dict, obs_err_dict
 
     def random_pert(self, pvals):
@@ -349,7 +352,7 @@ class DalecDataTwin(DalecData):
     def test_pvals(self, pvals):
         """ Test if a parameter set falls within the bounds or not
         :param pvals: parameter values to test
-        :return:
+        :return: pvals
         """
         x = 0
         for bnd in self.bnds:
