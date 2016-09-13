@@ -38,10 +38,10 @@ def day_night_twin_run(start, end, obs, f_name, obs_loc):
     return 'all experimented'
 
 
-def day_night_twin_run_no_obs_error(start, end, obs, f_name,):
+def day_night_twin_run_no_obs_error(start, end, obs, f_name, its=1000):
     d = dc.DalecDataTwin(start, end, obs, err_scale=0.0)
     m = mc.DalecModel(d)
-    assim_results, xa = m.find_min_tnc_cvt(d.xb, f_name+'assim_res')
+    assim_results, xa = m.find_min_tnc_cvt(d.xb, f_name+'assim_res', maxits=its)
     d2 = dc.DalecDataTwin(start, 2013, obs)
     # Plot 4dvar time series
     ax, fig = p.plot_4dvar_twin('nee', d2, xa=xa)
