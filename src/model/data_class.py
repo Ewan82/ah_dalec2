@@ -303,7 +303,7 @@ class DalecDataTwin(DalecData):
                                          for mod_ob in mod_obs])
                 obs_dict[ob] = mod_ob_assim
                 if err_scale == 0.0:
-                    obs_err_dict[ob] = 1e-5*self.ob_err_dict[ob]
+                    obs_err_dict[ob] = 0.25*self.ob_err_dict[ob]
                 else:
                     obs_err_dict[ob] = err_scale*self.ob_err_dict[ob]
         return obs_dict, obs_err_dict
