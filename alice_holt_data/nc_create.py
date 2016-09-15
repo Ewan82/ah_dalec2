@@ -6,10 +6,10 @@ import pandas as pd
 import datetime as dt
 
 
-def create_netcdf_dataset():
+def create_netcdf_dataset(path):
     """Creates netcdf dataset for half hourly flux measurements at Alice Holt
     """
-    dataset = nC.Dataset('ah_data_half_hourly.nc', 'w', format='NETCDF4_CLASSIC')
+    dataset = nC.Dataset(path+'ah_data_half_hourly.nc', 'w', format='NETCDF4_CLASSIC')
     time = dataset.createDimension('time', None)
     lat = dataset.createDimension('lat', 1)
     lon = dataset.createDimension('lon', 1)
@@ -72,7 +72,7 @@ def open_xls_sheet(filename, sheet_name):
     return pd.read_excel(filename, sheet_name)
 
 
-def add_data2nc(nc_data, pd_df, data_title, nc_title, date_col='date_combined'):
+def add_data2nc(nc_data, pd_df, data_title, nc_title, date_col='date_combined', sel='exact'):
     """ Adds data to a netCDF file
     :param nc_data: netCDF data set object
     :param pd_df: pandas data frame object
@@ -87,7 +87,7 @@ def add_data2nc(nc_data, pd_df, data_title, nc_title, date_col='date_combined'):
         try:
             tm = round_time_nearest_10min(pd_df[date_col][x])
             # Find datetime index
-            idx = nC.date2index(tm, times, calendar=times.calendar, select='nearest')
+            idx = nC.date2index(tm, times, calendar=times.calendar, select=sel)
         except TypeError:
             print x
             break
@@ -97,7 +97,7 @@ def add_data2nc(nc_data, pd_df, data_title, nc_title, date_col='date_combined'):
         var[idx, 0, 0] = pd_df[data_title][x]
 
 
-def add_excel_ah_obs(xls_file, nc_file, start_yr=1999, end_yr=2016):
+def add_excel_ah_obs(xls_file, nc_file, start_yr=1999, end_yr=2016, sel='exact'):
     years = np.arange(start_yr, end_yr)
     nc_data = open_netcdf(nc_file)
     nc_vars = ['air_temp', 'soil_temp', 'rg', 'co2_flux', 'qc_co2_flux', 'u_star', 'wind_dir', 'foot_print']
@@ -106,7 +106,7 @@ def add_excel_ah_obs(xls_file, nc_file, start_yr=1999, end_yr=2016):
         pd_df = open_xls_sheet(xls_file, str(yr))
         for var_title in nc_vars:
             print var_title
-            add_data2nc(nc_data, pd_df, var_title, var_title)
+            add_data2nc(nc_data, pd_df, var_title, var_title, sel=sel)
     nc_data.close()
     return 'net_cdf file updated!'
 
