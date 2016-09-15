@@ -58,7 +58,7 @@ def create_netcdf_dataset():
     start_date = dt.datetime(1999, 1, 1, 0, 0)
     end_date = dt.datetime(2015, 12, 31, 23, 30)
     time_lst = utils.create_date_list(start_date, end_date, del_t='half_hour')
-    time[:] = nC.date2num(time_lst, time.units, time.calendar)
+    times[:] = nC.date2num(time_lst, times.units, times.calendar)
     return dataset
 
 
