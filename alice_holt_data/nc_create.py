@@ -53,6 +53,11 @@ def create_netcdf_dataset():
     foot_print = dataset.createVariable('foot_print', 'f4', ('time', 'lat', 'lon'))
     foot_print.units = 'm'
     foot_print.description = 'distance from tower where 90% of co2 flux is measured'
+
+    start_date = dt.datetime(1999, 1, 1, 0, 0)
+    end_date = dt.datetime(2015, 12, 31, 23, 30)
+    time_lst = utils.create_date_list(start_date, end_date, del_t='half_hour')
+    time[:] = nC.date2num(time_lst, time.units, time.calendar)
     return dataset
 
 
@@ -66,7 +71,7 @@ def open_xls_sheet(filename, sheet_name):
     return pd.read_excel(filename, sheet_name)
 
 
-def add_data2nc(nc_data, pd_df, data_title, nc_title, date_list):
+def add_data2nc(nc_data, pd_df, data_title, nc_title, date_col='date_combined'):
     """ Adds data to a netCDF file
     :param nc_data: netCDF data set object
     :param pd_df: pandas data frame object
@@ -77,19 +82,17 @@ def add_data2nc(nc_data, pd_df, data_title, nc_title, date_list):
     """
     var = nc_data.variables[nc_title]
     times = nc_data.variables['time']
-    for x in xrange(len(date_list)):
+    for x in xrange(len(pd_df[date_col])):
         try:
-            tm = date_list[x]
+            tm = round_time_nearest_10min(pd_df[date_col][x])
             # Find datetime index
             idx = nC.date2index(tm, times, calendar=times.calendar, select='nearest')
-            if idx == 0:
-                print x
-            elif idx >= len(var):
-                print x
         except TypeError:
             print x
+            break
         except ValueError:
             print x
+            break
         var[idx, 0, 0] = pd_df[data_title][x]
 
 
@@ -100,12 +103,9 @@ def add_excel_ah_obs(xls_file, nc_file, start_yr=1999, end_yr=2016):
     for yr in years:
         print yr
         pd_df = open_xls_sheet(xls_file, str(yr))
-        start_date = round_time_nearest_10min(pd_df['date_combined'][0])
-        end_date = round_time_nearest_10min(pd_df['date_combined'][len(pd_df)-1])
-        date_list = utils.create_date_list(start_date, end_date, del_t='half_hour')
         for var_title in nc_vars:
             print var_title
-            add_data2nc(nc_data, pd_df, var_title, var_title, date_list)
+            add_data2nc(nc_data, pd_df, var_title, var_title)
     nc_data.close()
     return 'net_cdf file updated!'
 
