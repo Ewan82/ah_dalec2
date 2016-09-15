@@ -81,7 +81,11 @@ def add_data2nc(nc_data, pd_df, data_title, nc_title, date_list):
         try:
             tm = date_list[x]
             # Find datetime index
-            idx = nC.date2index(tm, times, calendar=times.calendar)
+            idx = nC.date2index(tm, times, calendar=times.calendar, select='nearest')
+            if idx == 0:
+                print x
+            elif idx >= len(var):
+                print x
         except TypeError:
             print x
         except ValueError:
