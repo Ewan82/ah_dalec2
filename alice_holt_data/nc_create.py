@@ -79,7 +79,7 @@ def add_data2nc(nc_data, pd_df, data_title, nc_title, date_col='date_combined'):
     var = nc_data.variables[nc_title]
     times = nc_data.variables['time']
     for x in xrange(len(pd_df[date_col])):
-        try:
+        #try:
             tm = pd_df[date_col][x]  # datetime for var
             # Round datetime to nearest 10min mark
             discard = dt.timedelta(minutes=tm.minute % 10,
@@ -90,13 +90,13 @@ def add_data2nc(nc_data, pd_df, data_title, nc_title, date_col='date_combined'):
                 tm += dt.timedelta(minutes=10)
             # Find datetime index
             idx = nC.date2index(tm, times, select='exact')
-        except TypeError:
-            print x
-            break
-        except ValueError:
-            print x
-            break
-        var[idx, 0, 0] = pd_df[data_title][x]
+        #except TypeError:
+        #    print x
+        #    break
+        #except ValueError:
+        #    print x
+        #    break
+            var[idx, 0, 0] = pd_df[data_title][x]
 
 
 def add_excel_ah_obs(xls_file, nc_file, start_yr=1999, end_yr=2016):
