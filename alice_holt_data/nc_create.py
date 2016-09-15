@@ -77,7 +77,7 @@ def add_data2nc(nc_data, pd_df, data_title, nc_title, date_list):
     """
     var = nc_data.variables[nc_title]
     times = nc_data.variables['time']
-    for x in xrange(date_list):
+    for x in xrange(len(date_list)):
         try:
             tm = date_list[x]
             # Find datetime index
