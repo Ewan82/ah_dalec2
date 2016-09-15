@@ -89,7 +89,7 @@ def add_data2nc(nc_data, pd_df, data_title, nc_title, date_col='date_combined'):
             if discard >= dt.timedelta(minutes=5):
                 tm += dt.timedelta(minutes=10)
             # Find datetime index
-            idx = nC.date2index(tm, times, select='exact')
+            idx = nC.date2index(tm, times, calendar=times.calendar)
         #except TypeError:
         #    print x
         #    break
