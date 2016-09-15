@@ -1,13 +1,13 @@
 import numpy as np
 import netCDF4 as nC
-import matplotlib.mlab as mlab
+import matplotlib.mlab as ml
 import datetime as dt
 
 
 def open_csv(filename, missing_val='N/A'):
     """Opens a csv file into a recorded array.
     """
-    return mlab.csv2rec(filename, missing=missing_val)
+    return ml.csv2rec(filename, missing=missing_val)
 
 
 def open_netcdf(filename):
@@ -45,7 +45,7 @@ def add_data2nc(nc_file, csv_file, data_title, nc_title, date_col='date_combined
     return 'data updated!'
 
 
-def nc_create_var(nc_file, var_name, dims, dtype='f8'):
+def nc_create_var(nc_file, var_name, dims, dtype=np.float16):
     """ Adds new variable to netCDF data file
     :param nc_file: netcdf data file location as str
     :param var_name: name for new variable as str
@@ -73,6 +73,7 @@ def create_date_list(start_date, end_date, del_t='day'):
     """ Creates a list of daily or yearly datetime objects
     :param start_date: start date for list as datetime
     :param end_date: end date for list as datetime
+    :param del_t: time step for date list as string, can be 'day', 'year', or 'half_hour'
     :return: datetime list
     """
     times = []
@@ -80,6 +81,8 @@ def create_date_list(start_date, end_date, del_t='day'):
         delta = dt.timedelta(hours=24)
     elif del_t == 'year':
         delta = dt.timedelta(years=1)
+    elif del_t == 'half_hour':
+        delta = dt.timedelta(minutes=30)
     date = start_date
     while date <= end_date:
         times.append(date)
