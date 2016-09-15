@@ -72,7 +72,7 @@ def open_xls_sheet(filename, sheet_name):
     return pd.read_excel(filename, sheet_name)
 
 
-def add_data2nc(nc_data, pd_df, data_title, nc_title, date_col='date_combined', sel='exact'):
+def add_data2nc(nc_data, pd_df, data_title, nc_title, date_l='None', date_col='date_combined', sel='exact'):
     """ Adds data to a netCDF file
     :param nc_data: netCDF data set object
     :param pd_df: pandas data frame object
@@ -85,7 +85,10 @@ def add_data2nc(nc_data, pd_df, data_title, nc_title, date_col='date_combined', 
     times = nc_data.variables['time']
     for x in xrange(len(pd_df[date_col])):
         try:
-            tm = round_time_nearest_10min(pd_df[date_col][x])
+            if date_l != 'None':
+                tm = round_time_nearest_10min(date_l[x])
+            else:
+                tm = round_time_nearest_10min(pd_df[date_col][x])
             # Find datetime index
             idx = nC.date2index(tm, times, calendar=times.calendar, select=sel)
         except TypeError:
@@ -104,9 +107,12 @@ def add_excel_ah_obs(xls_file, nc_file, start_yr=1999, end_yr=2016, sel='exact')
     for yr in years:
         print yr
         pd_df = open_xls_sheet(xls_file, str(yr))
+        start_date = round_time_nearest_10min(pd_df['date_combined'][0])
+        end_date = round_time_nearest_10min(pd_df['date_combined'][len(pd_df)-1])
+        date_list = utils.create_date_list(start_date, end_date, del_t='half_hour')
         for var_title in nc_vars:
             print var_title
-            add_data2nc(nc_data, pd_df, var_title, var_title, sel=sel)
+            add_data2nc(nc_data, pd_df, var_title, var_title, date_l=date_list, sel=sel)
     nc_data.close()
     return 'net_cdf file updated!'
 
