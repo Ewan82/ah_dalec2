@@ -258,7 +258,7 @@ class DalecDataTwin(DalecData):
 
         # Define truth and background
         self.x_truth = self.edinburgh_median
-        self.st_dev = 0.05*self.x_truth
+        self.st_dev = 0.1*self.x_truth
         # self.B = self.make_b(self.st_dev)
 
         # Make EDC B

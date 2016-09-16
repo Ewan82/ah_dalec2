@@ -1,6 +1,7 @@
 import numpy as np
 import netCDF4 as nC
 import ah_nc_utils as utils
+import matplotlib.mlab as ml
 import time as tt
 import pandas as pd
 import datetime as dt
@@ -62,6 +63,134 @@ def create_netcdf_dataset(path):
     return dataset
 
 
+def create_netcdf_dataset_daily(path):
+    """Creates netcdf dataset for half hourly flux measurements at Alice Holt
+    """
+    dataset = nC.Dataset(path+'ah_data_daily.nc', 'w', format='NETCDF4_CLASSIC')
+    time = dataset.createDimension('time', None)
+    lat = dataset.createDimension('lat', 1)
+    lon = dataset.createDimension('lon', 1)
+    times = dataset.createVariable('time', np.float64, ('time',))
+    latitudes = dataset.createVariable('latitude', np.float32, ('lat',))
+    latitudes[0] = 51.153526
+    longitudes = dataset.createVariable('longitude', np.float32, ('lon',))
+    longitudes[0] = -0.85835201
+
+    dataset.description = 'Alice Holt Straits Inclosure daily averaged data'
+    dataset.history = 'Created ' + tt.ctime(tt.time())
+    dataset.source = 'Ewan Pinnington, University of Reading. email: ewan.pinnington@gmail.com'
+
+    latitudes.units = 'degrees north'
+    longitudes.units = 'degrees east'
+    times.units = 'minutes since 1970-01-01 00:00:00.0'
+    times.calendar = 'gregorian'
+
+    # Daily global radiation
+    rg = dataset.createVariable('rg', 'f4', ('time', 'lat', 'lon'))
+    rg.units = 'MJ m-2 day-1'
+    rg.standard_name = 'surface_downwelling_shortwave_flux_in_air'
+
+    # Daily temperatures
+    daily_max_temp = dataset.createVariable('daily_max_temp', 'f4', ('time', 'lat', 'lon'))
+    daily_max_temp.units = 'degC'
+    daily_max_temp.description = 'maximum daily air temperature at 27m'
+    daily_max_temp.standard_name = 'air_temperature'
+    daily_min_temp = dataset.createVariable('daily_min_temp', 'f4', ('time', 'lat', 'lon'))
+    daily_min_temp.units = 'degC'
+    daily_min_temp.description = 'minimum daily air temperature at 27m'
+    daily_min_temp.standard_name = 'air_temperature'
+    daily_mean_temp = dataset.createVariable('daily_mean_temp', 'f4', ('time', 'lat', 'lon'))
+    daily_mean_temp.units = 'degC'
+    daily_mean_temp.description = 'mean daily air temperature at 27m'
+    daily_mean_temp.standard_name = 'air_temperature'
+    mean_temp_day = dataset.createVariable('mean_temp_day', 'f4', ('time', 'lat', 'lon'))
+    mean_temp_day.units = 'degC'
+    mean_temp_day.description = 'mean daytime air temperature at 27m'
+    mean_temp_day.standard_name = 'air_temperature'
+    mean_temp_night = dataset.createVariable('mean_temp_night', 'f4', ('time', 'lat', 'lon'))
+    mean_temp_night.units = 'degC'
+    mean_temp_night.description = 'mean nighttime air temperature at 27m'
+    mean_temp_night.standard_name = 'air_temperature'
+
+    daily_mean_soil_temp = dataset.createVariable('daily_mean_soil_temp', 'f4', ('time', 'lat', 'lon'))
+    daily_mean_soil_temp.units = 'degC'
+    daily_mean_soil_temp.description = 'mean daily soil temperature at 3cm'
+    mean_soil_temp_day = dataset.createVariable('mean_soil_temp_day', 'f4', ('time', 'lat', 'lon'))
+    mean_soil_temp_day.units = 'degC'
+    mean_soil_temp_day.description = 'mean daytime soil temperature at 3cm'
+    mean_soil_temp_night = dataset.createVariable('mean_soil_temp_night', 'f4', ('time', 'lat', 'lon'))
+    mean_soil_temp_night.units = 'degC'
+    mean_soil_temp_night.description = 'mean nighttime soil temperature at 3cm'
+
+    # Day/night lengths
+    day_length = dataset.createVariable('day_length', 'f4', ('time', 'lat', 'lon'))
+    day_length.units = 'hours'
+    day_length.description = 'day length in hours'
+    night_length = dataset.createVariable('night_length', 'f4', ('time', 'lat', 'lon'))
+    night_length.units = 'hours'
+    night_length.description = 'night length in hours'
+    doy = dataset.createVariable('doy', 'f4', ('time', 'lat', 'lon'))
+    doy.description = 'day of year'
+
+    # net ecosystem exchange for whole site
+    nee = dataset.createVariable('nee', 'f4', ('time', 'lat', 'lon'))
+    nee.units = 'g C m-2 day-1'
+    nee.standard_name = 'surface_upward_mole_flux_of_carbon_dioxide'
+    nee.description = 'processed total daily net ecosystem exchange from Alice Holt flux site'
+    nee_std = dataset.createVariable('nee_std', 'f4', ('time', 'lat', 'lon'))
+    nee_std.units = 'g C m-2 day-1'
+    nee_std.description = 'standard deviation for total daily net ecosystem exchange'
+    nee_day = dataset.createVariable('nee_day', 'f4', ('time', 'lat', 'lon'))
+    nee_day.units = 'g C m-2 day-1'
+    nee_day.standard_name = 'surface_upward_mole_flux_of_carbon_dioxide'
+    nee_day.description = 'processed total daytime net ecosystem exchange from Alice Holt flux site'
+    nee_day_std = dataset.createVariable('nee_day_std', 'f4', ('time', 'lat', 'lon'))
+    nee_day_std.units = 'g C m-2 day-1'
+    nee_day_std.description = 'standard deviation for total daytime net ecosystem exchange'
+    nee_night = dataset.createVariable('nee_night', 'f4', ('time', 'lat', 'lon'))
+    nee_night.units = 'g C m-2 day-1'
+    nee_night.standard_name = 'surface_upward_mole_flux_of_carbon_dioxide'
+    nee_night.description = 'processed total nighttime net ecosystem exchange from Alice Holt flux site'
+    nee_night_std = dataset.createVariable('nee_night_std', 'f4', ('time', 'lat', 'lon'))
+    nee_night_std.units = 'g C m-2 day-1'
+    nee_night_std.description = 'standard deviation for total nighttime net ecosystem exchange'
+    nee_origin = dataset.createVariable('nee_origin', 'f4', ('time', 'lat', 'lon'))
+    nee_origin.description = 'origin of flux measurement (E, W, undetermined)'
+    nee_origin_day = dataset.createVariable('nee_origin_day', 'f4', ('time', 'lat', 'lon'))
+    nee_origin_day.description = 'origin of flux measurement (E, W, undetermined)'
+    nee_origin_night = dataset.createVariable('nee_origin_night', 'f4', ('time', 'lat', 'lon'))
+    nee_origin_night.description = 'origin of flux measurement (E, W, undetermined)'
+
+    # leaf area index
+    lai = dataset.createVariable('lai', 'f4', ('time', 'lat', 'lon'))
+    lai.standard_name = 'leaf_area_index'
+    lai.description = 'average lai for whole site'
+    lai_east = dataset.createVariable('lai_east', 'f4', ('time', 'lat', 'lon'))
+    lai_east.standard_name = 'leaf_area_index'
+    lai_east.description = 'average lai for site east of flux tower'
+    lai_west = dataset.createVariable('lai_west', 'f4', ('time', 'lat', 'lon'))
+    lai_west.standard_name = 'leaf_area_index'
+    lai_west.description = 'average lai for site west of flux tower'
+
+    # woody biomass
+    c_woo = dataset.createVariable('c_woo', 'f4', ('time', 'lat', 'lon'))
+    c_woo.standard_name = 'wood_carbon_content'
+    c_woo.units = 'g m-2'
+    c_woo.description = 'average wood carbon stock for whole site'
+    c_woo_east = dataset.createVariable('c_woo_east', 'f4', ('time', 'lat', 'lon'))
+    c_woo_east.standard_name = 'wood_carbon_content'
+    c_woo_east.description = 'average wood carbon stock for site east of flux tower'
+    c_woo_west = dataset.createVariable('c_woo_west', 'f4', ('time', 'lat', 'lon'))
+    c_woo_west.standard_name = 'wood_carbon_content'
+    c_woo_west.description = 'average wood carbon stock for site west of flux tower'
+
+    start_date = dt.datetime(1999, 1, 1)
+    end_date = dt.datetime(2015, 12, 31)
+    time_lst = utils.create_date_list(start_date, end_date, del_t='day')
+    times[:] = nC.date2num(time_lst, times.units, times.calendar)
+    return dataset
+
+
 def open_netcdf(filename):
     """Opens a netCDF file
     """
@@ -70,6 +199,21 @@ def open_netcdf(filename):
 
 def open_xls_sheet(filename, sheet_name):
     return pd.read_excel(filename, sheet_name)
+
+
+def merge_csv_files(direct):
+    f_out = open("ah_data_half_hourly.csv", "a")
+    # first file:
+    for line in open(direct+"flux_met_ah_1999.csv"):
+        f_out.write(line)
+    # now the rest:
+    for num in range(2000, 2016):
+        f = open(direct+"flux_met_ah_"+str(num)+".csv")
+        f.next()  # skip the header
+        for line in f:
+            f_out.write(line)
+        f.close()  # not really needed
+    f_out.close()
 
 
 def add_data2nc(nc_data, pd_df, data_title, nc_title, date_l='None', date_col='date_combined', sel='exact'):
@@ -127,4 +271,19 @@ def round_time_nearest_10min(datet):
     if discard >= dt.timedelta(minutes=5):
         tm += dt.timedelta(minutes=10)
     return tm
+
+
+def add_csv2nc(csv_name, nc_name):
+    csv_data = ml.csv2rec(csv_name)
+    nc_data = open_netcdf(nc_name)
+    nc_vars = ['air_temp', 'soil_temp', 'rg', 'co2_flux', 'qc_co2_flux', 'u_star', 'wind_dir', 'foot_print']
+    for var_title in nc_vars:
+        nc_var = nc_data.variables[var_title]
+        csv_var = csv_data[var_title]
+        if len(csv_var) != len(nc_var):
+            raise ValueError('Cannot project data of different shapes together')
+        else:
+            nc_var[:] = csv_var[:]
+    return 'All updated'
+
 
