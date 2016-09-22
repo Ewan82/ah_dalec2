@@ -746,6 +746,7 @@ def add_daily_data2nc(nc_file, var_name, date, value):
     var = data.variables[var_name]
     idx = find_date_idx(date, data)
     var[idx, 0, 0] = value
+    data.close()
     return var_name+' updated!'
 
 
