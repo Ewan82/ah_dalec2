@@ -410,14 +410,14 @@ class DalecModel():
     def phi_on(self, p):
         """Fn calculates day of leaf on,
         """
-        phi_on = self.phi_onset(p[11], p[13])
-        return phi_on
+        phi_on_ob = self.phi_onset(p[11], p[13])
+        return phi_on_ob
 
     def phi_off(self, p):
         """Fn calculates day of leaf on,
         """
-        phi_off = self.phi_fall(p[14], p[15], p[4])
-        return phi_off
+        phi_off_ob = self.phi_fall(p[14], p[15], p[4])
+        return phi_off_ob
 
     def linob(self, ob, pvals):
         """Function returning jacobian of observation with respect to the
@@ -938,7 +938,7 @@ class DalecModel():
             bnds = bnds
         zvals = self.pvals2zvals(pvals)
         find_min = spop.fmin_tnc(self.cost_cvt, zvals,
-                                fprime=self.gradcost_cvt, bounds=bnds,
+                                fprime=self.gradcost2_cvt, bounds=bnds,
                                 disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         xa = self.zvals2pvals(find_min[0])
         if f_name != None:

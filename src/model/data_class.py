@@ -146,7 +146,7 @@ class DalecData:
         # Driving Data
         self.I = data.variables['rg'][self.start_idx:self.end_idx, 0, 0]  # incident radiation
         self.ca = 390.0  # atmospheric carbon
-        self.D = data.variables['doy'][self.start_idx:self.end_idx]  # day of year
+        self.D = data.variables['doy'][self.start_idx:self.end_idx, 0, 0]  # day of year
         self.day_len = data.variables['day_length'][self.start_idx:self.end_idx, 0, 0]
         self.night_len = data.variables['night_length'][self.start_idx:self.end_idx, 0, 0]
         self.year = np.array([date.year for date in self.dates])  # year

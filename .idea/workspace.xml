@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="37016db7-5123-4be0-aef3-a3a7a2de46ef" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/model/twin_experiment_run.py" afterPath="$PROJECT_DIR$/src/model/twin_experiment_run.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/model/data_class.py" afterPath="$PROJECT_DIR$/src/model/data_class.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/model/mod_class.py" afterPath="$PROJECT_DIR$/src/model/mod_class.py" />
     </list>
     <ignored path="ah_dalec2.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -48,30 +50,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="b_edc_cor.p" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/model/b_edc_cor.p">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="data_class.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="301" column="79" selection-start-line="301" selection-start-column="79" selection-end-line="301" selection-end-column="79" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="twin_experiment_run.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="twin_experiment_run.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/model/twin_experiment_run.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.15022092">
+            <state vertical-scroll-proportion="0.0">
               <caret line="14" column="23" selection-start-line="14" selection-start-column="23" selection-end-line="14" selection-end-column="23" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
@@ -80,14 +62,24 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="mod_class.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="mod_class.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/model/mod_class.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="47" column="80" selection-start-line="45" selection-start-column="0" selection-end-line="47" selection-end-column="80" />
+            <state vertical-scroll-proportion="-12.268042">
+              <caret line="423" column="33" selection-start-line="423" selection-start-column="33" selection-end-line="423" selection-end-column="33" />
               <folding>
                 <element signature="e#96#114#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="data_class.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="148" column="72" selection-start-line="148" selection-start-column="72" selection-end-line="148" selection-end-column="72" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -148,14 +140,15 @@
         <option value="$PROJECT_DIR$/src/model/model.py" />
         <option value="$PROJECT_DIR$/src/model/model2.py" />
         <option value="$PROJECT_DIR$/nc_create.py" />
-        <option value="$PROJECT_DIR$/src/model/mod_class.py" />
         <option value="$PROJECT_DIR$/alice_holt_data/nc_create.py" />
         <option value="$PROJECT_DIR$/alice_holt_data/ah_nc_utils.py" />
         <option value="$PROJECT_DIR$/src/model/data_class_test.py" />
         <option value="$PROJECT_DIR$/src/model/experiment_run.py" />
-        <option value="$PROJECT_DIR$/src/model/data_class.py" />
         <option value="$PROJECT_DIR$/src/model/plot.py" />
         <option value="$PROJECT_DIR$/src/model/twin_experiment_run.py" />
+        <option value="$PROJECT_DIR$/src/model/mod_class2.py" />
+        <option value="$PROJECT_DIR$/src/model/data_class.py" />
+        <option value="$PROJECT_DIR$/src/model/mod_class.py" />
       </list>
     </option>
   </component>
@@ -275,6 +268,20 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="aliceholtdata" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ah_dalec2" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ah_dalec2" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="alice_holt_data" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -308,6 +315,7 @@
       <recent name="$PROJECT_DIR$/aliceholtdata" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/alice_holt_data" />
       <recent name="$PROJECT_DIR$/src/model" />
     </key>
@@ -848,14 +856,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="301" column="79" selection-start-line="301" selection-start-column="79" selection-end-line="301" selection-end-column="79" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/model/plot.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -866,22 +866,46 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/mod_class.py">
+    <entry file="file://$PROJECT_DIR$/src/model/twin_experiment_run.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="47" column="80" selection-start-line="45" selection-start-column="0" selection-end-line="47" selection-end-column="80" />
+          <caret line="14" column="23" selection-start-line="14" selection-start-column="23" selection-end-line="14" selection-end-column="23" />
           <folding>
-            <element signature="e#96#114#0" expanded="true" />
+            <element signature="e#0#23#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/twin_experiment_run.py">
+    <entry file="file://$PROJECT_DIR$/aliceholtdata/ahdat99_13.csv">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.15022092">
-          <caret line="14" column="23" selection-start-line="14" selection-start-column="23" selection-end-line="14" selection-end-column="23" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/b_edc.p">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="148" column="72" selection-start-line="148" selection-start-column="72" selection-end-line="148" selection-end-column="72" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/mod_class.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-12.268042">
+          <caret line="423" column="33" selection-start-line="423" selection-start-column="33" selection-end-line="423" selection-end-column="33" />
           <folding>
-            <element signature="e#0#23#0" expanded="true" />
+            <element signature="e#96#114#0" expanded="true" />
           </folding>
         </state>
       </provider>
