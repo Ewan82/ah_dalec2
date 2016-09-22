@@ -250,6 +250,7 @@ class DalecData:
                 ob_del = ob[:-5]
                 obs = data.variables[ob][self.start_idx:self.end_idx, 0, 0]
                 obs_dict[ob_del] = obs
+                obs_err_dict[ob_del] = (obs/obs) * self.error_dict[ob_del]
             else:
                 obs = data.variables[ob][self.start_idx:self.end_idx, 0, 0]
                 obs_dict[ob] = obs

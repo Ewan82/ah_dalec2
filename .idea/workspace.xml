@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="37016db7-5123-4be0-aef3-a3a7a2de46ef" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/alice_holt_data/ah_nc_utils.py" afterPath="$PROJECT_DIR$/alice_holt_data/ah_nc_utils.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/model/data_class.py" afterPath="$PROJECT_DIR$/src/model/data_class.py" />
     </list>
     <ignored path="ah_dalec2.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -24,11 +24,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="ah_nc_utils.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="ah_nc_utils.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/alice_holt_data/ah_nc_utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.4742268">
-              <caret line="750" column="0" selection-start-line="750" selection-start-column="0" selection-end-line="750" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="752" column="12" selection-start-line="752" selection-start-column="12" selection-end-line="752" selection-end-column="12" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -60,11 +60,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="data_class.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="data_class.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="250" column="28" selection-start-line="250" selection-start-column="28" selection-end-line="250" selection-end-column="28" />
+            <state vertical-scroll-proportion="0.55081004">
+              <caret line="252" column="73" selection-start-line="252" selection-start-column="73" selection-end-line="252" selection-end-column="73" />
               <folding />
             </state>
           </provider>
@@ -133,8 +133,8 @@
         <option value="$PROJECT_DIR$/src/model/plot.py" />
         <option value="$PROJECT_DIR$/alice_holt_data/nc_create.py" />
         <option value="$PROJECT_DIR$/src/model/mod_class.py" />
-        <option value="$PROJECT_DIR$/src/model/data_class.py" />
         <option value="$PROJECT_DIR$/alice_holt_data/ah_nc_utils.py" />
+        <option value="$PROJECT_DIR$/src/model/data_class.py" />
       </list>
     </option>
   </component>
@@ -143,8 +143,8 @@
     <detection-done>true</detection-done>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-356" />
-    <option name="y" value="56" />
+    <option name="x" value="-19" />
+    <option name="y" value="32" />
     <option name="width" value="1440" />
     <option name="height" value="797" />
   </component>
@@ -437,7 +437,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-356" y="56" width="1440" height="797" extended-state="0" />
+    <frame x="-19" y="32" width="1440" height="797" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.286117" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -847,6 +847,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/alice_holt_data/ah_nc_utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="752" column="12" selection-start-line="752" selection-start-column="12" selection-end-line="752" selection-end-column="12" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/model/mod_class.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -859,19 +869,9 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="250" column="28" selection-start-line="250" selection-start-column="28" selection-end-line="250" selection-end-column="28" />
+        <state vertical-scroll-proportion="0.55081004">
+          <caret line="252" column="73" selection-start-line="252" selection-start-column="73" selection-end-line="252" selection-end-column="73" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/alice_holt_data/ah_nc_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4742268">
-          <caret line="750" column="0" selection-start-line="750" selection-start-column="0" selection-end-line="750" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
