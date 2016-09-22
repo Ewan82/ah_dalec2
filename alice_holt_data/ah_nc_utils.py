@@ -560,9 +560,9 @@ def quality_control_co2_flux_daily(clipped_co2_flux, qc_co2_flux, nee, nee_std, 
         # u mol m-2 s-1 to g C m-2 day-1 (CHECK what units do we want day/night in?)
         nee[idx, 0, 0] = 12.011*1e-6 * (idx2-idx1)*30*60 * np.nanmean(clipped_co2_flux[idx1:idx2, 0, 0])
         nee_std[idx, 0, 0] = 12.011*1e-6 * (idx2-idx1)*30*60 * np.nanstd(clipped_co2_flux[idx1:idx2, 0, 0])
-        if all(0 <= wind < 180 or wind > 315 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from East
+        if all(0 <= wind < 180 or wind > 295 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from East
             origin[idx, 0, 0] = 1
-        elif all(315 > wind > 180 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from west
+        elif all(295 > wind > 180 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from west
             origin[idx, 0, 0] = 2
         else:  # Undetermined obs location
             origin[idx, 0, 0] = 0
@@ -732,3 +732,34 @@ def add_data2daily_netcdf_nee(half_hourly_nc, daily_nc):
     hh_data.close()
     d_data.close()
     return 'yay'
+
+
+def add_daily_data2nc(nc_file, var_name, date, value):
+    """ Adds a single value of data for a specific variable on a single date.
+    :param nc_file: netcdf file name
+    :param var_name: name of variable to add data to
+    :param date: date to add data on as a tuple (year, month, day)
+    :param value: the value to add on specified date
+    :return:
+    """
+    data = nC.Dataset(nc_file, 'a')
+    var = data.variables[var_name]
+    idx = find_date_idx(date, data)
+    var[idx, 0, 0] = value
+    return var_name+' updated!'
+
+
+def find_date_idx(date, data):
+    """ Finds index in netcdf file for given date
+    :param date: date in format specified in DalecData class
+    :param data: netcdf dataset object
+    :return: date index
+    """
+    if type(date) == int:
+        d_time = dt.datetime(date, 1, 1)
+    elif type(date) == tuple:
+        d_time = dt.datetime(date[0], date[1], date[2])
+    else:
+        raise ValueError('Date wrong format, please check input')
+    times = data.variables['time']
+    return nC.date2index(d_time, times, select='nearest')

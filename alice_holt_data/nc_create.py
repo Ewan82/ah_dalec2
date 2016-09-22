@@ -180,6 +180,9 @@ def create_netcdf_dataset_daily(path):
     lai_west = dataset.createVariable('lai_west', 'f4', ('time', 'lat', 'lon'), zlib=True)
     lai_west.standard_name = 'leaf_area_index'
     lai_west.description = 'average lai for site west of flux tower'
+    lma = dataset.createVariable('lma', 'f4', ('time', 'lat', 'lon'), zlib=True)
+    lma.description = 'leaf mass area for Alice Holt'
+    lma.units = 'g C m-2'
 
     # woody biomass
     c_woo = dataset.createVariable('c_woo', 'f4', ('time', 'lat', 'lon'), zlib=True)

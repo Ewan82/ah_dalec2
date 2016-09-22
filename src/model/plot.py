@@ -6,6 +6,7 @@ import matplotlib
 import matplotlib.mlab as mlab
 import matplotlib.gridspec as gridspec
 import mod_class as mc
+import data_class as dc
 import seaborn as sns
 
 # ------------------------------------------------------------------------------
@@ -31,6 +32,42 @@ def plot_phi(pvals, dC):
     ax.set_xlabel('Year')
     ax.set_ylabel('Rate of leaf on/leaf off')
     plt.gcf().autofmt_xdate()
+    return ax, fig
+
+
+def plot_gpp_sensitivity_lai():
+    sns.set_context(rc={'lines.linewidth':.8, 'lines.markersize':6})
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    palette = sns.color_palette("colorblind", 11)
+    d = dc.DalecDataTwin(1999, 2000, '')
+    m= mc.DalecModel(d)
+    m.x = 200
+    gpp = []
+    cf_list = np.arange(60., 600.)
+    for cf in cf_list:
+        gpp.append(m.acm(cf, 60., d.edinburgh_mean[10], d.acm))
+
+    ax.plot(cf_list/60., gpp, color=palette[0])
+    ax.set_xlabel('LAI')
+    ax.set_ylabel('GPP (g C m-2 day-1)')
+    return ax, fig
+
+
+def plot_gpp_sensitivity_ceff():
+    sns.set_context(rc={'lines.linewidth':.8, 'lines.markersize':6})
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    palette = sns.color_palette("colorblind", 11)
+    d = dc.DalecDataTwin(1999, 2000, '')
+    m= mc.DalecModel(d)
+    m.x = 200
+    gpp = []
+    ceff_list = np.arange(10., 100.)
+    for ceff in ceff_list:
+        gpp.append(m.acm(180., 60., ceff, d.acm))
+
+    ax.plot(ceff_list, gpp, color=palette[0])
+    ax.set_xlabel('Canopy efficiency parameter')
+    ax.set_ylabel('GPP (g C m-2 day-1)')
     return ax, fig
 
 

@@ -12,8 +12,8 @@ class DalecData:
     """
     Data class for the DALEC2 model
     """
-    def __init__(self, start_date=None, end_date=None, ob_str=None, nc_file='../../alice_holt_data/ah_data_daily.nc',
-                 delta_t=None, k=None):
+    def __init__(self, start_date=None, end_date=None, ob_str=None,
+                 nc_file='../../alice_holt_data/ah_data_daily_test.nc', delta_t=None, k=None):
         """ Extracts data from netcdf file
         :param start_date: date for model runs to begin as an integer (year) or tuple (year, month, day)
         :param end_date: date for model runs to end as an integer (year) or tuple (year, month, day)
@@ -182,10 +182,10 @@ class DalecData:
         # Observation standard deviations for carbon pools and NEE
         self.sigo_clab = 7.5  # 10%
         self.sigo_cf = 10.0  # 10%
-        self.sigo_cw = 1000.  # 10%
+        self.sigo_cw = 200.  # 10%
         self.sigo_cr = 13.5  # 30%
         self.sigo_cl = 7.0  # 30%
-        self.sigo_cs = 1500.  # 30%
+        self.sigo_cs = 1500.0  # 30%
         self.sigo_nee = 0.71  # g C m-2 day-1
         self.sigo_nee_day = 0.71
         self.sigo_nee_night = 0.71
@@ -195,8 +195,8 @@ class DalecData:
         self.sigo_soilresp = 0.6
         self.sigo_rtot = 0.71
         self.sigo_rh = 0.6
-        self.sigo_lai = 0.6
-        self.sigo_clma = 0.6
+        self.sigo_lai = 0.5
+        self.sigo_clma = 5.0
 
         self.error_dict = {'clab': self.sigo_clab, 'cf': self.sigo_cf, 'cw': self.sigo_cw,
                            'cl': self.sigo_cl, 'cr': self.sigo_cr, 'cs': self.sigo_cs,
@@ -246,6 +246,10 @@ class DalecData:
                 for x in idx[0]:
                     obs_dict[ob_del][x] = float('NaN')
                     obs_err_dict[ob_del][x] = float('NaN')
+            elif ob in ['c_woo_east', 'c_woo_west', 'lai_east', 'lai_west']:
+                ob_del = ob[:-5]
+                obs = data.variables[ob][self.start_idx:self.end_idx, 0, 0]
+                obs_dict[ob_del] = obs
             else:
                 obs = data.variables[ob][self.start_idx:self.end_idx, 0, 0]
                 obs_dict[ob] = obs
@@ -279,10 +283,10 @@ class DalecData:
 
 
 class DalecDataTwin(DalecData):
-    def __init__(self, start_date, end_date, ob_str, err_scale=0.25, nc_file='../../alice_holt_data/ah_data_daily.nc'):
-        DalecData.__init__(self, start_date, end_date, ob_str, nc_file)
+    def __init__(self, start_date, end_date, ob_str, err_scale=0.25,
+                 nc_file='../../alice_holt_data/ah_data_daily_test.nc'):
 
-        # self.d = DalecData(start_date, end_date, ob_str, nc_file)
+        DalecData.__init__(self, start_date, end_date, ob_str, nc_file)
         self.m = mc.DalecModel(self)
 
         # Define truth and background

@@ -27,8 +27,8 @@ class DalecModel():
         self.modobdict = {'gpp': self.gpp, 'nee': self.nee, 'nee_day': self.nee_day,
                           'nee_night': self.nee_night, 'rt': self.rec,
                           'cf': self.cf, 'clab': self.clab, 'cr': self.cr,
-                          'cw': self.cw, 'cl': self.cl, 'cs': self.cs,
-                          'lf': self.lf, 'lw': self.lw, 'lai': self.lai,
+                          'c_woo': self.cw, 'cl': self.cl, 'cs': self.cs,
+                          'lf': self.lf, 'lw': self.lw, 'lai': self.lai, 'clma': self.clma,
                           'litresp': self.litresp, 'soilresp': self.soilresp,
                           'rtot': self.rtot, 'rh': self.rh, 'ra': self.ra,
                           'd_onset': self.d_onset, 'groundresp': self.groundresp,
@@ -352,6 +352,12 @@ class DalecModel():
         """
         lai = p[18] / p[16]
         return lai
+
+    def clma(self, p):
+        """Fn calculates clma (carbon leaf mass per area)
+        """
+        clma = p[16]
+        return clma
 
     def lf(self, p):
         """Fn calulates litter fall.
