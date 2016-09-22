@@ -31,7 +31,8 @@ class DalecModel():
                           'lf': self.lf, 'lw': self.lw, 'lai': self.lai,
                           'litresp': self.litresp, 'soilresp': self.soilresp,
                           'rtot': self.rtot, 'rh': self.rh, 'ra': self.ra,
-                          'd_onset': self.d_onset, 'groundresp': self.groundresp}
+                          'd_onset': self.d_onset, 'groundresp': self.groundresp,
+                          'phi_onset': self.phi_on, 'phi_fall': self.phi_off}
         self.startrun = strtrun
         self.endrun = self.lenrun
         self.yoblist, self.yerroblist, self.ytimestep = self.obscost()
@@ -405,6 +406,18 @@ class DalecModel():
         """
         d_onset = p[11]
         return d_onset
+
+    def phi_on(self, p):
+        """Fn calculates day of leaf on,
+        """
+        phi_on = self.phi_onset(p[11], p[13])
+        return phi_on
+
+    def phi_off(self, p):
+        """Fn calculates day of leaf on,
+        """
+        phi_off = self.phi_fall(p[14], p[15], p[4])
+        return phi_off
 
     def linob(self, ob, pvals):
         """Function returning jacobian of observation with respect to the

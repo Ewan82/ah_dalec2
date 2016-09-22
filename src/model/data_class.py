@@ -12,7 +12,7 @@ class DalecData:
     """
     Data class for the DALEC2 model
     """
-    def __init__(self, start_date=None, end_date=None, ob_str=None, nc_file='../../alice_holt_data/ah_data.nc',
+    def __init__(self, start_date=None, end_date=None, ob_str=None, nc_file='../../alice_holt_data/ah_data_daily.nc',
                  delta_t=None, k=None):
         """ Extracts data from netcdf file
         :param start_date: date for model runs to begin as an integer (year) or tuple (year, month, day)
@@ -28,7 +28,7 @@ class DalecData:
         self.time_units = data.variables['time'].units
         self.start_idx = self.find_date_idx(start_date, data)
         self.end_idx = self.find_date_idx(end_date, data)
-        self.dates = nC.num2date(data.variables['time'][self.start_idx:self.end_idx:48], self.time_units)
+        self.dates = nC.num2date(data.variables['time'][self.start_idx:self.end_idx], self.time_units)
         self.k = k
         self.len_run = len(self.dates)
         self.time_step = np.arange(self.len_run)
@@ -131,20 +131,24 @@ class DalecData:
 
         self.xa = None
 
-        # 'Daily temperatures degC'
-        self.t_mean = data.variables['daily_mean_temp'][self.start_idx:self.end_idx:48, 0, 0]
-        self.t_max = data.variables['daily_max_temp'][self.start_idx:self.end_idx:48, 0, 0]
-        self.t_min = data.variables['daily_min_temp'][self.start_idx:self.end_idx:48, 0, 0]
+        # Daily temperatures degC
+        self.t_mean = data.variables['daily_mean_temp'][self.start_idx:self.end_idx, 0, 0]
+        self.t_max = data.variables['daily_max_temp'][self.start_idx:self.end_idx, 0, 0]
+        self.t_min = data.variables['daily_min_temp'][self.start_idx:self.end_idx, 0, 0]
         self.t_range = np.array(self.t_max) - np.array(self.t_min)
-        self.t_day = data.variables['mean_temp_day'][self.start_idx:self.end_idx:48, 0, 0]
-        self.t_night = data.variables['mean_temp_night'][self.start_idx:self.end_idx:48, 0, 0]
+        self.t_day = data.variables['mean_temp_day'][self.start_idx:self.end_idx, 0, 0]
+        self.t_night = data.variables['mean_temp_night'][self.start_idx:self.end_idx, 0, 0]
+        # Daily soil temperatures at 3 cm depth
+        self.t_mean_soil = data.variables['daily_mean_soil_temp'][self.start_idx:self.end_idx, 0, 0]
+        self.t_day_soil = data.variables['mean_soil_temp_day'][self.start_idx:self.end_idx, 0, 0]
+        self.t_night_soil = data.variables['mean_soil_temp_night'][self.start_idx:self.end_idx, 0, 0]
 
-        # 'Driving Data'
-        self.I = data.variables['rg_day'][self.start_idx:self.end_idx:48, 0, 0]  # incident radiation
+        # Driving Data
+        self.I = data.variables['rg'][self.start_idx:self.end_idx, 0, 0]  # incident radiation
         self.ca = 390.0  # atmospheric carbon
-        self.D = data.variables['doy'][self.start_idx:self.end_idx:48]  # day of year
-        self.day_len = data.variables['day_length'][self.start_idx:self.end_idx:48, 0, 0]
-        self.night_len = data.variables['night_length'][self.start_idx:self.end_idx:48, 0, 0]
+        self.D = data.variables['doy'][self.start_idx:self.end_idx]  # day of year
+        self.day_len = data.variables['day_length'][self.start_idx:self.end_idx, 0, 0]
+        self.night_len = data.variables['night_length'][self.start_idx:self.end_idx, 0, 0]
         self.year = np.array([date.year for date in self.dates])  # year
         self.month = np.array([date.month for date in self.dates])  # month
         self.date = np.array([date.day for date in self.dates])  # date in month
@@ -191,12 +195,19 @@ class DalecData:
         self.sigo_soilresp = 0.6
         self.sigo_rtot = 0.71
         self.sigo_rh = 0.6
+        self.sigo_lai = 0.6
+        self.sigo_clma = 0.6
 
         self.error_dict = {'clab': self.sigo_clab, 'cf': self.sigo_cf, 'cw': self.sigo_cw,
                            'cl': self.sigo_cl, 'cr': self.sigo_cr, 'cs': self.sigo_cs,
                            'nee': self.sigo_nee, 'nee_day': self.sigo_nee_day, 'nee_night': self.sigo_nee_night,
                            'lf': self.sigo_lf, 'lw': self.sigo_lw, 'litresp': self.sigo_litresp,
-                           'soilresp': self.sigo_soilresp, 'rtot': self.sigo_rtot, 'rh': self.sigo_rh}
+                           'soilresp': self.sigo_soilresp, 'rtot': self.sigo_rtot, 'rh': self.sigo_rh,
+                           'lai': self.sigo_lai, 'clma': self.sigo_clma}
+        self.possible_obs = ['gpp', 'lf', 'lw', 'rt', 'nee', 'nee_east', 'nee_west', 'nee_day', 'nee_day_east',
+                             'nee_day_west', 'nee_night', 'nee_night_east', 'nee_night_west', 'cf', 'cl',
+                             'cr', 'c_woo', 'c_woo_east', 'c_woo_west', 'cs', 'lai', 'lai_east', 'lai_west',
+                             'clma', 'clab', 'litresp', 'soilresp','rtot', 'rh', 'rabg', 'd_onset', 'groundresp']
 
         # Extract observations for assimilation
         self.ob_dict, self.ob_err_dict = self.assimilation_obs(ob_str, data)
@@ -207,18 +218,36 @@ class DalecData:
         :param obs_str: string of observations separated by commas
         :return: dictionary of observation values, dictionary of corresponding observation errors
         """
-        possible_obs = ['gpp', 'lf', 'lw', 'rt', 'nee', 'nee_day', 'nee_night', 'cf', 'cl',
-                        'cr', 'cw', 'cs', 'lai', 'clab', 'litresp', 'soilresp',
-                        'rtot', 'rh', 'rabg', 'd_onset', 'groundresp']
         obs_lst = re.findall(r'[^,;\s]+', ob_str)
         obs_dict = {}
         obs_err_dict = {}
         for ob in obs_lst:
-            if ob not in possible_obs:
+            if ob not in self.possible_obs:
                 raise Exception('Invalid observations entered, please check \
                                  function input')
+            elif ob in ['nee_east', 'nee_day_east', 'nee_night_east']:
+                ob_del = ob[:-5]
+                obs = data.variables[ob_del][self.start_idx:self.end_idx, 0, 0]
+                obs_dict[ob_del] = obs
+                obs_err_dict[ob_del] = (obs/obs) * self.error_dict[ob_del]
+                origin = data.variables[ob_del+'_origin'][self.start_idx:self.end_idx, 0, 0]
+                idx = np.where(origin == 2)
+                idx2 = np.where(origin == 0)
+                for x in np.concatenate((idx[0], idx2[0]), axis=0):
+                    obs_dict[ob_del][x] = float('NaN')
+                    obs_err_dict[ob_del][x] = float('NaN')
+            elif ob in ['nee_west', 'nee_day_west', 'nee_night_west']:
+                ob_del = ob[:-5]
+                obs = data.variables[ob_del][self.start_idx:self.end_idx, 0, 0]
+                obs_dict[ob_del] = obs
+                obs_err_dict[ob_del] = (obs/obs) * self.error_dict[ob_del]
+                origin = data.variables[ob_del+'_origin'][self.start_idx:self.end_idx, 0, 0]
+                idx = np.where(origin < 2)
+                for x in idx[0]:
+                    obs_dict[ob_del][x] = float('NaN')
+                    obs_err_dict[ob_del][x] = float('NaN')
             else:
-                obs = data.variables[ob][self.start_idx:self.end_idx:48, 0, 0]
+                obs = data.variables[ob][self.start_idx:self.end_idx, 0, 0]
                 obs_dict[ob] = obs
                 obs_err_dict[ob] = (obs/obs) * self.error_dict[ob]
 
@@ -237,7 +266,7 @@ class DalecData:
         else:
             raise ValueError('Date wrong format, please check input')
         times = data.variables['time']
-        return nC.date2index(d_time, times)
+        return nC.date2index(d_time, times, select='nearest')
 
     @staticmethod
     def make_b(b_std):
@@ -250,7 +279,7 @@ class DalecData:
 
 
 class DalecDataTwin(DalecData):
-    def __init__(self, start_date, end_date, ob_str, err_scale=0.25, nc_file='../../alice_holt_data/ah_data.nc'):
+    def __init__(self, start_date, end_date, ob_str, err_scale=0.25, nc_file='../../alice_holt_data/ah_data_daily.nc'):
         DalecData.__init__(self, start_date, end_date, ob_str, nc_file)
 
         # self.d = DalecData(start_date, end_date, ob_str, nc_file)
@@ -262,9 +291,9 @@ class DalecDataTwin(DalecData):
         # self.B = self.make_b(self.st_dev)
 
         # Make EDC B
-        b_cor = pickle.load(open('b_edc_cor.p', 'r'))
-        b_std = self.make_b(np.sqrt(self.st_dev))
-        self.B = np.dot(np.dot(b_std, b_cor), b_std)
+        b_cor = pickle.load(open('b_edc_cor.p', 'r'))  # load correlation matrix from 2016 paper
+        b_std = self.make_b(np.sqrt(self.st_dev))  # Create diagonal matrix of standard deviations
+        self.B = np.dot(np.dot(b_std, b_cor), b_std)  # Create correlated B
         # self.xb = self.random_pert(self.random_pert(self.x_truth))
         self.xb = np.array([2.53533992e-04,   5.85073161e-01,   7.43127332e-02,
                             4.99707798e-01,   1.38993876e+00,   6.11913792e-05,
@@ -283,15 +312,12 @@ class DalecDataTwin(DalecData):
         :param err_scale: factor by which to scale observation error and added gaussian noise
         :return: observation dictionary, observation error dictionary
         """
-        possible_obs = ['gpp', 'lf', 'lw', 'rt', 'nee', 'nee_day', 'nee_night', 'cf', 'cl',
-                        'cr', 'cw', 'cs', 'lai', 'clab', 'litresp', 'soilresp',
-                        'rtot', 'rh', 'rabg', 'd_onset', 'groundresp']
         obs_lst = re.findall(r'[^,;\s]+', ob_str)
         obs_dict = {}
         obs_err_dict = {}
         mod_lst = self.m.mod_list(self.x_truth)
         for ob in obs_lst:
-            if ob not in possible_obs:
+            if ob not in self.possible_obs:
                 raise Exception('Invalid observations entered, please check \
                                  function input')
             else:

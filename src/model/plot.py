@@ -12,40 +12,25 @@ import seaborn as sns
 # Plot observation time series
 # ------------------------------------------------------------------------------
 
-
-def plotphi(onoff, pvals, dC, start, fin):
-    """Plots phi using phi equations given a string "fall" or "onset", a
-    dataClass and a start and finish point. Nice check to see dynamics.
-    """
-    xlist = np.arange(start, fin, 1)
-    phi = np.ones(fin - start)*-9999.
-    for x in xrange(start, fin):
-        if onoff == 'onset':
-            phi[x-start] = m.phi_onset(pvals[11], pvals[13], dC, x)
-        elif onoff == 'fall':
-            phi[x-start] = m.phi_fall(pvals[14], pvals[15], pvals[4], dC, x)
-    plt.plot(xlist, phi)
-    plt.show()
-
-
-def plotphi2(pvals, dC, start, fin):
-    """Plots phi using phi equations given a string "fall" or "onset", a
-    dataClass and a start and finish point. Nice check to see dynamics.
+def plot_phi(pvals, dC):
+    """Plots phi_onset and phi_fall fns controlling leaf on and leaf off. Takes
+    a parameter set (pvals) and a dataClass (dC).
     """
     sns.set_context(rc={'lines.linewidth':.8, 'lines.markersize':6})
-    xlist = np.arange(start, fin, 1)
-    phion = np.ones(fin - start)*-9999.
-    phioff = np.ones(fin - start)*-9999.
-    sns.set_context(rc={'lines.linewidth':.8, 'lines.markersize':6})
-    fig, ax = plt.subplots( nrows=1, ncols=1,)
-    for x in xrange(start, fin):
-        phion[x-start] = m.phi_onset(pvals[11], pvals[13], dC, x)
-        phioff[x-start] = m.phi_fall(pvals[14], pvals[15], pvals[4], dC, x)
-    ax.plot(xlist, phion)
-    ax.plot(xlist, phioff)
-    ax.set_xlabel('Day of year')
-    ax.set_ylabel('Rate of C allocation')
-    ax.set_xlim(0, 365)
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    m = mc.DalecModel(dC)
+    mod_lst = m.mod_list(pvals)
+    phi_on = m.oblist('phi_onset', mod_lst)
+    phi_off = m.oblist('phi_fall', mod_lst)
+
+    palette = sns.color_palette("colorblind", 11)
+
+    ax.plot(dC.dates, phi_on, color=palette[0], label='phi_onset')
+    ax.plot(dC.dates, phi_off, color=palette[2], label='phi_fall')
+    plt.legend()
+    ax.set_xlabel('Year')
+    ax.set_ylabel('Rate of leaf on/leaf off')
+    plt.gcf().autofmt_xdate()
     return ax, fig
 
 
@@ -76,6 +61,24 @@ def plot_ob_dict(ob, dC):
     palette = sns.color_palette("colorblind", 11)
 
     ax.plot(dC.dates, dC.ob_dict[ob], 'o', color=palette[0])
+    ax.set_xlabel('Year')
+    ax.set_ylabel(ob)
+    plt.gcf().autofmt_xdate()
+    return ax, fig
+
+
+def plot_ob_dict_east_west(ob, dC_east, dC_west):
+    """Plots a specified observation using obs eqn in obs module. Takes an
+    observation string, a dataClass (dC) and a start and finish point.
+    """
+    sns.set_context(rc={'lines.linewidth': 0.8, 'lines.markersize': 6})
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+
+    palette = sns.color_palette("colorblind", 11)
+
+    ax.plot(dC_east.dates, dC_east.ob_dict[ob], 'o', color=palette[0], label='East')
+    ax.plot(dC_west.dates, dC_west.ob_dict[ob], 'o', color=palette[2], label='West')
+    plt.legend()
     ax.set_xlabel('Year')
     ax.set_ylabel(ob)
     plt.gcf().autofmt_xdate()
