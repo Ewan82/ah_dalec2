@@ -198,7 +198,7 @@ class DalecData:
         self.sigo_lai = 0.5
         self.sigo_clma = 5.0
 
-        self.error_dict = {'clab': self.sigo_clab, 'cf': self.sigo_cf, 'cw': self.sigo_cw,
+        self.error_dict = {'clab': self.sigo_clab, 'cf': self.sigo_cf, 'c_woo': self.sigo_cw,
                            'cl': self.sigo_cl, 'cr': self.sigo_cr, 'cs': self.sigo_cs,
                            'nee': self.sigo_nee, 'nee_day': self.sigo_nee_day, 'nee_night': self.sigo_nee_night,
                            'lf': self.sigo_lf, 'lw': self.sigo_lw, 'litresp': self.sigo_litresp,
