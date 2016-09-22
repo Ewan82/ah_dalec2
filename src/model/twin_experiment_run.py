@@ -12,7 +12,7 @@ import pickle
 def day_night_twin_run(start, end, obs, f_name, obs_loc):
     d = dc.DalecDataTwin(start, end, obs)
     pik_obs = pickle.load(open(obs_loc, 'r'))
-    d.ob_dict = pik_obs['obs']
+    d.ob_dict = pik_obs
     m = mc.DalecModel(d)
     assim_results, xa = m.find_min_tnc_cvt(d.xb, f_name+'_assim_res')
     d2 = dc.DalecDataTwin(start, 2013, obs)
