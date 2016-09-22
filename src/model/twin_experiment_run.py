@@ -42,11 +42,11 @@ def day_night_twin_run(start, end, obs, f_name, obs_loc):
     return 'all experimented'
 
 def exps_obs_err(start, end, f_name):
-    day_night_twin_run(start, end, 'nee', f_name+'nee', 'obs_exps/'+str(start)+'_'+str(end)+'nee_twin.p')
-    day_night_twin_run(start, end, 'nee_day', f_name+'need', 'obs_exps/'+str(start)+'_'+str(end)+'nee_day_twin.p')
-    day_night_twin_run(start, end, 'nee_night', f_name+'neen', 'obs_exps/'+str(start)+'_'+str(end)+'nee_night_twin.p')
+    day_night_twin_run(start, end, 'nee', f_name+'nee', 'obs_exps/'+str(start)+'_'+str(end)+'_nee_twin.p')
+    day_night_twin_run(start, end, 'nee_day', f_name+'need', 'obs_exps/'+str(start)+'_'+str(end)+'_nee_day_twin.p')
+    day_night_twin_run(start, end, 'nee_night', f_name+'neen', 'obs_exps/'+str(start)+'_'+str(end)+'_nee_night_twin.p')
     day_night_twin_run(start, end, 'nee_day, nee_night', f_name+'needn',
-                       'obs_exps/'+str(start)+'_'+str(end)+'nee_day_night_twin.p')
+                       'obs_exps/'+str(start)+'_'+str(end)+'_nee_day_night_twin.p')
     return 'all experimented'
 
 
