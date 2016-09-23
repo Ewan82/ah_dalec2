@@ -117,7 +117,7 @@ class DalecData:
 
         self.xb = self.pvals
         # self.B = self.make_b(self.edinburgh_std)
-        self.B = 0.5*pickle.load(open('b_edc.p', 'r'))
+        self.B = pickle.load(open('b_edc.p', 'r'))
 
         self.bnds = ((1e-5, 1e-2), (0.3, 0.7), (0.01, 0.5), (0.01, 0.5), (1.0001, 10.),
                      (2.5e-5, 1e-3), (1e-4, 1e-2), (1e-4, 1e-2), (1e-7, 1e-3), (0.018, 0.08),

@@ -9,12 +9,11 @@ import pickle
 # ------------------------------------------------------------------------------
 
 
-def east_west_run(f_name, easy_west):
-    if easy_west == 'east':
-        obs = 'nee_day_east, nee_night_east, clma, lai_east, c_woo_east, c_roo_east'
-    elif easy_west == 'west':
-        obs = 'nee_day_west, nee_night_west, clma, lai_west, c_woo_west, c_roo_west'
-    d = dc.DalecData(2015, 2016, obs)
+def east_west_run(f_name, ob_list, east_west):
+    ob_str = ''
+    for ob in ob_list:
+        ob_str += ob+'_'+east_west+','
+    d = dc.DalecData(2015, 2016, ob_str)
     d.B = d.make_b(d.edinburgh_std)
     m = mc.DalecModel(d)
     assim_results, xa = m.find_min_tnc_cvt(d.edinburgh_mean, f_name+'_assim_res')

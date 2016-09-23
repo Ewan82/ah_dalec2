@@ -243,7 +243,7 @@ def plot_a_inc(xb, xa):
                     label='East')
     ax.set_ylabel('Normalised analysis increment')
     #ax.set_title('% error in parameter values for xa and xb')
-    ax.set_xticks(ind+width*2)
+    ax.set_xticks(ind+width/2)
     keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
             r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
             r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
