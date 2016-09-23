@@ -14,7 +14,7 @@ def east_west_run(f_name, easy_west):
         obs = 'nee_day_east, nee_night_east, clma, lai_east, c_woo_east, c_roo_east'
     elif easy_west == 'west':
         obs = 'nee_day_west, nee_night_west, clma, lai_west, c_woo_west, c_roo_west'
-    d = dc.DalecDataTwin(2015, 2016, obs)
+    d = dc.DalecData(2015, 2016, obs)
     d.B = d.make_b(d.edinburgh_std)
     m = mc.DalecModel(d)
     assim_results, xa = m.find_min_tnc_cvt(d.edinburgh_mean, f_name+'_assim_res')
@@ -55,9 +55,9 @@ def east_west_run_b(f_name, easy_west, net_file="None"):
     elif easy_west == 'west':
         obs = 'nee_day_west, nee_night_west, clma, lai_west, c_woo_west, c_roo_west'
     if net_file != "None":
-        d = dc.DalecDataTwin(2015, 2016, obs, nc_file=net_file)
+        d = dc.DalecData(2015, 2016, obs, nc_file=net_file)
     else:
-        d = dc.DalecDataTwin(2015, 2016, obs)
+        d = dc.DalecData(2015, 2016, obs)
     m = mc.DalecModel(d)
     assim_results, xa = m.find_min_tnc_cvt(d.edinburgh_mean, f_name+'_assim_res')
     # Plot 4dvar time series
