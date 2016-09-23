@@ -116,7 +116,8 @@ class DalecData:
                                 6.26033838e+02,   2.35514838e+03])
 
         self.xb = self.pvals
-        self.B = self.make_b(self.edinburgh_std)
+        # self.B = self.make_b(self.edinburgh_std)
+        self.B = 0.5*pickle.load(open('b_edc.p', 'r'))
 
         self.bnds = ((1e-5, 1e-2), (0.3, 0.7), (0.01, 0.5), (0.01, 0.5), (1.0001, 10.),
                      (2.5e-5, 1e-3), (1e-4, 1e-2), (1e-4, 1e-2), (1e-7, 1e-3), (0.018, 0.08),
@@ -182,8 +183,8 @@ class DalecData:
         # Observation standard deviations for carbon pools and NEE
         self.sigo_clab = 7.5  # 10%
         self.sigo_cf = 10.0  # 10%
-        self.sigo_cw = 200.  # 10%
-        self.sigo_cr = 13.5  # 30%
+        self.sigo_cw = 200.  # from AH dbh measurements
+        self.sigo_cr = 8.5  # from AH dbh measurements
         self.sigo_cl = 7.0  # 30%
         self.sigo_cs = 1500.0  # 30%
         self.sigo_nee = 0.71  # g C m-2 day-1
@@ -195,19 +196,20 @@ class DalecData:
         self.sigo_soilresp = 0.6
         self.sigo_rtot = 0.71
         self.sigo_rh = 0.6
-        self.sigo_lai = 0.5
-        self.sigo_clma = 5.0
+        self.sigo_lai = 0.5  # from AH optical measurements
+        self.sigo_clma = 5.0  # from AH litter scans
 
         self.error_dict = {'clab': self.sigo_clab, 'cf': self.sigo_cf, 'c_woo': self.sigo_cw,
-                           'cl': self.sigo_cl, 'cr': self.sigo_cr, 'cs': self.sigo_cs,
+                           'cl': self.sigo_cl, 'c_roo': self.sigo_cr, 'cs': self.sigo_cs,
                            'nee': self.sigo_nee, 'nee_day': self.sigo_nee_day, 'nee_night': self.sigo_nee_night,
                            'lf': self.sigo_lf, 'lw': self.sigo_lw, 'litresp': self.sigo_litresp,
                            'soilresp': self.sigo_soilresp, 'rtot': self.sigo_rtot, 'rh': self.sigo_rh,
                            'lai': self.sigo_lai, 'clma': self.sigo_clma}
         self.possible_obs = ['gpp', 'lf', 'lw', 'rt', 'nee', 'nee_east', 'nee_west', 'nee_day', 'nee_day_east',
                              'nee_day_west', 'nee_night', 'nee_night_east', 'nee_night_west', 'cf', 'cl',
-                             'cr', 'c_woo', 'c_woo_east', 'c_woo_west', 'cs', 'lai', 'lai_east', 'lai_west',
-                             'clma', 'clab', 'litresp', 'soilresp','rtot', 'rh', 'rabg', 'd_onset', 'groundresp']
+                             'c_roo', 'c_roo_east', 'c_roo_west', 'c_woo', 'c_woo_east', 'c_woo_west', 'cs', 'lai',
+                             'lai_east', 'lai_west', 'clma', 'clab', 'litresp', 'soilresp','rtot', 'rh', 'rabg',
+                             'd_onset', 'groundresp']
 
         # Extract observations for assimilation
         self.ob_dict, self.ob_err_dict = self.assimilation_obs(ob_str, data)
@@ -246,7 +248,7 @@ class DalecData:
                 for x in idx[0]:
                     obs_dict[ob_del][x] = float('NaN')
                     obs_err_dict[ob_del][x] = float('NaN')
-            elif ob in ['c_woo_east', 'c_woo_west', 'lai_east', 'lai_west']:
+            elif ob in ['c_woo_east', 'c_woo_west', 'lai_east', 'lai_west', 'c_roo_east', 'c_roo_west']:
                 ob_del = ob[:-5]
                 obs = data.variables[ob][self.start_idx:self.end_idx, 0, 0]
                 obs_dict[ob_del] = obs

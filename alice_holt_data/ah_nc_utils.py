@@ -560,9 +560,9 @@ def quality_control_co2_flux_daily(clipped_co2_flux, qc_co2_flux, nee, nee_std, 
         # u mol m-2 s-1 to g C m-2 day-1 (CHECK what units do we want day/night in?)
         nee[idx, 0, 0] = 12.011*1e-6 * (idx2-idx1)*30*60 * np.nanmean(clipped_co2_flux[idx1:idx2, 0, 0])
         nee_std[idx, 0, 0] = 12.011*1e-6 * (idx2-idx1)*30*60 * np.nanstd(clipped_co2_flux[idx1:idx2, 0, 0])
-        if all(0 <= wind < 180 or wind > 295 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from East
+        if all(0 <= wind < 180 or wind > 295 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from East was 315 now 295
             origin[idx, 0, 0] = 1
-        elif all(295 > wind > 180 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from west
+        elif all(295 > wind > 180 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from west was 315 now 295
             origin[idx, 0, 0] = 2
         else:  # Undetermined obs location
             origin[idx, 0, 0] = 0

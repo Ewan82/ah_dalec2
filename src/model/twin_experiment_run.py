@@ -10,7 +10,7 @@ import pickle
 
 
 def day_night_twin_run(start, end, obs, f_name, obs_loc):
-    d = dc.DalecDataTwin(start, end, obs)
+    d = dc.DalecDataTwin(start, end, obs, nc_file='../../alice_holt_data/ah_data_daily_test.nc')
     pik_obs = pickle.load(open(obs_loc, 'r'))
     d.ob_dict = pik_obs
     m = mc.DalecModel(d)

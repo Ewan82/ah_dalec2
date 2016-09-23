@@ -181,7 +181,7 @@ def plot_4dvar(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=None):
     return ax, fig
 
 
-def plotscatterobs(ob, pvals, dC, awindl, bfa='a'):
+def plot_scatter(ob, pvals, dC, awindl, bfa='a'):
     """Plots scatter plot of obs vs model predicted values. Takes an initial
     parameter set, a dataClass (must have only desired ob for comparison
     specified in dC), assimilation window length and whether a comparison of
@@ -225,6 +225,58 @@ def plotscatterobs(ob, pvals, dC, awindl, bfa='a'):
     print bfa+'_error=%f, mean(y-hx)=%f, rms=%f, corr_coef=%f' %(error, yhx, rms, corr_coef)
     #plt.xlim((-20, 15))
     #plt.ylim((-20, 15))
+    return ax, fig
+
+
+def plot_a_inc(xb, xa):
+    """Plot error between truth and xa/xb shows as a bar chart.
+    """
+    sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth':1, 'lines.markersize':10})
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15,5))
+    sns.set_style('ticks')
+    n = 23
+    width = 0.5
+    ind = np.arange(n)
+    #fig = plt.figure()
+    #ax = fig.add_subplot(111)
+    rects1 = ax.bar(ind, (xa-xb)/xb, width, color=sns.xkcd_rgb["faded green"],
+                    label='East')
+    ax.set_ylabel('Normalised analysis increment')
+    #ax.set_title('% error in parameter values for xa and xb')
+    ax.set_xticks(ind+width*2)
+    keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
+            r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
+            r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
+            r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
+    ax.set_xticklabels(keys, rotation=90)
+    ax.legend()
+    return ax, fig
+
+
+def plot_inc_east_west(xb, xa_east, xa_west):
+    """Plot error between truth and xa/xb shows as a bar chart.
+    """
+    sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth':1, 'lines.markersize':10})
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15,5))
+    sns.set_style('ticks')
+    n = 23
+    width = 0.35
+    ind = np.arange(n)
+    #fig = plt.figure()
+    #ax = fig.add_subplot(111)
+    rects1 = ax.bar(ind, (xa_east-xb)/xb, width, color=sns.xkcd_rgb["faded green"],
+                    label='East')
+    rects2 = ax.bar(ind+width, (xa_west-xb)/xb, width, color=sns.xkcd_rgb["pale red"],
+                    label='West')
+    ax.set_ylabel('Normalised analysis increment')
+    #ax.set_title('% error in parameter values for xa and xb')
+    ax.set_xticks(ind+width*2)
+    keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
+            r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
+            r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
+            r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
+    ax.set_xticklabels(keys, rotation=90)
+    ax.legend()
     return ax, fig
 
 

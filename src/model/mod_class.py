@@ -26,7 +26,7 @@ class DalecModel():
         self.modcoston = True
         self.modobdict = {'gpp': self.gpp, 'nee': self.nee, 'nee_day': self.nee_day,
                           'nee_night': self.nee_night, 'rt': self.rec,
-                          'cf': self.cf, 'clab': self.clab, 'cr': self.cr,
+                          'cf': self.cf, 'clab': self.clab, 'c_roo': self.cr,
                           'c_woo': self.cw, 'cl': self.cl, 'cs': self.cs,
                           'lf': self.lf, 'lw': self.lw, 'lai': self.lai, 'clma': self.clma,
                           'litresp': self.litresp, 'soilresp': self.soilresp,
@@ -39,7 +39,8 @@ class DalecModel():
         self.rmatrix = self.rmat(self.yerroblist)
         self.obs_time_step = self.no_obs_at_time()
         self.diag_b = np.diag(np.diag(self.dC.B))
-        self.b_tilda = np.dot(np.dot(np.linalg.inv(np.sqrt(self.diag_b)),self.dC.B),np.linalg.inv(np.sqrt(self.diag_b)))
+        self.b_tilda = np.dot(np.dot(np.linalg.inv(np.sqrt(self.diag_b)), self.dC.B),
+                              np.linalg.inv(np.sqrt(self.diag_b)))
         self.nume = 100
 
 

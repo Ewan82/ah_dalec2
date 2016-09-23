@@ -187,7 +187,7 @@ def create_netcdf_dataset_daily(path):
     # woody biomass
     c_woo = dataset.createVariable('c_woo', 'f4', ('time', 'lat', 'lon'), zlib=True)
     c_woo.standard_name = 'wood_carbon_content'
-    c_woo.units = 'g m-2'
+    c_woo.units = 'g C m-2'
     c_woo.description = 'average wood carbon stock for whole site'
     c_woo_east = dataset.createVariable('c_woo_east', 'f4', ('time', 'lat', 'lon'), zlib=True)
     c_woo_east.standard_name = 'wood_carbon_content'
@@ -195,6 +195,15 @@ def create_netcdf_dataset_daily(path):
     c_woo_west = dataset.createVariable('c_woo_west', 'f4', ('time', 'lat', 'lon'), zlib=True)
     c_woo_west.standard_name = 'wood_carbon_content'
     c_woo_west.description = 'average wood carbon stock for site west of flux tower'
+
+    # fine root biomass
+    c_roo = dataset.createVariable('c_roo', 'f4', ('time', 'lat', 'lon'), zlib=True)
+    c_roo.units = 'g C m-2'
+    c_roo.description = 'average fine root carbon stock for whole site'
+    c_roo_east = dataset.createVariable('c_roo_east', 'f4', ('time', 'lat', 'lon'), zlib=True)
+    c_roo_east.description = 'average fine root carbon stock for site east of flux tower'
+    c_roo_west = dataset.createVariable('c_roo_west', 'f4', ('time', 'lat', 'lon'), zlib=True)
+    c_roo_west.description = 'average fine root carbon stock for site west of flux tower'
 
     start_date = dt.datetime(1999, 1, 1)
     end_date = dt.datetime(2015, 12, 31)
