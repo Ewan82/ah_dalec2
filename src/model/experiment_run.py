@@ -12,7 +12,10 @@ import pickle
 def east_west_run(f_name, ob_list, east_west):
     ob_str = ''
     for ob in ob_list:
-        ob_str += ob+'_'+east_west+','
+        if ob == 'clma':
+            ob_str += ob+','
+        else:
+            ob_str += ob+'_'+east_west+','
     d = dc.DalecData(2015, 2016, ob_str)
     d.B = d.make_b(d.edinburgh_std)
     m = mc.DalecModel(d)
