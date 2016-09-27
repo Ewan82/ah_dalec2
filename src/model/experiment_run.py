@@ -4,6 +4,33 @@ import plot as p
 import pickle
 
 
+def save_plots(f_name, xa_east, xa_west, d_e, d_w):
+    # Plot 4dvar time series
+    ax, fig = p.plot_obs_east_west('nee', xa_east, xa_west, d_e, d_w)
+    fig.savefig(f_name+'_nee.png', bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west('nee_night', xa_east, xa_west, d_e, d_w)
+    fig.savefig(f_name+'_neen.png', bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west('nee_day', xa_east, xa_west, d_e, d_w)
+    fig.savefig(f_name+'_need.png', bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west('lai', xa_east, xa_west, d_e, d_w)
+    fig.savefig(f_name+'_lai.png', bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west('c_woo', xa_east, xa_west, d_e, d_w)
+    fig.savefig(f_name+'_cwoo.png', bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west('c_roo', xa_east, xa_west, d_e, d_w)
+    fig.savefig(f_name+'_croo.png', bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west('gpp', xa_east, xa_west, d_e, d_w)
+    fig.savefig(f_name+'_gpp.png', bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west('rt', xa_east, xa_west, d_e, d_w)
+    fig.savefig(f_name+'_rt.png', bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west('rh', xa_east, xa_west, d_e, d_w)
+    fig.savefig(f_name+'_rh.png', bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west('cl', xa_east, xa_west, d_e, d_w)
+    fig.savefig(f_name+'_clit.png', bbox_inches='tight')
+
+    # Plot error in analysis and background
+    ax, fig = p.plot_inc_east_west(d_e.edinburgh_mean, xa_east, xa_west)
+    fig.savefig(f_name+'_xa_inc.png', bbox_inches='tight')
+
 # ------------------------------------------------------------------------------
 # East West run
 # ------------------------------------------------------------------------------
@@ -41,7 +68,7 @@ def east_west_run(f_name, ob_list, east_west):
     fig.savefig(f_name+'_neen_scat.png', bbox_inches='tight')
 
     # Plot error in analysis and background
-    ax, fig = p.plot_a_inc(d.edinburgh_mean, xa)
+    ax, fig = p.plot_a_inc(d.edinburgh_mean, xa, east_west)
     fig.savefig(f_name+'_xa_inc.png', bbox_inches='tight')
     return 'all experimented'
 
@@ -51,10 +78,10 @@ def east_west_run(f_name, ob_list, east_west):
 # ------------------------------------------------------------------------------
 
 
-def east_west_run_b(f_name, easy_west, net_file="None"):
-    if easy_west == 'east':
+def east_west_run_b(f_name, east_west, net_file="None"):
+    if east_west == 'east':
         obs = 'nee_day_east, nee_night_east, clma, lai_east, c_woo_east, c_roo_east'
-    elif easy_west == 'west':
+    elif east_west == 'west':
         obs = 'nee_day_west, nee_night_west, clma, lai_west, c_woo_west, c_roo_west'
     if net_file != "None":
         d = dc.DalecData(2015, 2016, obs, nc_file=net_file)
@@ -83,6 +110,6 @@ def east_west_run_b(f_name, easy_west, net_file="None"):
     fig.savefig(f_name+'_neen_scat.png', bbox_inches='tight')
 
     # Plot error in analysis and background
-    ax, fig = p.plot_a_inc(d.edinburgh_mean, xa)
+    ax, fig = p.plot_a_inc(d.edinburgh_mean, xa, east_west)
     fig.savefig(f_name+'_xa_inc.png', bbox_inches='tight')
     return 'all experimented'

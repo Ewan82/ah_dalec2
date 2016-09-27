@@ -9,6 +9,8 @@ import emcee
 import joblib as jl
 import random as rand
 import multiprocessing
+import ad
+import collections as col
 
 
 class DalecModel():
@@ -28,11 +30,9 @@ class DalecModel():
                           'nee_night': self.nee_night, 'rt': self.rt,
                           'cf': self.cf, 'clab': self.clab, 'c_roo': self.cr,
                           'c_woo': self.cw, 'cl': self.cl, 'cs': self.cs,
-                          'lf': self.lf, 'lw': self.lw, 'lai': self.lai, 'clma': self.clma,
-                          'litresp': self.litresp, 'soilresp': self.soilresp,
-                          'rtot': self.rtot, 'rh': self.rh, 'ra': self.ra,
-                          'd_onset': self.d_onset, 'groundresp': self.groundresp,
-                          'phi_onset': self.phi_on, 'phi_fall': self.phi_off}
+                          'lai': self.lai, 'clma': self.clma,'rh': self.rh, 'ra': self.ra,
+                          'd_onset': self.d_onset, 'phi_onset': self.phi_on,
+                          'phi_fall': self.phi_off}
         self.startrun = strtrun
         self.endrun = self.lenrun
         self.yoblist, self.yerroblist, self.ytimestep = self.obscost()
@@ -71,7 +71,7 @@ class DalecModel():
         :param Theta: temperature dependence exponent factor
         :return: temperature exponent respiration
         """
-        temp_term = np.exp(Theta*temperature)
+        temp_term = ad.math.exp(Theta*temperature)
         return temp_term
 
     def acm(self, cf, clma, ceff, acm):
@@ -116,7 +116,7 @@ class DalecModel():
         mag_coeff = (np.log(1.+1e-3) - np.log(1e-3)) / 2.
         offset = self.fit_polynomial(1+1e-3, release_coeff)
         phi_onset = (2. / np.sqrt(np.pi))*(mag_coeff / release_coeff) * \
-            np.exp(-(np.sin((self.dC.D[self.x] - d_onset + offset) /
+            ad.math.exp(-(ad.math.sin((self.dC.D[self.x] - d_onset + offset) /
                      self.dC.radconv)*(self.dC.radconv / release_coeff))**2)
         return phi_onset
 
@@ -126,10 +126,10 @@ class DalecModel():
         phi_fall.
         """
         release_coeff = np.sqrt(2.)*crfall / 2.
-        mag_coeff = (np.log(clspan) - np.log(clspan - 1.)) / 2.
+        mag_coeff = (ad.math.log(clspan) - ad.math.log(clspan - 1.)) / 2.
         offset = self.fit_polynomial(clspan, release_coeff)
         phi_fall = (2. / np.sqrt(np.pi))*(mag_coeff / release_coeff) * \
-            np.exp(-(np.sin((self.dC.D[self.x] - d_fall + offset) /
+            ad.math.exp(-(ad.math.sin((self.dC.D[self.x] - d_fall + offset) /
                    self.dC.radconv)*self.dC.radconv / release_coeff)**2)
         return phi_fall
 
@@ -153,7 +153,7 @@ class DalecModel():
         cl2 = (1-(theta_lit+theta_min)*temp)*cl + theta_roo*cr + phi_off*cf
         cs2 = (1 - theta_som*temp)*cs + theta_woo*cw + theta_min*temp*cl
         """
-        out = algopy.zeros(23, dtype=p)
+        out = np.zeros(23, dtype=np.float64)
 
         phi_on = self.phi_onset(p[11], p[13])
         phi_off = self.phi_fall(p[14], p[15], p[4])
@@ -169,13 +169,13 @@ class DalecModel():
         out[0:17] = p[0:17]
         return out
 
-
-    def dalecv2diff(self, p):
+    def dalecv2_diff(self, p):
         """DALECV2 carbon balance model
         -------------------------------
         evolves carbon pools to the next time step, taking the 6 carbon pool
         values and 17 parameters at time t and evolving them to time t+1.
-        Ouputs an array of just the 6 evolved C pool values.
+        Outputs both the 6 evolved C pool values and the 17 constant parameter
+        values.
 
         phi_on = phi_onset(d_onset, cronset)
         phi_off = phi_fall(d_fall, crfall, clspan)
@@ -189,43 +189,68 @@ class DalecModel():
         cl2 = (1-(theta_lit+theta_min)*temp)*cl + theta_roo*cr + phi_off*cf
         cs2 = (1 - theta_som*temp)*cs + theta_woo*cw + theta_min*temp*cl
         """
-        out = algopy.zeros(6, dtype=p)
+        # ACM
+        gpp = self.acm(p['cf'], p['clma'], p['ceff'], self.dC.acm)
+        # Labile release and leaf fall factors
+        phi_on = self.phi_onset(p['d_onset'], p['cronset'])
+        phi_off = self.phi_fall(p['d_fall'], p['crfall'], p['clspan'])
+        # Temperature factor
+        temp = self.temp_term(p['Theta'], self.dC.t_mean[self.x])
 
-        phi_on = self.phi_onset(p[11], p[13])
-        phi_off = self.phi_fall(p[14], p[15], p[4])
-        gpp = self.acm(p[18], p[16], p[10], self.dC.acm)
-        temp = self.temp_term(p[9], self.dC.t_mean[self.x])
+        clab2 = (1-phi_on)*p['clab'] + (1-p['f_auto'])*(1-p['f_fol'])*p['f_lab']*gpp
+        cf2 = (1-phi_off)*p['cf'] + phi_on*p['clab'] + (1-p['f_auto'])*(1-p['f_fol'])*p['f_lab']*gpp
+        cr2 = (1-p['theta_roo'])*p['cr'] + (1-p['f_auto'])*(1-p['f_fol'])*(1-p['f_lab'])*p['f_roo']*gpp
+        cw2 = (1-p['theta_woo'])*p['cw'] + (1-p['f_auto'])*(1-p['f_fol'])*(1-p['f_lab'])*(1-p['f_roo'])*gpp
+        cl2 = (1-(p['theta_lit']+p['theta_min'])*temp)*p['cl'] + p['theta_roo']*p['cr'] + phi_off*p['cf']
+        cs2 = (1-p['theta_som']*temp)*p['cs'] + p['theta_woo']*p['cw'] + p['theta_min']*temp*p['cl']
+        return np.array([clab2, cf2, cr2, cw2, cl2, cs2])
 
-        out[0] = (1 - phi_on)*p[17] + (1-p[1])*(1-p[2])*p[12]*gpp
-        out[1] = (1 - phi_off)*p[18] + phi_on*p[17] + (1-p[1])*p[2]*gpp
-        out[2] = (1 - p[6])*p[19] + (1-p[1])*(1-p[2])*(1-p[12])*p[3]*gpp
-        out[3] = (1 - p[5])*p[20] + (1-p[1])*(1-p[2])*(1-p[12])*(1-p[3])*gpp
-        out[4] = (1-(p[7]+p[0])*temp)*p[21] + p[6]*p[19] + phi_off*p[18]
-        out[5] = (1 - p[8]*temp)*p[22] + p[5]*p[20] + p[0]*temp*p[21]
-        return out
+    def dalec_diff(self, p, names):
+        param_dic = self.create_ordered_dic(p, names)
+        return self.dalecv2_diff(param_dic)
 
-    def jac_dalecv2(self, p):
-        """Using algopy package calculates the jacobian for dalecv2 given a
-        input vector p.
-        """
-        p = algopy.UTPM.init_jacobian(p)
-        return algopy.UTPM.extract_jacobian(self.dalecv2(p))
+    def dalec_jac(self, p, names):
+        param_dic = self.create_ordered_dic_ad(p, names)
+        dalec_out = self.dalecv2_diff(param_dic)
+        diff_lst = [param_dic[name] for name in names]
+        return np.array(ad.jacobian(dalec_out, diff_lst))
 
-    def jac2_dalecv2(self, p):
-        """Use algopy reverse mode ad calc jac of dv2.
-        """
-        mat = np.ones((23, 23))*-9999.
-        mat[0:17] = np.eye(17, 23)
-        p = algopy.UTPM.init_jacobian(p)
-        mat[17:] = algopy.UTPM.extract_jacobian(self.dalecv2diff(p))
+    def full_jac(self, p, names):
+        mat = np.ones((len(p), len(p)))*-9999.
+        mat[0:-6] = np.eye(len(p)-6, len(p))
+        mat[-6:] = self.dalec_jac(p, names)
         return mat
 
-    def mod_list(self, pvals):
+    def create_ordered_dic(self, p, names):
+        param_dic = col.OrderedDict()
+        idx = 0
+        for name in self.dC.param_dict.keys():
+            if name in names:
+                param_dic[name] = p[idx]
+                idx += 1
+            else:
+                param_dic[name] = self.dC.param_dict[name]
+        return param_dic
+
+    def create_ordered_dic_ad(self, p, names):
+        param_dic = col.OrderedDict()
+        idx = 0
+        for name in self.dC.param_dict.keys():
+            if name in names:
+                param_dic[name] = ad.adnumber(p[idx])
+                idx += 1
+            else:
+                param_dic[name] = self.dC.param_dict[name]
+        return param_dic
+
+    def mod_list(self, p, names):
         """Creates an array of evolving model values using dalecv2 function.
         Takes a list of initial param values.
         """
-        mod_list = np.concatenate((np.array([pvals]),
-                                  np.ones((self.endrun-self.startrun, len(pvals)))*-9999.))
+        param_dic = self.create_ordered_dic(p, names)
+        param_vals = np.array(param_dic.values())
+        mod_list = np.concatenate((np.array([param_vals]),
+                                  np.ones((self.endrun-self.startrun, len(param_vals)))*-9999.))
 
         self.x = self.startrun
         for t in xrange(self.endrun-self.startrun):
@@ -235,18 +260,21 @@ class DalecModel():
         self.x -= self.endrun
         return mod_list
 
-    def linmod_list(self, pvals):
+    def linmod_list(self, p, names):
         """Creates an array of linearized models (Mi's) taking a list of
         initial param values and a run length (lenrun).
         """
-        mod_list = np.concatenate((np.array([pvals]),
-                                  np.ones((self.endrun-self.startrun, len(pvals)))*-9999.))
-        matlist = np.ones((self.endrun-self.startrun, 23, 23))*-9999.
+        param_dic = self.create_ordered_dic(p, names)
+        param_vals = np.array(param_dic.values())
+        mod_list = np.concatenate((np.array([param_vals]),
+                                  np.ones((self.endrun-self.startrun, len(param_vals)))*-9999.))
+        matlist = np.ones((self.endrun-self.startrun, len(p), len(p)))*-9999.
 
         self.x = self.startrun
         for t in xrange(self.endrun-self.startrun):
             mod_list[(t+1)] = self.dalecv2(mod_list[t])
-            matlist[t] = self.jac2_dalecv2(mod_list[t])
+            matlist[t] = self.full_jac(p, names)
+            p[-6:] = self.dalec_diff(p, names)
             self.x += 1
 
         self.x -= self.endrun
@@ -309,27 +337,6 @@ class DalecModel():
               (self.dC.night_len[self.x]/24.)*(p[7]*p[21] + p[8]*p[22])*self.temp_term(p[9], self.dC.t_night[self.x])
         return nee
 
-    def litresp(self, p):
-        """Function calculates litter respiration (litresp).
-        """
-        litresp = p[7]*p[21]*self.temp_term(p[9], self.dC.t_mean[self.x])
-        return litresp
-
-    def soilresp(self, p):
-        """Function calculates soil respiration (soilresp). (heterotrophic)
-        """
-        soilresp = p[8]*p[22]*self.temp_term(p[9], self.dC.t_mean[self.x]) + \
-                   (1./3.)*p[1]*self.acm(p[18], p[16], p[10], self.dC.acm)
-        return soilresp
-
-    def groundresp(self, p):
-        """Function calculates ground respiration from soil chamber measurements
-        """
-        groundresp = p[7]*p[21]*self.temp_term(p[9], self.dC.t_mean[self.x]) + \
-                    p[8]*p[22]*self.temp_term(p[9], self.dC.t_mean[self.x]) + \
-                    (1./3.)*p[1]*self.acm(p[18], p[16], p[10], self.dC.t_mean[self.x])
-        return groundresp
-
     def rh(self, p):
         """Fn calculates rh (soilresp+litrep).
         """
@@ -341,12 +348,6 @@ class DalecModel():
         """
         ra = p[1]*self.acm(p[18], p[16], p[10], self.dC.acm)
         return ra
-
-    def rtot(self, p):
-        """Function calculates soil + root respiration (soilrootresp).
-        """
-        rtot = p[8]*p[22]*self.temp_term(p[9], self.dC.t_mean[self.x]) + 5. #Figure this out boi!
-        return rtot
 
     def lai(self, p):
         """Fn calculates leaf area index (cf/clma).
@@ -365,12 +366,6 @@ class DalecModel():
         """
         lf = self.phi_fall(p[14], p[15], p[4])*p[18]
         return lf
-
-    def lw(self, p):
-        """Fn calulates litter fall.
-        """
-        lw = p[5]*p[20]
-        return lw
 
     def clab(self, p):
         """Fn calulates labile carbon.
@@ -929,7 +924,7 @@ class DalecModel():
         else:
             bnds = bnds
         find_min = spop.fmin_tnc(self.cost, pvals,
-                                fprime=self.gradcost, bounds=bnds,
+                                fprime=self.gradcost2, bounds=bnds,
                                 disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         return find_min
 
@@ -1026,25 +1021,23 @@ class DalecModel():
         year_lst = np.unique(self.dC.year)
         xb = [pvals]
         xa = []
-        b_cov = []
         for year in enumerate(year_lst):
             year_idx = np.where(self.dC.year == year[1])[0]
             self.startrun = year_idx[0]
             self.endrun = year_idx[-1]
             self.yoblist, self.yerroblist, ytimestep = self.obscost()
             self.rmatrix = self.rmat(self.yerroblist)
-            xa.append(self.find_min_tnc(pvals, f_tol=1e1))
+            xa.append(self.find_min_tnc_cvt(pvals, f_tol=1e1))
             acovmat = self.acovmat(xa[year[0]][1])
-            b_cov.append(acovmat)
             self.endrun += 1
             pvallst, matlist = self.linmod_list(xa[year[0]][1])
             xb.append(pvallst[-1])
             ev_acovmat = 1.2 * self.evolve_mat(acovmat, matlist)
             # ev_acovmat = self.dC.B
-            ev_acovmat[11, 11] = self.dC.B[11, 11]
-            ev_acovmat[13, 13] = self.dC.B[13, 13]
-            ev_acovmat[14, 14] = self.dC.B[14, 14]
-            ev_acovmat[15, 15] = self.dC.B[15, 15]
+            ev_acovmat[11,11] = self.dC.B[11,11]
+            ev_acovmat[13,13] = self.dC.B[13,13]
+            ev_acovmat[14,14] = self.dC.B[14,14]
+            ev_acovmat[15,15] = self.dC.B[15,15]
             self.diag_b = np.diag(np.diag(ev_acovmat))
             self.b_tilda = np.dot(np.dot(np.linalg.inv(np.sqrt(self.diag_b)),ev_acovmat),
                                   np.linalg.inv(np.sqrt(self.diag_b)))
@@ -1056,7 +1049,7 @@ class DalecModel():
         self.endrun = self.lenrun
         self.diag_b = np.diag(np.diag(self.dC.B))
         self.b_tilda = np.dot(np.dot(np.linalg.inv(np.sqrt(self.diag_b)),self.dC.B),np.linalg.inv(np.sqrt(self.diag_b)))
-        return xb, xa, b_cov
+        return xb, xa
 
 
 # ------------------------------------------------------------------------------

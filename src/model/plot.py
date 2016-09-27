@@ -141,6 +141,35 @@ def plot_obs(ob, pvals, dC):
     return ax, fig
 
 
+def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w):
+    """Plots a specified observation using obs eqn in obs module. Takes an
+    observation string, a dataClass (dC) and a start and finish point.
+    """
+    sns.set_context(rc={'lines.linewidth': .8, 'lines.markersize': 6})
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    me = mc.DalecModel(d_e)
+    mw = mc.DalecModel(d_w)
+    mod_lst_e = me.mod_list(xa_east)
+    obs_lst_e = me.oblist(ob, mod_lst_e)
+    mod_lst_w = mw.mod_list(xa_west)
+    obs_lst_w = mw.oblist(ob, mod_lst_w)
+
+    palette = sns.color_palette("colorblind", 11)
+
+    ax.plot(d_e.dates, obs_lst_e, color=palette[0])
+    ax.plot(d_w.dates, obs_lst_w, color=palette[2])
+    if ob in d_e.ob_dict.keys():
+        ax.plot(d_e.dates, d_e.ob_dict[ob], 'o', color=palette[0], label='East', markeredgecolor='black',
+                markeredgewidth=0.5)
+        ax.plot(d_w.dates, d_w.ob_dict[ob], 'o', color=palette[2], label='West', markeredgecolor='black',
+                markeredgewidth=0.5)
+    plt.legend()
+    ax.set_xlabel('Date')
+    ax.set_ylabel(ob)
+    plt.gcf().autofmt_xdate()
+    return ax, fig
+
+
 def plot_4dvar(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=None):
     """Plots a model predicted observation value for two initial states (xb,xa)
     and also the actual observations taken of the physical quantity. Takes a ob
@@ -165,7 +194,7 @@ def plot_4dvar(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=None):
     if ob in ob_dict.keys():
         if erbars == True:
             ax.errorbar(dC.dates, ob_dict[ob], yerr=ob_err_dict[ob],
-                         fmt='o', label=ob+'_o', color=palette[2], alpha=0.7)
+                        fmt='o', label=ob+'_o', color=palette[2], alpha=0.7)
         else:
             ax.plot(dC.dates, ob_dict[ob], 'o', label=ob+'_o', color=palette[2])
     if obdict_a != None:
@@ -228,7 +257,7 @@ def plot_scatter(ob, pvals, dC, awindl, bfa='a'):
     return ax, fig
 
 
-def plot_a_inc(xb, xa):
+def plot_a_inc(xb, xa, lab='a_inc'):
     """Plot error between truth and xa/xb shows as a bar chart.
     """
     sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth':1, 'lines.markersize':10})
@@ -240,7 +269,7 @@ def plot_a_inc(xb, xa):
     #fig = plt.figure()
     #ax = fig.add_subplot(111)
     rects1 = ax.bar(ind, (xa-xb)/xb, width, color=sns.xkcd_rgb["faded green"],
-                    label='East')
+                    label=lab)
     ax.set_ylabel('Normalised analysis increment')
     #ax.set_title('% error in parameter values for xa and xb')
     ax.set_xticks(ind+width/2)
@@ -256,8 +285,8 @@ def plot_a_inc(xb, xa):
 def plot_inc_east_west(xb, xa_east, xa_west):
     """Plot error between truth and xa/xb shows as a bar chart.
     """
-    sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth':1, 'lines.markersize':10})
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15,5))
+    sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth': 1, 'lines.markersize': 10})
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 5))
     sns.set_style('ticks')
     n = 23
     width = 0.35
@@ -270,7 +299,7 @@ def plot_inc_east_west(xb, xa_east, xa_west):
                     label='West')
     ax.set_ylabel('Normalised analysis increment')
     #ax.set_title('% error in parameter values for xa and xb')
-    ax.set_xticks(ind+width*2)
+    ax.set_xticks(ind+width)
     keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
             r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
             r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',

@@ -61,6 +61,10 @@ class DalecData:
         self.p16 = 35.  # crfall, leaf fall period          (10 - 100)
         self.p17 = 24.2  # clma, leaf mass per area         (10 - 400) g C m-2
 
+        self.p_vals = [self.p1, self.p2, self.p3, self.p4, self.p5, self.p5, self.p6, self.p7, self.p8,
+                       self.p9, self.p10, self.p11, self.p12, self.p13, self.p14, self.p15, self.p16,
+                       self.p17, self.clab, self.cf, self.cr, self.cw, self.cl, self.cs]
+
         self.param_dict = col.OrderedDict([('theta_min', self.p1),
                                           ('f_auto', self.p2), ('f_fol', self.p3),
                                           ('f_roo', self.p4), ('clspan', self.p5),
@@ -74,6 +78,28 @@ class DalecData:
                                           ('cr', self.cr), ('cw', self.cw), ('cl', self.cl),
                                           ('cs', self.cs)])
         self.pvals = np.array(self.param_dict.values())
+        self.dtype_dalec = [('theta_min', '<f8'),('f_auto', '<f8'), ('f_fol', '<f8'),
+                            ('f_roo', '<f8'), ('clspan', '<f8'),
+                            ('theta_woo', '<f8'), ('theta_roo', '<f8'),
+                            ('theta_lit', '<f8'), ('theta_som', '<f8'),
+                            ('Theta', '<f8'), ('ceff', '<f8'),
+                            ('d_onset', '<f8'), ('f_lab', '<f8'),
+                            ('cronset', '<f8'), ('d_fall', '<f8'),
+                            ('crfall', '<f8'), ('clma', '<f8'),
+                            ('clab', '<f8'), ('cf', '<f8'),
+                            ('cr', '<f8'), ('cw', '<f8'), ('cl', '<f8'),
+                            ('cs', '<f8')]
+        self.dtype_dalec2 = [('f_auto', '<f8'), ('f_fol', '<f8'),
+                            ('f_roo', '<f8'), ('clspan', '<f8'),
+                            ('theta_woo', '<f8'), ('theta_roo', '<f8'),
+                            ('theta_lit', '<f8'), ('theta_som', '<f8'),
+                            ('Theta', '<f8'), ('ceff', '<f8'),
+                            ('d_onset', '<f8'), ('f_lab', '<f8'),
+                            ('cronset', '<f8'), ('d_fall', '<f8'),
+                            ('crfall', '<f8'), ('clma', '<f8'),
+                            ('clab', '<f8'), ('cf', '<f8'),
+                            ('cr', '<f8'), ('cw', '<f8'), ('cl', '<f8'),
+                            ('cs', '<f8')]
 
         self.ah_pvals = np.array([9.41e-04, 4.7e-01, 2.8e-01, 2.60e-01, 1.01e+00, 2.6e-04,
                                   2.48e-03, 3.38e-03, 2.6e-06, 1.93e-02, 9.0e+01, 1.4e+02,
@@ -89,14 +115,23 @@ class DalecData:
                                           6.02259491e+01,   2.09997016e+02,   4.22672530e+03,
                                           3.67801053e+02,   1.62565304e+03])
 
-        self.edinburgh_mean = np.array([9.80983217e-04,   5.19025559e-01,   1.08612889e-01,
+        self.edinburgh_mean = np.array([(9.80983217e-04,   5.19025559e-01,   1.08612889e-01,
                                         4.84356048e-01,   1.19950434e+00,   1.01336503e-04,
                                         3.22465935e-03,   3.44239452e-03,   1.11320287e-04,
                                         4.14726183e-02,   7.14355778e+01,   1.15778224e+02,
                                         3.20361827e-01,   4.13391057e+01,   2.20529309e+02,
                                         1.16768714e+02,   1.28460812e+02,   1.36541509e+02,
                                         6.86396830e+01,   2.83782534e+02,   6.50600814e+03,
-                                        5.98832031e+02,   1.93625350e+03])
+                                        5.98832031e+02,   1.93625350e+03)], dtype=self.dtype_dalec)
+
+        self.edinburgh_mean3 = np.array([(5.19025559e-01,   1.08612889e-01,
+                                        4.84356048e-01,   1.19950434e+00,   1.01336503e-04,
+                                        3.22465935e-03,   3.44239452e-03,   1.11320287e-04,
+                                        4.14726183e-02,   7.14355778e+01,   1.15778224e+02,
+                                        3.20361827e-01,   4.13391057e+01,   2.20529309e+02,
+                                        1.16768714e+02,   1.28460812e+02,   1.36541509e+02,
+                                        6.86396830e+01,   2.83782534e+02,   6.50600814e+03,
+                                        5.98832031e+02,   1.93625350e+03)], dtype=self.dtype_dalec2)
 
         self.edinburgh_std = np.array([2.03001590e-03,   1.16829160e-01,   1.11585876e-01,
                                        2.98860194e-01,   1.16141739e-01,   1.36472702e-04,
