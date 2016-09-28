@@ -9,7 +9,7 @@ import emcee
 import joblib as jl
 import random as rand
 import multiprocessing
-import ad
+import copy as cp
 import collections as col
 
 
@@ -134,7 +134,7 @@ class DalecModel():
                    self.dC.radconv)*self.dC.radconv / release_coeff)**2)
         return phi_fall
 
-    def dalecv2(self, pp):
+    def dalecv2(self, p):
         """DALECV2 carbon balance model
         -------------------------------
         evolves carbon pools to the next time step, taking the 6 carbon pool
@@ -154,8 +154,7 @@ class DalecModel():
         cl2 = (1-(theta_lit+theta_min)*temp)*cl + theta_roo*cr + phi_off*cf
         cs2 = (1 - theta_som*temp)*cs + theta_woo*cw + theta_min*temp*cl
         """
-        out = algopy.zeros(6, dtype=pp)
-        p = self.create_ordered_dic(pp)
+        out = algopy.zeros(len(p), dtype=p['cf'])
         # ACM
         gpp = self.acm(p['cf'], p['clma'], p['ceff'], self.dC.acm)
         # Labile release and leaf fall factors
@@ -164,15 +163,17 @@ class DalecModel():
         # Temperature factor
         temp = self.temp_term(p['Theta'], self.dC.t_mean[self.x])
 
-        out[0] = (1-phi_on)*p['clab'] + (1-p['f_auto'])*(1-p['f_fol'])*p['f_lab']*gpp
-        out[1] = (1-phi_off)*p['cf'] + phi_on*p['clab'] + (1-p['f_auto'])*(1-p['f_fol'])*p['f_lab']*gpp
-        out[2] = (1-p['theta_roo'])*p['cr'] + (1-p['f_auto'])*(1-p['f_fol'])*(1-p['f_lab'])*p['f_roo']*gpp
-        out[3] = (1-p['theta_woo'])*p['cw'] + (1-p['f_auto'])*(1-p['f_fol'])*(1-p['f_lab'])*(1-p['f_roo'])*gpp
-        out[4] = (1-(p['theta_lit']+p['theta_min'])*temp)*p['cl'] + p['theta_roo']*p['cr'] + phi_off*p['cf']
-        out[5] = (1-p['theta_som']*temp)*p['cs'] + p['theta_woo']*p['cw'] + p['theta_min']*temp*p['cl']
+        out[-6] = (1-phi_on)*p['clab'] + (1-p['f_auto'])*(1-p['f_fol'])*p['f_lab']*gpp
+        out[-5] = (1-phi_off)*p['cf'] + phi_on*p['clab'] + (1-p['f_auto'])*(1-p['f_fol'])*p['f_lab']*gpp
+        out[-4] = (1-p['theta_roo'])*p['cr'] + (1-p['f_auto'])*(1-p['f_fol'])*(1-p['f_lab'])*p['f_roo']*gpp
+        out[-3] = (1-p['theta_woo'])*p['cw'] + (1-p['f_auto'])*(1-p['f_fol'])*(1-p['f_lab'])*(1-p['f_roo'])*gpp
+        out[-2] = (1-(p['theta_lit']+p['theta_min'])*temp)*p['cl'] + p['theta_roo']*p['cr'] + phi_off*p['cf']
+        out[-1] = (1-p['theta_som']*temp)*p['cs'] + p['theta_woo']*p['cw'] + p['theta_min']*temp*p['cl']
+        for x in xrange(len(p)-6):
+            out[x] = p[self.names[x]]
         return out
 
-    def dalecv2_diff(self, pp):
+    def dalecv2_diff(self, p):
         """DALECV2 carbon balance model
         -------------------------------
         evolves carbon pools to the next time step, taking the 6 carbon pool
@@ -192,8 +193,7 @@ class DalecModel():
         cl2 = (1-(theta_lit+theta_min)*temp)*cl + theta_roo*cr + phi_off*cf
         cs2 = (1 - theta_som*temp)*cs + theta_woo*cw + theta_min*temp*cl
         """
-        out = algopy.zeros(6, dtype=pp)
-        p = self.create_ordered_lst(pp)
+        out = algopy.zeros(6, dtype=p[-6])
 
         phi_on = self.phi_onset(p[11], p[13])
         phi_off = self.phi_fall(p[14], p[15], p[4])
@@ -213,17 +213,40 @@ class DalecModel():
         """
         mat = np.ones((len(p), len(p)))*-9999.
         mat[0:-6] = np.eye(len(p)-6, len(p))
-        p = algopy.UTPM.init_jacobian(p)
-        mat[-6:] = algopy.UTPM.extract_jacobian(self.dalecv2(p))
-        return mat
+        p_algo = algopy.UTPM.init_jacobian(p)
+        p_algo_dic = self.create_ordered_dic(p_algo)
+        mat[-6:] = algopy.UTPM.extract_jacobian(self.dalecv2(p_algo_dic))
+        return mat, self.dalecv2(p_algo_dic)
 
     def jac2_dalecv2(self, p):
         """Use algopy reverse mode ad calc jac of dv2.
         """
         mat = np.ones((len(p), len(p)))*-9999.
         mat[0:-6] = np.eye(len(p)-6, len(p))
-        p = algopy.UTPM.init_jacobian(p)
-        mat[-6:] = algopy.UTPM.extract_jacobian(self.dalecv2_diff(p))
+        p_algo = algopy.UTPM.init_jacobian(p)
+        p_algo_lst = self.create_ordered_lst(p_algo)
+        mat[-6:] = algopy.UTPM.extract_jacobian(self.dalecv2_diff(p_algo_lst))
+        return mat
+
+    def jac_try(self, p):
+        out = algopy.zeros((self.endrun-self.startrun, len(p)), dtype=p[-6])
+        self.x = self.startrun
+        pp = p
+        for t in xrange(self.endrun-self.startrun):
+            update = self.dalecv2(self.create_ordered_dic(pp))
+            pp = update
+            out[t, :] = update
+            self.x += 1
+        return out
+
+    def jac3_dalecv2(self, p):
+        """Use algopy reverse mode ad calc jac of dv2.
+        """
+        #mat = np.ones((len(p), len(p)))*-9999.
+        #mat[0:-6] = np.eye(len(p)-6, len(p))
+        p_algo = algopy.UTPM.init_jacobian(p)
+        #p_algo_lst = self.create_ordered_lst(p_algo)
+        mat = algopy.UTPM.extract_jacobian(self.jac_try(p_algo))
         return mat
 
     def create_ordered_dic(self, p):
@@ -252,29 +275,37 @@ class DalecModel():
         """Creates an array of evolving model values using dalecv2 function.
         Takes a list of initial param values.
         """
-        mod_list = np.concatenate((np.array([p]),
-                                  np.ones((self.endrun-self.startrun, len(p)))*-9999.))
+        param = np.array(self.create_ordered_lst(p))
+        mod_list = np.concatenate((np.array([param]),
+                                  np.ones((self.endrun-self.startrun, len(param)))*-9999.))
 
         self.x = self.startrun
         for t in xrange(self.endrun-self.startrun):
-            mod_list[(t+1)] = self.dalecv2(mod_list[t])
+            mod_param = mod_list[t]
+            mod_param[-6:] = self.dalecv2(self.create_ordered_dic(mod_param))
+            mod_list[(t+1)] = mod_param
             self.x += 1
 
         self.x -= self.endrun
         return mod_list
 
-    def linmod_list(self, pvals):
+    def linmod_list(self, p):
         """Creates an array of linearized models (Mi's) taking a list of
         initial param values and a run length (lenrun).
         """
-        mod_list = np.concatenate((np.array([pvals]),
-                                  np.ones((self.endrun-self.startrun, len(pvals)))*-9999.))
-        matlist = np.ones((self.endrun-self.startrun, 23, 23))*-9999.
+        param = np.array(self.create_ordered_lst(p))
+        mod_list = np.concatenate((np.array([param]),
+                                  np.ones((self.endrun-self.startrun, len(param)))*-9999.))
+        matlist = np.ones((self.endrun-self.startrun, len(p), len(p)))*-9999.
 
         self.x = self.startrun
         for t in xrange(self.endrun-self.startrun):
-            mod_list[(t+1)] = self.dalecv2(mod_list[t])
-            matlist[t] = self.jac2_dalecv2(mod_list[t])
+            mod_param = mod_list[t]
+            c_pool_update = self.dalecv2_diff(mod_param)
+            mod_param[-6:] = c_pool_update
+            mod_list[(t+1)] = mod_param
+            matlist[t] = self.jac2_dalecv2(p)
+            p[-6:] = c_pool_update
             self.x += 1
 
         self.x -= self.endrun

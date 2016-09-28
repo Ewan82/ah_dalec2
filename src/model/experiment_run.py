@@ -26,10 +26,26 @@ def save_plots(f_name, xa_east, xa_west, d_e, d_w):
     fig.savefig(f_name+'_rh.png', bbox_inches='tight')
     ax, fig = p.plot_obs_east_west('cl', xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_clit.png', bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west('cf', xa_east, xa_west, d_e, d_w)
+    fig.savefig(f_name+'_cfol.png', bbox_inches='tight')
 
     # Plot error in analysis and background
     ax, fig = p.plot_inc_east_west(d_e.edinburgh_mean, xa_east, xa_west)
     fig.savefig(f_name+'_xa_inc.png', bbox_inches='tight')
+    return 'done'
+
+
+def east_west_joint_run(xb, f_name):
+    de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_roo_east, c_woo_east, clma, lai_east')
+    de.B = pickle.load(open('b_edc.p', 'r'))
+    dw = dc.DalecData(2015, 2016, 'nee_day_west, nee_night_west, c_roo_west, c_woo_west, clma, lai_west')
+    dw.B = pickle.load(open('b_edc.p', 'r'))
+    me = mc.DalecModel(de)
+    mw = mc.DalecModel(dw)
+    xa_e = me.find_min_tnc_cvt(xb)
+    xa_w = mw.find_min_tnc_cvt(xb)
+    save_plots(f_name, xa_e, xa_w, de, dw)
+    return 'done'
 
 # ------------------------------------------------------------------------------
 # East West run

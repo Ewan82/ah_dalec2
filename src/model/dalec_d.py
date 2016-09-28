@@ -153,20 +153,23 @@ class DalecModel():
         cl2 = (1-(theta_lit+theta_min)*temp)*cl + theta_roo*cr + phi_off*cf
         cs2 = (1 - theta_som*temp)*cs + theta_woo*cw + theta_min*temp*cl
         """
-        out = np.zeros(23, dtype=np.float64)
+        out = algopy.zeros(len(p), dtype=p['cf'])
+        # ACM
+        gpp = self.acm(p['cf'], p['clma'], p['ceff'], self.dC.acm)
+        # Labile release and leaf fall factors
+        phi_on = self.phi_onset(p['d_onset'], p['cronset'])
+        phi_off = self.phi_fall(p['d_fall'], p['crfall'], p['clspan'])
+        # Temperature factor
+        temp = self.temp_term(p['Theta'], self.dC.t_mean[self.x])
 
-        phi_on = self.phi_onset(p[11], p[13])
-        phi_off = self.phi_fall(p[14], p[15], p[4])
-        gpp = self.acm(p[18], p[16], p[10], self.dC.acm)
-        temp = self.temp_term(p[9], self.dC.t_mean[self.x])
-
-        out[17] = (1 - phi_on)*p[17] + (1-p[1])*(1-p[2])*p[12]*gpp
-        out[18] = (1 - phi_off)*p[18] + phi_on*p[17] + (1-p[1])*p[2]*gpp
-        out[19] = (1 - p[6])*p[19] + (1-p[1])*(1-p[2])*(1-p[12])*p[3]*gpp
-        out[20] = (1 - p[5])*p[20] + (1-p[1])*(1-p[2])*(1-p[12])*(1-p[3])*gpp
-        out[21] = (1-(p[7]+p[0])*temp)*p[21] + p[6]*p[19] + phi_off*p[18]
-        out[22] = (1 - p[8]*temp)*p[22] + p[5]*p[20] + p[0]*temp*p[21]
-        out[0:17] = p[0:17]
+        out[-6] = (1-phi_on)*p['clab'] + (1-p['f_auto'])*(1-p['f_fol'])*p['f_lab']*gpp
+        out[-5] = (1-phi_off)*p['cf'] + phi_on*p['clab'] + (1-p['f_auto'])*(1-p['f_fol'])*p['f_lab']*gpp
+        out[-4] = (1-p['theta_roo'])*p['cr'] + (1-p['f_auto'])*(1-p['f_fol'])*(1-p['f_lab'])*p['f_roo']*gpp
+        out[-3] = (1-p['theta_woo'])*p['cw'] + (1-p['f_auto'])*(1-p['f_fol'])*(1-p['f_lab'])*(1-p['f_roo'])*gpp
+        out[-2] = (1-(p['theta_lit']+p['theta_min'])*temp)*p['cl'] + p['theta_roo']*p['cr'] + phi_off*p['cf']
+        out[-1] = (1-p['theta_som']*temp)*p['cs'] + p['theta_woo']*p['cw'] + p['theta_min']*temp*p['cl']
+        for x in xrange(len(p)-6):
+            out[x] = p[self.names[x]]
         return out
 
     def dalecv2_diff(self, p):
@@ -189,72 +192,88 @@ class DalecModel():
         cl2 = (1-(theta_lit+theta_min)*temp)*cl + theta_roo*cr + phi_off*cf
         cs2 = (1 - theta_som*temp)*cs + theta_woo*cw + theta_min*temp*cl
         """
-        # ACM
-        gpp = self.acm(p['cf'], p['clma'], p['ceff'], self.dC.acm)
-        # Labile release and leaf fall factors
-        phi_on = self.phi_onset(p['d_onset'], p['cronset'])
-        phi_off = self.phi_fall(p['d_fall'], p['crfall'], p['clspan'])
-        # Temperature factor
-        temp = self.temp_term(p['Theta'], self.dC.t_mean[self.x])
+        out = algopy.zeros(6, dtype=p[-6])
 
-        clab2 = (1-phi_on)*p['clab'] + (1-p['f_auto'])*(1-p['f_fol'])*p['f_lab']*gpp
-        cf2 = (1-phi_off)*p['cf'] + phi_on*p['clab'] + (1-p['f_auto'])*(1-p['f_fol'])*p['f_lab']*gpp
-        cr2 = (1-p['theta_roo'])*p['cr'] + (1-p['f_auto'])*(1-p['f_fol'])*(1-p['f_lab'])*p['f_roo']*gpp
-        cw2 = (1-p['theta_woo'])*p['cw'] + (1-p['f_auto'])*(1-p['f_fol'])*(1-p['f_lab'])*(1-p['f_roo'])*gpp
-        cl2 = (1-(p['theta_lit']+p['theta_min'])*temp)*p['cl'] + p['theta_roo']*p['cr'] + phi_off*p['cf']
-        cs2 = (1-p['theta_som']*temp)*p['cs'] + p['theta_woo']*p['cw'] + p['theta_min']*temp*p['cl']
-        return np.array([clab2, cf2, cr2, cw2, cl2, cs2])
+        phi_on = self.phi_onset(p[11], p[13])
+        phi_off = self.phi_fall(p[14], p[15], p[4])
+        gpp = self.acm(p[18], p[16], p[10], self.dC.acm)
+        temp = self.temp_term(p[9], self.dC.t_mean[self.x])
 
-    def dalec_diff(self, p, names):
-        param_dic = self.create_ordered_dic(p, names)
-        return self.dalecv2_diff(param_dic)
+        out[0] = (1 - phi_on)*p[17] + (1-p[1])*(1-p[2])*p[12]*gpp
+        out[1] = (1 - phi_off)*p[18] + phi_on*p[17] + (1-p[1])*p[2]*gpp
+        out[2] = (1 - p[6])*p[19] + (1-p[1])*(1-p[2])*(1-p[12])*p[3]*gpp
+        out[3] = (1 - p[5])*p[20] + (1-p[1])*(1-p[2])*(1-p[12])*(1-p[3])*gpp
+        out[4] = (1-(p[7]+p[0])*temp)*p[21] + p[6]*p[19] + phi_off*p[18]
+        out[5] = (1 - p[8]*temp)*p[22] + p[5]*p[20] + p[0]*temp*p[21]
+        return out
 
-    def dalec_jac(self, p, names):
-        param_dic = self.create_ordered_dic_ad(p, names)
-        dalec_out = self.dalecv2_diff(param_dic)
-        diff_lst = [param_dic[name] for name in names]
-        return np.array(ad.jacobian(dalec_out, diff_lst))
-
-    def full_jac(self, p, names):
+    def jac_dalecv2(self, p):
+        """ Uses algopy reverse mode automatic differentiation to find derivative of DALEC model
+        :param p: set of parameters to differentiate with respect to
+        :return: linearised model w.r.t. p as an array
+        """
         mat = np.ones((len(p), len(p)))*-9999.
         mat[0:-6] = np.eye(len(p)-6, len(p))
-        mat[-6:] = self.dalec_jac(p, names)
+        p_algo = algopy.UTPM.init_jacobian(p)
+        p_algo_dic = self.create_ordered_dic(p_algo)
+        mat[-6:] = algopy.UTPM.extract_jacobian(self.dalecv2(p_algo_dic))
         return mat
 
-    def create_ordered_dic(self, p, names):
+    def jac2_dalecv2(self, p):
+        """ Uses algopy reverse mode automatic differentiation to find derivative of DALEC model
+        :param p: set of parameters to differentiate with respect to
+        :return: linearised model w.r.t. p as an array
+        """
+        mat = np.ones((len(p), len(p)))*-9999.
+        mat[0:-6] = np.eye(len(p)-6, len(p))
+        p_algo = algopy.UTPM.init_jacobian(p)
+        p_algo_lst = self.create_ordered_lst(p_algo)
+        mat[-6:] = algopy.UTPM.extract_jacobian(self.dalecv2_diff(p_algo_lst))
+        return mat
+
+    def create_ordered_dic(self, p):
+        """ Creates an ordered dictionary for all parameter values needed to run DALEC
+        :param p: set of parameters to differentiate with respect to
+        :return: full set of parameters as ordered dictionary
+        """
         param_dic = col.OrderedDict()
         idx = 0
         for name in self.dC.param_dict.keys():
-            if name in names:
+            if name in self.names:
                 param_dic[name] = p[idx]
                 idx += 1
             else:
                 param_dic[name] = self.dC.param_dict[name]
         return param_dic
 
-    def create_ordered_dic_ad(self, p, names):
-        param_dic = col.OrderedDict()
+    def create_ordered_lst(self, p):
+        """ Creates a list for all parameter values needed to run DALEC
+        :param p: set of parameters to differentiate with respect to
+        :return: full set of parameters as list
+        """
+        param = [-9999]*23
         idx = 0
-        for name in self.dC.param_dict.keys():
-            if name in names:
-                param_dic[name] = ad.adnumber(p[idx])
+        for name in enumerate(self.dC.param_dict.keys()):
+            if name[1] in self.names:
+                param[name[0]] = p[idx]
                 idx += 1
             else:
-                param_dic[name] = self.dC.param_dict[name]
-        return param_dic
+                param[name[0]] = self.dC.param_dict[name[1]]
+        return param
 
-    def mod_list(self, p, names):
+    def mod_list(self, p):
         """Creates an array of evolving model values using dalecv2 function.
         Takes a list of initial param values.
         """
-        param_dic = self.create_ordered_dic(p, names)
-        param_vals = np.array(param_dic.values())
-        mod_list = np.concatenate((np.array([param_vals]),
-                                  np.ones((self.endrun-self.startrun, len(param_vals)))*-9999.))
+        param = np.array(self.create_ordered_lst(p))
+        mod_list = np.concatenate((np.array([param]),
+                                  np.ones((self.endrun-self.startrun, len(param)))*-9999.))
 
         self.x = self.startrun
         for t in xrange(self.endrun-self.startrun):
-            mod_list[(t+1)] = self.dalecv2(mod_list[t])
+            mod_param = mod_list[t]
+            mod_param[-6:] = self.dalecv2(self.create_ordered_dic(mod_param))
+            mod_list[(t+1)] = mod_param
             self.x += 1
 
         self.x -= self.endrun
