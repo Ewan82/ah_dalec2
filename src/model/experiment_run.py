@@ -42,8 +42,8 @@ def east_west_joint_run(xb, f_name):
     dw.B = pickle.load(open('b_edc.p', 'r'))
     me = mc.DalecModel(de)
     mw = mc.DalecModel(dw)
-    xa_e = me.find_min_tnc_cvt(xb)
-    xa_w = mw.find_min_tnc_cvt(xb)
+    xa_e = me.find_min_tnc_cvt(xb, f_name+'east_assim')
+    xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
     save_plots(f_name, xa_e[1], xa_w[1], de, dw)
     return 'done'
 
