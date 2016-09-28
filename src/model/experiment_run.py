@@ -44,7 +44,7 @@ def east_west_joint_run(xb, f_name):
     mw = mc.DalecModel(dw)
     xa_e = me.find_min_tnc_cvt(xb)
     xa_w = mw.find_min_tnc_cvt(xb)
-    save_plots(f_name, xa_e, xa_w, de, dw)
+    save_plots(f_name, xa_e[1], xa_w[1], de, dw)
     return 'done'
 
 # ------------------------------------------------------------------------------
