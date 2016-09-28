@@ -156,12 +156,12 @@ def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w):
 
     palette = sns.color_palette("colorblind", 11)
 
-    ax.plot(d_e.dates, obs_lst_e, color=palette[0])
-    ax.plot(d_w.dates, obs_lst_w, color=palette[2])
+    ax.plot(d_e.dates, obs_lst_e, color=palette[0], label='East')
+    ax.plot(d_w.dates, obs_lst_w, color=palette[2], label='West')
     if ob in d_e.ob_dict.keys():
-        ax.plot(d_e.dates, d_e.ob_dict[ob], 'o', color=palette[0], label='East', markeredgecolor='black',
+        ax.plot(d_e.dates, d_e.ob_dict[ob], 'o', color=palette[0], markeredgecolor='black',
                 markeredgewidth=0.5)
-        ax.plot(d_w.dates, d_w.ob_dict[ob], 'o', color=palette[2], label='West', markeredgecolor='black',
+        ax.plot(d_w.dates, d_w.ob_dict[ob], 'o', color=palette[2], markeredgecolor='black',
                 markeredgewidth=0.5)
     plt.legend()
     ax.set_xlabel('Date')

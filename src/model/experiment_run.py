@@ -4,7 +4,7 @@ import plot as p
 import pickle
 
 
-def save_plots(f_name, xa_east, xa_west, d_e, d_w):
+def save_plots(f_name, xb, xa_east, xa_west, d_e, d_w):
     # Plot 4dvar time series
     ax, fig = p.plot_obs_east_west('nee', xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_nee.png', bbox_inches='tight')
@@ -30,7 +30,7 @@ def save_plots(f_name, xa_east, xa_west, d_e, d_w):
     fig.savefig(f_name+'_cfol.png', bbox_inches='tight')
 
     # Plot error in analysis and background
-    ax, fig = p.plot_inc_east_west(d_e.edinburgh_mean, xa_east, xa_west)
+    ax, fig = p.plot_inc_east_west(xb, xa_east, xa_west)
     fig.savefig(f_name+'_xa_inc.png', bbox_inches='tight')
     return 'done'
 
@@ -44,7 +44,7 @@ def east_west_joint_run(xb, f_name):
     mw = mc.DalecModel(dw)
     xa_e = me.find_min_tnc_cvt(xb, f_name+'east_assim')
     xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
-    save_plots(f_name, xa_e[1], xa_w[1], de, dw)
+    save_plots(f_name, xb, xa_e[1], xa_w[1], de, dw)
     return 'done'
 
 # ------------------------------------------------------------------------------
