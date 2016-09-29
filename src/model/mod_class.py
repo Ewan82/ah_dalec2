@@ -1019,7 +1019,7 @@ class DalecModel():
             self.obs_time_step = self.no_obs_at_time()
             self.yoblist, self.yerroblist, ytimestep = self.obscost()
             self.rmatrix = self.rmat(self.yerroblist)
-            xa.append(self.find_min_tnc_cvt(pvals, f_tol=1e1))
+            xa.append(self.find_min_tnc_cvt(pvals, f_tol=3e-1))
             acovmat = self.acovmat(xa[year[0]][1])
             b_cov.append(acovmat)
             self.endrun += 1
