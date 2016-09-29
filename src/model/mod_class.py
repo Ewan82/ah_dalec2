@@ -869,22 +869,6 @@ class DalecModel():
             new_bnds.append((zval_lowerbnds[t],zval_upperbnds[t]))
         return tuple(new_bnds)
 
-    def findmin_cvt(self, pvals, bnds='strict', dispp=None, maxits=2000,
-                   mini=0, f_tol=-1):
-        """Function which minimizes 4DVAR cost fn. Takes an initial state
-        (pvals).
-        """
-        self.xb = pvals
-        zvals = self.pvals2zvals(pvals)
-        if bnds == 'strict':
-            bnds = self.zvalbnds(self.dC.bnds_tst)
-        else:
-            bnds = bnds
-        findmin = spop.fmin_tnc(self.cost_cvt, zvals,
-                                fprime=self.gradcost2_cvt, bounds=bnds,
-                                disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
-        return findmin
-
     def cvt_hmat(self, pvallist, matlist):
         """
         Calculates the normalised \hat{H} matrix for the CVT case
@@ -933,7 +917,7 @@ class DalecModel():
                                 disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         return find_min
 
-    def find_min_tnc_cvt(self, pvals, f_name=None, bnds='strict', dispp=5, maxits=1000,
+    def find_min_tnc_cvt(self, pvals, f_name=None, bnds='strict', dispp=5, maxits=2000,
                          mini=0, f_tol=1e-4):
         """Function which minimizes 4DVAR cost fn. Takes an initial state
         (pvals).
@@ -1033,7 +1017,7 @@ class DalecModel():
             self.endrun = year_idx[-1]
             self.yoblist, self.yerroblist, ytimestep = self.obscost()
             self.rmatrix = self.rmat(self.yerroblist)
-            xa.append(self.find_min_tnc(pvals, f_tol=1e1))
+            xa.append(self.find_min_tnc_cvt(pvals, f_tol=1e1))
             acovmat = self.acovmat(xa[year[0]][1])
             b_cov.append(acovmat)
             self.endrun += 1

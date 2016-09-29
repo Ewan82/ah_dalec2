@@ -113,8 +113,10 @@ def plot_ob_dict_east_west(ob, dC_east, dC_west):
 
     palette = sns.color_palette("colorblind", 11)
 
-    ax.plot(dC_east.dates, dC_east.ob_dict[ob], 'o', color=palette[0], label='East')
-    ax.plot(dC_west.dates, dC_west.ob_dict[ob], 'o', color=palette[2], label='West')
+    ax.plot(dC_east.dates, dC_east.ob_dict[ob], 'o', color=palette[0], label='East', markeredgecolor='black',
+            markeredgewidth=0.5)
+    ax.plot(dC_west.dates, dC_west.ob_dict[ob], 'o', color=palette[2], label='West', markeredgecolor='black',
+            markeredgewidth=0.5)
     plt.legend()
     ax.set_xlabel('Year')
     ax.set_ylabel(ob)
@@ -126,7 +128,7 @@ def plot_obs(ob, pvals, dC):
     """Plots a specified observation using obs eqn in obs module. Takes an
     observation string, a dataClass (dC) and a start and finish point.
     """
-    sns.set_context(rc={'lines.linewidth':.8, 'lines.markersize':6})
+    sns.set_context(rc={'lines.linewidth': 0.8, 'lines.markersize': 6})
     fig, ax = plt.subplots(nrows=1, ncols=1)
     m = mc.DalecModel(dC)
     mod_lst = m.mod_list(pvals)

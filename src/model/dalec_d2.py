@@ -9,7 +9,6 @@ import emcee
 import joblib as jl
 import random as rand
 import multiprocessing
-import copy as cp
 import collections as col
 
 

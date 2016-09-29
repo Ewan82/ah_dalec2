@@ -43,7 +43,7 @@ class DalecData:
         self.cs = 18624.0              # (1e3, 1e5)
 
         # Parameters for optimization                        range
-        self.p1 = 1.1e-5  # theta_min, cl to cs decomp      (1e-5 - 1e-2) day-1
+        self.p1 = 2.5e-4  # theta_min, cl to cs decomp      (1e-5 - 1e-2) day-1
         self.p2 = 0.45  # f_auto, fraction of GPP respired  (0.3 - 0.7)
         self.p3 = 0.01  # f_fol, frac GPP to foliage        (0.01 - 0.5)
         self.p4 = 0.457  # f_roo, frac GPP to fine roots    (0.01 - 0.5)

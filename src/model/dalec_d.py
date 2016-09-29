@@ -9,7 +9,6 @@ import emcee
 import joblib as jl
 import random as rand
 import multiprocessing
-import ad
 import collections as col
 
 
@@ -42,6 +41,7 @@ class DalecModel():
         self.b_tilda = np.dot(np.dot(np.linalg.inv(np.sqrt(self.diag_b)), self.dC.B),
                               np.linalg.inv(np.sqrt(self.diag_b)))
         self.nume = 100
+        self.names = self.dC.edinburgh_mean.dtype.names
 
 
 # ------------------------------------------------------------------------------
@@ -71,7 +71,7 @@ class DalecModel():
         :param Theta: temperature dependence exponent factor
         :return: temperature exponent respiration
         """
-        temp_term = ad.math.exp(Theta*temperature)
+        temp_term = np.exp(Theta*temperature)
         return temp_term
 
     def acm(self, cf, clma, ceff, acm):
@@ -116,7 +116,7 @@ class DalecModel():
         mag_coeff = (np.log(1.+1e-3) - np.log(1e-3)) / 2.
         offset = self.fit_polynomial(1+1e-3, release_coeff)
         phi_onset = (2. / np.sqrt(np.pi))*(mag_coeff / release_coeff) * \
-            ad.math.exp(-(ad.math.sin((self.dC.D[self.x] - d_onset + offset) /
+            np.exp(-(np.sin((self.dC.D[self.x] - d_onset + offset) /
                      self.dC.radconv)*(self.dC.radconv / release_coeff))**2)
         return phi_onset
 
@@ -126,10 +126,10 @@ class DalecModel():
         phi_fall.
         """
         release_coeff = np.sqrt(2.)*crfall / 2.
-        mag_coeff = (ad.math.log(clspan) - ad.math.log(clspan - 1.)) / 2.
+        mag_coeff = (np.log(clspan) - np.log(clspan - 1.)) / 2.
         offset = self.fit_polynomial(clspan, release_coeff)
         phi_fall = (2. / np.sqrt(np.pi))*(mag_coeff / release_coeff) * \
-            ad.math.exp(-(ad.math.sin((self.dC.D[self.x] - d_fall + offset) /
+            np.exp(-(np.sin((self.dC.D[self.x] - d_fall + offset) /
                    self.dC.radconv)*self.dC.radconv / release_coeff)**2)
         return phi_fall
 
@@ -272,40 +272,42 @@ class DalecModel():
         self.x = self.startrun
         for t in xrange(self.endrun-self.startrun):
             mod_param = mod_list[t]
-            mod_param[-6:] = self.dalecv2(self.create_ordered_dic(mod_param))
+            mod_param[-6:] = self.dalecv2_diff(mod_param)
             mod_list[(t+1)] = mod_param
             self.x += 1
 
         self.x -= self.endrun
         return mod_list
 
-    def linmod_list(self, p, names):
+    def linmod_list(self, p):
         """Creates an array of linearized models (Mi's) taking a list of
         initial param values and a run length (lenrun).
         """
-        param_dic = self.create_ordered_dic(p, names)
-        param_vals = np.array(param_dic.values())
-        mod_list = np.concatenate((np.array([param_vals]),
-                                  np.ones((self.endrun-self.startrun, len(param_vals)))*-9999.))
+        param = np.array(self.create_ordered_lst(p))
+        mod_list = np.concatenate((np.array([param]),
+                                  np.ones((self.endrun-self.startrun, len(param)))*-9999.))
         matlist = np.ones((self.endrun-self.startrun, len(p), len(p)))*-9999.
 
         self.x = self.startrun
         for t in xrange(self.endrun-self.startrun):
-            mod_list[(t+1)] = self.dalecv2(mod_list[t])
-            matlist[t] = self.full_jac(p, names)
-            p[-6:] = self.dalec_diff(p, names)
+            mod_param = mod_list[t]
+            c_pool_update = self.dalecv2_diff(mod_param)
+            mod_param[-6:] = c_pool_update
+            mod_list[(t+1)] = mod_param
+            matlist[t] = self.jac2_dalecv2(p)
+            p[-6:] = c_pool_update
             self.x += 1
 
         self.x -= self.endrun
         return mod_list, matlist
 
-    @staticmethod
-    def mfac(matlist, timestep):
+
+    def mfac(self, matlist, timestep):
         """matrix factorial function, takes a list of matrices and a time step,
         returns the matrix factoral.
         """
         if timestep == -1.:
-            return np.eye(23)
+            return np.eye(len(self.names))
         mat = matlist[0]
         for t in xrange(0, timestep):
             mat = np.dot(matlist[t+1], mat)
@@ -316,6 +318,28 @@ class DalecModel():
         for m in matlist:
             evolve_mat = np.dot(np.dot(m, evolve_mat), m.T)
         return evolve_mat
+
+    def opt_params(self, pvals):
+        p = np.ones(len(self.names))
+        idx = 0
+        for x in range(23):
+            if self.dC.param_dict.keys()[x] in self.names:
+                p[idx] = pvals[x]
+                idx += 1
+            else:
+                continue
+        return p
+
+    def opt_bnds(self, bnds):
+        bnd = ()
+        idx = 0
+        for x in range(23):
+            if self.dC.param_dict.keys()[x] in self.names:
+                bnd += (bnds[x],)
+                idx += 1
+            else:
+                continue
+        return bnd
 
 
 # ------------------------------------------------------------------------------
@@ -440,13 +464,14 @@ class DalecModel():
         phi_off_ob = self.phi_fall(p[14], p[15], p[4])
         return phi_off_ob
 
-    def linob(self, ob, pvals):
+    def linob(self, ob, p):
         """Function returning jacobian of observation with respect to the
         parameter list. Takes an obs string, a parameters list, a dataClass
         and a time step x.
         """
-        dpvals = algopy.UTPM.init_jacobian(pvals)
-        return algopy.UTPM.extract_jacobian(self.modobdict[ob](dpvals))
+        p_algo = algopy.UTPM.init_jacobian(p)
+        p_algo_lst = self.create_ordered_lst(p_algo)
+        return algopy.UTPM.extract_jacobian(self.modobdict[ob](p_algo_lst))
 
     def oblist(self, ob, mod_list):
         oblist = np.ones(self.endrun-self.startrun)*-9999.
@@ -562,7 +587,7 @@ class DalecModel():
                 if np.isnan(self.dC.ob_dict[ob][t]) != True:
                     hx = np.append(hx,
                                    self.modobdict[ob](pvallist[t-self.startrun]))
-                    temp.append([self.linob(ob, pvallist[t-self.startrun])])
+                    temp.append([self.linob(ob, self.opt_params(pvallist[t-self.startrun]))])
             self.x += 1
             if len(temp) != 0.:
                 hhat.append(np.vstack(temp))
@@ -587,7 +612,7 @@ class DalecModel():
                 if np.isnan(self.dC.ob_dict[ob][t]) != True:
                     hx = np.append(hx,
                                    self.modobdict[ob](pvallist[t-self.startrun]))
-                    temp.append([self.linob(ob, pvallist[t-self.startrun])])
+                    temp.append([self.linob(ob, self.opt_params(pvallist[t-self.startrun]))])
             self.x += 1
             if len(temp) != 0.:
                 hmat = np.append(hmat, np.dot(np.vstack(temp),
@@ -596,7 +621,7 @@ class DalecModel():
                 continue
 
         self.x -= self.endrun
-        hmat = np.reshape(hmat, (len(hmat)/23, 23))
+        hmat = np.reshape(hmat, (len(hmat)/len(self.names), len(self.names)))
         return hx, hmat
 
     def modcost(self, pvals):
@@ -866,7 +891,7 @@ class DalecModel():
     def zvals2pvals(self, zvals):
         """Convert z_0 to x_0 for CVT.
         """
-        return np.dot(np.sqrt(self.diag_b),zvals)+self.xb
+        return np.dot(np.sqrt(self.diag_b), zvals) + self.xb
 
     def zvalbnds(self, bnds):
         """Calculates bounds for transformed problem.
@@ -882,22 +907,6 @@ class DalecModel():
         for t in xrange(len(bnds)):
             new_bnds.append((zval_lowerbnds[t],zval_upperbnds[t]))
         return tuple(new_bnds)
-
-    def findmin_cvt(self, pvals, bnds='strict', dispp=None, maxits=2000,
-                   mini=0, f_tol=-1):
-        """Function which minimizes 4DVAR cost fn. Takes an initial state
-        (pvals).
-        """
-        self.xb = pvals
-        zvals = self.pvals2zvals(pvals)
-        if bnds == 'strict':
-            bnds = self.zvalbnds(self.dC.bnds_tst)
-        else:
-            bnds = bnds
-        findmin = spop.fmin_tnc(self.cost_cvt, zvals,
-                                fprime=self.gradcost2_cvt, bounds=bnds,
-                                disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
-        return findmin
 
     def cvt_hmat(self, pvallist, matlist):
         """
@@ -934,37 +943,57 @@ class DalecModel():
 
     def find_min_tnc(self, pvals, bnds='strict', dispp=None, maxits=2000,
                      mini=0, f_tol=-1):
-        """Function which minimizes 4DVAR cost fn. Takes an initial state
+        """ Function which minimizes 4DVAR cost fn. Takes an initial state
         (pvals).
+        :param pvals: parameter values for which to optimize as recorded array witht parameter names in dtype
+        :param bnds: bounds for assimilation as tuple
+        :param dispp: info to display in assimilation
+        :param maxits: maximum number of iterations to perform before stopping optimization
+        :param mini: estimated minimum of cost fn
+        :param f_tol: difference in cost fn value tolerance
+        :return: optimsier output
         """
-        self.xb = pvals
+        p = np.array(pvals.tolist()[0], dtype=np.float)
+        self.xb = p
+        self.names = pvals.dtype.names
         if bnds == 'strict':
-            bnds = self.dC.bnds
+            bnds = self.opt_bnds(self.dC.bnds)
         else:
             bnds = bnds
         find_min = spop.fmin_tnc(self.cost, pvals,
-                                fprime=self.gradcost2, bounds=bnds,
-                                disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
+                                 fprime=self.gradcost2, bounds=bnds,
+                                 disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         return find_min
 
-    def find_min_tnc_cvt(self, pvals, f_name=None, bnds='strict', dispp=5, maxits=1000,
+    def find_min_tnc_cvt(self, pvals, f_name=None, bnds='strict', dispp=5, maxits=2000,
                          mini=0, f_tol=1e-4):
-        """Function which minimizes 4DVAR cost fn. Takes an initial state
+        """ Function which minimizes 4DVAR cost fn. Takes an initial state
         (pvals).
+        :param pvals: parameter values for which to optimize as recorded array witht parameter names in dtype
+        :param bnds: bounds for assimilation as tuple
+        :param dispp: info to display in assimilation
+        :param maxits: maximum number of iterations to perform before stopping optimization
+        :param mini: estimated minimum of cost fn
+        :param f_tol: difference in cost fn value tolerance
+        :return: optimsier output, xa value, full xa including unoptimized parameters
         """
-        self.xb = pvals
+        p = np.array(pvals.tolist()[0], dtype=np.float)
+        self.xb = p
+        self.names = pvals.dtype.names
         if bnds == 'strict':
-            bnds = self.zvalbnds(self.dC.bnds_tst)
+            opt_bnds = self.opt_bnds(self.dC.bnds_tst)
+            bnds = self.zvalbnds(opt_bnds)
         else:
             bnds = bnds
-        zvals = self.pvals2zvals(pvals)
+        zvals = self.pvals2zvals(p)
         find_min = spop.fmin_tnc(self.cost_cvt, zvals,
-                                fprime=self.gradcost2_cvt, bounds=bnds,
-                                disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
+                                 fprime=self.gradcost2_cvt, bounds=bnds,
+                                 disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         xa = self.zvals2pvals(find_min[0])
+        xa_full = np.array(self.create_ordered_lst(xa))
         if f_name != None:
             self.pickle_exp(pvals, find_min, xa, f_name)
-        return find_min, xa
+        return find_min, xa, xa_full
 
     def findminglob(self, pvals, meth='TNC', bnds='strict', it=300,
                     stpsize=0.5, temp=1., displ=True, maxits=3000):
@@ -1053,10 +1082,10 @@ class DalecModel():
             xb.append(pvallst[-1])
             ev_acovmat = 1.2 * self.evolve_mat(acovmat, matlist)
             # ev_acovmat = self.dC.B
-            ev_acovmat[11,11] = self.dC.B[11,11]
-            ev_acovmat[13,13] = self.dC.B[13,13]
-            ev_acovmat[14,14] = self.dC.B[14,14]
-            ev_acovmat[15,15] = self.dC.B[15,15]
+            ev_acovmat[11, 11] = self.dC.B[11, 11]
+            ev_acovmat[13, 13] = self.dC.B[13, 13]
+            ev_acovmat[14, 14] = self.dC.B[14, 14]
+            ev_acovmat[15, 15] = self.dC.B[15, 15]
             self.diag_b = np.diag(np.diag(ev_acovmat))
             self.b_tilda = np.dot(np.dot(np.linalg.inv(np.sqrt(self.diag_b)),ev_acovmat),
                                   np.linalg.inv(np.sqrt(self.diag_b)))
