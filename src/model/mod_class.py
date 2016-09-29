@@ -1015,6 +1015,7 @@ class DalecModel():
             year_idx = np.where(self.dC.year == year[1])[0]
             self.startrun = year_idx[0]
             self.endrun = year_idx[-1]
+            self.lenrun = self.endrun - self.startrun
             self.yoblist, self.yerroblist, ytimestep = self.obscost()
             self.rmatrix = self.rmat(self.yerroblist)
             xa.append(self.find_min_tnc_cvt(pvals, f_tol=1e1))
