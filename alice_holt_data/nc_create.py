@@ -205,6 +205,14 @@ def create_netcdf_dataset_daily(path):
     c_roo_west = dataset.createVariable('c_roo_west', 'f4', ('time', 'lat', 'lon'), zlib=True)
     c_roo_west.description = 'average fine root carbon stock for site west of flux tower'
 
+    # leaf on/leaf off
+    d_on = dataset.createVariable('d_onset', 'i1', ('time', 'lat', 'lon'), zlib=True)
+    d_on.units = 'day of year'
+    d_on.description = 'day of labile release to leaves'
+    d_off = dataset.createVariable('d_fall', 'i1', ('time', 'lat', 'lon'), zlib=True)
+    d_off.units = 'day of year'
+    d_off.description = 'day of leaf fall'
+
     start_date = dt.datetime(1999, 1, 1)
     end_date = dt.datetime(2015, 12, 31)
     time_lst = utils.create_date_list(start_date, end_date, del_t='day')

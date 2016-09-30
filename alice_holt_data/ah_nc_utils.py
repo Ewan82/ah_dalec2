@@ -266,7 +266,7 @@ def nc_night_mean_temp(is_day, hh_temp, mean_t_night, times, time_lst):
     return 'yay'
 
 
-def clip_co2_flux(co2_flux, clipped_co2_flux, above_clip=50., below_clip=-60.):
+def clip_co2_flux(co2_flux, clipped_co2_flux, above_clip=50., below_clip=-65.):
     """ Clips co2_flux data and saves in clipped_co2_flux netcdf variable
     :param co2_flux: co2 flux measurements from tower as netcdf variable
     :param clipped_co2_flux: netcdf variable to save clipped measurements in
@@ -309,9 +309,7 @@ def find_indices_year(times, year):
     year_entries = [x for x in times[:] if nC.num2date(x, times.units).year == year]
     idx1 = np.where(times[:] == year_entries[0])[0][0]
     idx2 = np.where(times[:] == year_entries[-1])[0][0]
-    nC.num2
     return idx1, idx2
-
 
 
 def find_indices_month(time_arr, month, time_units):
@@ -548,7 +546,7 @@ def quality_control_co2_flux_daily(clipped_co2_flux, qc_co2_flux, nee, nee_std, 
         nee[idx, 0, 0] = float('NaN')
         nee_std[idx, 0, 0] = float('NaN')
         origin[idx, 0, 0] = float('NaN')
-    elif qc_flag2 > 2:
+    elif qc_flag2 > 3:
         nee[idx, 0, 0] = float('NaN')
         nee_std[idx, 0, 0] = float('NaN')
         origin[idx, 0, 0] = float('NaN')
@@ -560,9 +558,9 @@ def quality_control_co2_flux_daily(clipped_co2_flux, qc_co2_flux, nee, nee_std, 
         # u mol m-2 s-1 to g C m-2 day-1 (CHECK what units do we want day/night in?)
         nee[idx, 0, 0] = 12.011*1e-6 * (idx2-idx1)*30*60 * np.nanmean(clipped_co2_flux[idx1:idx2, 0, 0])
         nee_std[idx, 0, 0] = 12.011*1e-6 * (idx2-idx1)*30*60 * np.nanstd(clipped_co2_flux[idx1:idx2, 0, 0])
-        if all(0 <= wind < 180 or wind > 295 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from East was 315 now 295
+        if all(0 <= wind < 190 or wind > 295 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from East was 315 now 295
             origin[idx, 0, 0] = 1
-        elif all(295 > wind > 180 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from west was 315 now 295
+        elif all(295 > wind > 190 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from west was 315 now 295
             origin[idx, 0, 0] = 2
         else:  # Undetermined obs location
             origin[idx, 0, 0] = 0

@@ -1,5 +1,7 @@
 import data_class as dc
 import mod_class as mc
+import dalec_d as mc_d
+import numpy as np
 import plot as p
 import pickle
 
@@ -36,15 +38,23 @@ def save_plots(f_name, xb, xa_east, xa_west, d_e, d_w):
 
 
 def east_west_joint_run(xb, f_name):
-    de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_roo_east, c_woo_east, clma, lai_east')
-    de.B = pickle.load(open('b_edc.p', 'r'))
-    dw = dc.DalecData(2015, 2016, 'nee_day_west, nee_night_west, c_roo_west, c_woo_west, clma, lai_west')
-    dw.B = pickle.load(open('b_edc.p', 'r'))
-    me = mc.DalecModel(de)
-    mw = mc.DalecModel(dw)
+    de = dc.DalecData(2015, 2016, 'nee_day_east, c_roo_east, c_woo_east, clma, lai_east',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc')
+    # de.B = np.concatenate((de.edinburgh_std[:10], de.edinburgh_std[11:]))**2*np.eye(22)
+    A = pickle.load(open('A_D.p', 'r'))
+    A = np.delete(A, (10), axis=0)
+    A = np.delete(A, (10), axis=1)
+    de.B = 1.2*A
+    dw = dc.DalecData(2015, 2016, 'nee_day_west, c_roo_west, c_woo_west, clma, lai_west',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc')
+    # dw.B = np.concatenate((de.edinburgh_std[:10], de.edinburgh_std[11:]))**2*np.eye(22)
+    dw.B = A
+    me = mc_d.DalecModel(de)
+    mw = mc_d.DalecModel(dw)
     xa_e = me.find_min_tnc_cvt(xb, f_name+'east_assim')
     xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
-    save_plots(f_name, xb, xa_e[1], xa_w[1], de, dw)
+    xbb = np.array(me.create_ordered_lst(np.array(xb.tolist()[0], dtype=np.float)))
+    save_plots(f_name, xbb, xa_e[2], xa_w[2], de, dw)
     return 'done'
 
 # ------------------------------------------------------------------------------

@@ -120,6 +120,18 @@ class DalecData:
         # self.B = self.make_b(self.edinburgh_std)
         self.B = pickle.load(open('b_edc.p', 'r'))
 
+        self.std = np.array([0.1*2.03001590e-03,   1.16829160e-01,   1.11585876e-01,
+                             2.98860194e-01,   1.16141739e-01,   1.36472702e-04,
+                             2.92998472e-03,   3.11712858e-03,   1.18105073e-04,
+                             1.62308654e-02,   0.1*2.04219069e+01,   0.1*6.25696097e+00,
+                             1.14535431e-01,   1.40482247e+01,   0.1*3.72380005e+01,
+                             2.25938092e+01,   6.41030587e+01,   6.62621885e+01,
+                             3.59002726e+01,   2.19315727e+02,   7.14323513e+03,
+                             5.45013287e+02,   1.27646316e+03])
+        b_cor = pickle.load(open('b_edc_cor.p', 'r'))  # load correlation matrix from 2016 paper
+        b_std = self.make_b(np.sqrt(self.st_dev))  # Create diagonal matrix of standard deviations
+        B = np.dot(np.dot(b_std, b_cor), b_std)
+
         self.bnds = ((1e-5, 1e-2), (0.3, 0.7), (0.01, 0.5), (0.01, 0.5), (1.0001, 10.),
                      (2.5e-5, 1e-3), (1e-4, 1e-2), (1e-4, 1e-2), (1e-7, 1e-3), (0.018, 0.08),
                      (10, 100), (1, 365), (0.01, 0.5), (10, 100), (1, 365), (10, 100), (10, 400),
@@ -190,7 +202,7 @@ class DalecData:
         self.sigo_cs = 1500.0  # 30%
         self.sigo_nee = 0.71  # g C m-2 day-1
         self.sigo_nee_day = 0.71
-        self.sigo_nee_night = 0.71
+        self.sigo_nee_night = 4*0.71
         self.sigo_lf = 0.5
         self.sigo_lw = 0.5
         self.sigo_litresp = 0.5
