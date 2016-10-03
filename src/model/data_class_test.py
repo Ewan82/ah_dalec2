@@ -123,7 +123,7 @@ class DalecData:
                             ('cr', '<f8'), ('cw', '<f8'), ('cl', '<f8'),
                             ('cs', '<f8')]
 
-        self.dtype_east_west2 = [('theta_min', '<f8'),
+        self.dtype_east_west3 = [('theta_min', '<f8'),
                             ('f_roo', '<f8'), ('clspan', '<f8'),
                             ('theta_woo', '<f8'), ('theta_roo', '<f8'),
                             ('theta_lit', '<f8'), ('theta_som', '<f8'),
