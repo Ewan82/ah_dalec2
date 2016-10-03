@@ -254,18 +254,21 @@ class DalecData:
         self.sigo_rh = 0.6
         self.sigo_lai = 0.5  # from AH optical measurements
         self.sigo_clma = 5.0  # from AH litter scans
+        self.sigo_donset = 5.
+        self.sigo_dfall = 7.
 
         self.error_dict = {'clab': self.sigo_clab, 'cf': self.sigo_cf, 'c_woo': self.sigo_cw,
                            'cl': self.sigo_cl, 'c_roo': self.sigo_cr, 'cs': self.sigo_cs,
                            'nee': self.sigo_nee, 'nee_day': self.sigo_nee_day, 'nee_night': self.sigo_nee_night,
                            'lf': self.sigo_lf, 'lw': self.sigo_lw, 'litresp': self.sigo_litresp,
                            'soilresp': self.sigo_soilresp, 'rtot': self.sigo_rtot, 'rh': self.sigo_rh,
-                           'lai': self.sigo_lai, 'clma': self.sigo_clma}
+                           'lai': self.sigo_lai, 'clma': self.sigo_clma, 'd_onset': self.sigo_donset,
+                           'd_fall': self.sigo_dfall}
         self.possible_obs = ['gpp', 'lf', 'lw', 'rt', 'nee', 'nee_east', 'nee_west', 'nee_day', 'nee_day_east',
                              'nee_day_west', 'nee_night', 'nee_night_east', 'nee_night_west', 'cf', 'cl',
                              'c_roo', 'c_roo_east', 'c_roo_west', 'c_woo', 'c_woo_east', 'c_woo_west', 'cs', 'lai',
                              'lai_east', 'lai_west', 'clma', 'clab', 'litresp', 'soilresp','rtot', 'rh', 'rabg',
-                             'd_onset', 'groundresp']
+                             'd_onset', 'd_fall', 'groundresp']
 
         # Extract observations for assimilation
         self.ob_dict, self.ob_err_dict = self.assimilation_obs(ob_str, data)
