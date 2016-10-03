@@ -105,7 +105,9 @@ def east_west_joint_run_ffol(xb, f_name):
     de.ob_err_dict['clma'] = (1./3.) * de.ob_err_dict['clma']
     de.ob_dict['lai'][-5] = 0.1
     de.ob_err_dict['lai'][-5] = 0.5
-    de.ob_err_dict['lai'] = (1./3.) * de.ob_err_dict['lai']
+    de.ob_dict['lai'][2] = 0.1
+    de.ob_err_dict['lai'][2] = 0.5
+    #de.ob_err_dict['lai'] = (1./3.) * de.ob_err_dict['lai']
     B = pickle.load(open('b_edc.p', 'r'))
     B = np.delete(B, 10, axis=0)
     B = np.delete(B, 10, axis=1)
@@ -124,7 +126,9 @@ def east_west_joint_run_ffol(xb, f_name):
     dw.ob_err_dict['clma'] = (1./3.) * dw.ob_err_dict['clma']
     dw.ob_dict['lai'][-5] = 0.1
     dw.ob_err_dict['lai'][-5] = 0.5
-    dw.ob_err_dict['lai'] = (1./3.) * dw.ob_err_dict['lai']
+    dw.ob_dict['lai'][2] = 0.1
+    dw.ob_err_dict['lai'][2] = 0.5
+    #dw.ob_err_dict['lai'] = (1./3.) * dw.ob_err_dict['lai']
     dw.B = B
     #dw.B = np.concatenate((de.edinburgh_std[:10], de.edinburgh_std[11:]))**2*np.eye(22)
     #dw.B = A
