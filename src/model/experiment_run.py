@@ -98,6 +98,40 @@ def east_west_joint_run2(xb, f_name):
     save_plots(f_name, xbb, xa_e[2], xa_w[2], de, dw)
     return 'done'
 
+
+def east_west_joint_run_ffol(xb, f_name):
+    de = dc.DalecData(2015, 2016, 'nee_day_east, c_roo_east, c_woo_east, clma, lai_east',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc')
+    de.ob_err_dict['clma'] = (1./3.) * de.ob_err_dict['clma']
+    de.ob_err_dict['lai'] = (1./3.) * de.ob_err_dict['lai']
+    B = pickle.load(open('b_edc.p', 'r'))
+    B = np.delete(B, 10, axis=0)
+    B = np.delete(B, 10, axis=1)
+    B = np.delete(B, 2, axis=0)
+    B = np.delete(B, 2, axis=1)
+    B = np.delete(B, 1, axis=0)
+    B = 0.8*np.delete(B, 1, axis=1)
+    de.B = B
+    #de.B = np.concatenate((de.edinburgh_std[:10], de.edinburgh_std[11:]))**2*np.eye(22)
+    #A = pickle.load(open('A_D.p', 'r'))
+    #A = np.delete(A, (10), axis=0)
+    #A = np.delete(A, (10), axis=1)
+    #de.B = 1.2*A
+    dw = dc.DalecData(2015, 2016, 'nee_day_west, c_roo_west, c_woo_west, clma, lai_west',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc')
+    dw.ob_err_dict['clma'] = (1./3.) * dw.ob_err_dict['clma']
+    dw.ob_err_dict['lai'] = (1./3.) * dw.ob_err_dict['lai']
+    dw.B = B
+    #dw.B = np.concatenate((de.edinburgh_std[:10], de.edinburgh_std[11:]))**2*np.eye(22)
+    #dw.B = A
+    me = mc_d.DalecModel(de)
+    mw = mc_d.DalecModel(dw)
+    xa_e = me.find_min_tnc_cvt(xb, f_name+'east_assim')
+    xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
+    xbb = np.array(me.create_ordered_lst(np.array(xb.tolist()[0], dtype=np.float)))
+    save_plots(f_name, xbb, xa_e[2], xa_w[2], de, dw)
+    return 'done'
+
 # ------------------------------------------------------------------------------
 # East West run
 # ------------------------------------------------------------------------------
