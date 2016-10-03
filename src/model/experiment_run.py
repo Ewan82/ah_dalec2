@@ -103,6 +103,8 @@ def east_west_joint_run_ffol(xb, f_name):
     de = dc.DalecData(2015, 2016, 'nee_day_east, c_roo_east, c_woo_east, clma, lai_east',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc')
     de.ob_err_dict['clma'] = (1./3.) * de.ob_err_dict['clma']
+    de.ob_dict['lai'][-5] = 0.4
+    de.ob_err_dict['lai'][-5] = 0.5
     de.ob_err_dict['lai'] = (1./3.) * de.ob_err_dict['lai']
     B = pickle.load(open('b_edc.p', 'r'))
     B = np.delete(B, 10, axis=0)
@@ -120,6 +122,8 @@ def east_west_joint_run_ffol(xb, f_name):
     dw = dc.DalecData(2015, 2016, 'nee_day_west, c_roo_west, c_woo_west, clma, lai_west',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc')
     dw.ob_err_dict['clma'] = (1./3.) * dw.ob_err_dict['clma']
+    dw.ob_dict['lai'][-5] = 0.4
+    dw.ob_err_dict['lai'][-5] = 0.5
     dw.ob_err_dict['lai'] = (1./3.) * dw.ob_err_dict['lai']
     dw.B = B
     #dw.B = np.concatenate((de.edinburgh_std[:10], de.edinburgh_std[11:]))**2*np.eye(22)
