@@ -1149,3 +1149,15 @@ class DalecModel():
         pickle.dump(exp, f)
         f.close()
         return 'Experiment assimilation results pickled!'
+
+    def exp_dict(self, xb, assim_res, xa):
+        exp = {}
+        exp['obs'] = self.dC.ob_dict
+        exp['obs_err'] = self.dC.ob_err_dict
+        exp['b_mat'] = self.dC.B
+        exp['xb'] = xb
+        exp['assim_res'] = assim_res
+        exp['xa'] = xa
+        return exp
+
+
