@@ -939,7 +939,6 @@ class DalecModel():
             elif email == 1:
                 exp = self.exp_dict(pvals, find_min, xa)
                 my_email.send_email(exp, f_name)
-            self.pickle_exp(pvals, find_min, xa, f_name)
         return find_min, xa
 
     def findminglob(self, pvals, meth='TNC', bnds='strict', it=300,
