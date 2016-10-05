@@ -68,7 +68,7 @@ def east_west_joint_run(xb, f_name):
 
 
 def east_west_joint_run2(xb, f_name):
-    de = dc.DalecData(2015, 2016, 'nee_day_east, c_roo_east, c_woo_east, clma, lai_east',
+    de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_roo_east, c_woo_east, clma, lai_east',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc')
     de.ob_err_dict['clma'] = (1./3.) * de.ob_err_dict['clma']
     de.ob_err_dict['lai'] = (1./3.) * de.ob_err_dict['lai']
@@ -83,7 +83,7 @@ def east_west_joint_run2(xb, f_name):
     #A = np.delete(A, (10), axis=0)
     #A = np.delete(A, (10), axis=1)
     #de.B = 1.2*A
-    dw = dc.DalecData(2015, 2016, 'nee_day_west, c_roo_west, c_woo_west, clma, lai_west',
+    dw = dc.DalecData(2015, 2016, 'nee_day_west, nee_night_west, c_roo_west, c_woo_west, clma, lai_west',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc')
     dw.ob_err_dict['clma'] = (1./3.) * dw.ob_err_dict['clma']
     dw.ob_err_dict['lai'] = (1./3.) * dw.ob_err_dict['lai']

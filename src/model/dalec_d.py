@@ -910,7 +910,7 @@ class DalecModel():
             bnds = self.opt_bnds(self.dC.bnds)
         else:
             bnds = bnds
-        find_min = spop.fmin_tnc(self.cost, pvals,
+        find_min = spop.fmin_tnc(self.cost, p,
                                  fprime=self.gradcost2, bounds=bnds,
                                  disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         return find_min
@@ -951,13 +951,17 @@ class DalecModel():
         (pvals), an obs dictionary, an obs error dictionary, a dataClass and
         a start and finish time step.
         """
+        p = np.array(pvals.tolist()[0], dtype=np.float)
+        self.xb = p
+        self.names = pvals.dtype.names
         if bnds == 'strict':
-            bnds = self.dC.bnds
+            bnds = self.opt_bnds(self.dC.bnds)
         else:
             bnds = bnds
-        findmin = spop.basinhopping(self.cost, pvals, niter=it,
+
+        findmin = spop.basinhopping(self.cost, p, niter=it,
                                     minimizer_kwargs={'method': meth, 'bounds': bnds,
-                                                      'jac': self.gradcost,
+                                                      'jac': self.gradcost2,
                                                       'options': {'maxiter': maxits}},
                                     stepsize=stpsize, T=temp, disp=displ)
         return findmin
@@ -1025,7 +1029,7 @@ class DalecModel():
             self.endrun = year_idx[-1]
             self.yoblist, self.yerroblist, ytimestep = self.obscost()
             self.rmatrix = self.rmat(self.yerroblist)
-            xa.append(self.find_min_tnc_cvt(pvals, f_tol=1e1))
+            xa.append(self.find_min_tnc_cvt(pvals, f_tol=1e-2))
             acovmat = self.acovmat(xa[year[0]][1])
             self.endrun += 1
             pvallst, matlist = self.linmod_list(xa[year[0]][1])
@@ -1059,21 +1063,21 @@ class DalecModel():
         bounds.
         """
         rndpvals = np.ones((nwalkers, 23))*-9999.
-        x=0
+        x = 0
         for t in xrange(nwalkers):
             for bnd in self.dC.bnds:
                 rndpvals[t, x] = np.random.uniform(bnd[0],bnd[1])
                 x += 1
-            x-=23
+            x -= 23
 
         return rndpvals
 
     def log_prior(self, pvals):
         tick = 23
         for x in xrange(23):
-            if self.dC.bnds[x][0]<pvals[x]<self.dC.bnds[x][1]:
+            if self.dC.bnds[x][0] < pvals[x] < self.dC.bnds[x][1]:
                 tick -= 1
-        if tick==0:
+        if tick == 0:
             return 0.0
         return -np.inf
 
