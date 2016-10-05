@@ -1,6 +1,6 @@
 import data_class as dc
 import mod_class as mc
-import dalec_d as mc_d
+import mod_class_param_choice as mc_d
 import numpy as np
 import plot as p
 import pickle

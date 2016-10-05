@@ -29,7 +29,9 @@ class DalecModel():
                           'nee_night': self.nee_night, 'rt': self.rt,
                           'cf': self.cf, 'clab': self.clab, 'c_roo': self.cr,
                           'c_woo': self.cw, 'cl': self.cl, 'cs': self.cs,
-                          'lai': self.lai, 'rh': self.rh, 'ra': self.ra}
+                          'lai': self.lai, 'clma': self.clma,'rh': self.rh, 'ra': self.ra,
+                          'd_onset': self.d_onset, 'phi_onset': self.phi_on,
+                          'phi_fall': self.phi_off}
         self.startrun = strtrun
         self.endrun = self.lenrun
         self.yoblist, self.yerroblist, self.ytimestep = self.obscost()
@@ -40,15 +42,28 @@ class DalecModel():
                               np.linalg.inv(np.sqrt(self.diag_b)))
         self.nume = 100
         self.names = self.dC.edinburgh_mean.dtype.names
-        self.mtl = 0
-        self.mtf = 0
-        self.gdd = 0
-        self.max_fol = 0
 
 
 # ------------------------------------------------------------------------------
 # Model functions
 # ------------------------------------------------------------------------------
+
+    @staticmethod
+    def fit_polynomial(ep, mult_fac):
+        """ Polynomial used to find phi_f and phi (offset terms used in
+        phi_onset and phi_fall), given an evaluation point for the polynomial
+        and a multiplication term.
+        :param ep: evaluation point
+        :param mult_fac: multiplication term
+        :return: fitted polynomial value
+        """
+        cf = [2.359978471e-05, 0.000332730053021, 0.000901865258885,
+              -0.005437736864888, -0.020836027517787, 0.126972018064287,
+              -0.188459767342504]
+        poly_val = cf[0]*ep**6 + cf[1]*ep**5 + cf[2]*ep**4 + cf[3]*ep**3 + cf[4]*ep**2 + \
+            cf[5]*ep**1 + cf[6]*ep**0
+        phi = poly_val*mult_fac
+        return phi
 
     def temp_term(self, Theta, temperature):
         """ Calculates the temperature exponent factor for carbon pool
@@ -59,7 +74,7 @@ class DalecModel():
         temp_term = np.exp(Theta*temperature)
         return temp_term
 
-    def acm(self, cf, ceff, acm, clma=29.):
+    def acm(self, cf, clma, ceff, acm):
         """ Aggregated canopy model (ACM) function
         ------------------------------------------
         Takes a foliar carbon (cf) value, leaf mass per area (clma) and canopy
@@ -71,7 +86,7 @@ class DalecModel():
         :return: GPP value
         """
         t_range = 0.5*(self.dC.t_max[self.x] - self.dC.t_min[self.x])
-        L = max(0.1, cf / clma)
+        L = cf / clma
         q = acm[1] - acm[2]
         gc = (abs(self.dC.phi_d))**acm[8] / \
              (t_range + acm[4]*self.dC.R_tot)
@@ -93,28 +108,69 @@ class DalecModel():
               (E0*self.dC.I[self.x] + gc*(self.dC.ca - ci))
         return gpp
 
-    def phenology(self, gdd_out, leaf_out, cf, cf_max):
-        if self.dC.D[self.x] < 100:
-            self.gdd = 0
-            self.max_fol = 1
-        self.mtf = 1.
-        self.mtl = 0.
-        self.gdd += self.dC.t_mean[self.x]
-        if self.gdd < gdd_out:
-            self.mtf = 1
-            self.mtl = 0
-        else:
-            if self.max_fol == 1.:
-                self.mtl = 1
-                self.mtf = 0
-            elif self.max_fol != 1.:
-                self.mtl = 0
-                self.mtf = 0
-        if cf > cf_max or self.dC.D[self.x] > 200.:
-            self.max_fol = 0
-            self.mtl = 0
-        if self.dC.D[self.x] > 200. and self.dC.t_min[self.x] < leaf_out:
-            self.mtf = 1
+    def phi_onset(self, d_onset, cronset):
+        """Leaf onset function (controls labile to foliar carbon transfer)
+        takes d_onset value, cronset value and returns a value for phi_onset.
+        """
+        release_coeff = np.sqrt(2.)*cronset / 2.
+        mag_coeff = (np.log(1.+1e-3) - np.log(1e-3)) / 2.
+        offset = self.fit_polynomial(1+1e-3, release_coeff)
+        phi_onset = (2. / np.sqrt(np.pi))*(mag_coeff / release_coeff) * \
+            np.exp(-(np.sin((self.dC.D[self.x] - d_onset + offset) /
+                     self.dC.radconv)*(self.dC.radconv / release_coeff))**2)
+        return phi_onset
+
+    def phi_fall(self, d_fall, crfall, clspan):
+        """Leaf fall function (controls foliar to litter carbon transfer) takes
+        d_fall value, crfall value, clspan value and returns a value for
+        phi_fall.
+        """
+        release_coeff = np.sqrt(2.)*crfall / 2.
+        mag_coeff = (np.log(clspan) - np.log(clspan - 1.)) / 2.
+        offset = self.fit_polynomial(clspan, release_coeff)
+        phi_fall = (2. / np.sqrt(np.pi))*(mag_coeff / release_coeff) * \
+            np.exp(-(np.sin((self.dC.D[self.x] - d_fall + offset) /
+                   self.dC.radconv)*self.dC.radconv / release_coeff)**2)
+        return phi_fall
+
+    def dalecv2(self, p):
+        """DALECV2 carbon balance model
+        -------------------------------
+        evolves carbon pools to the next time step, taking the 6 carbon pool
+        values and 17 parameters at time t and evolving them to time t+1.
+        Outputs both the 6 evolved C pool values and the 17 constant parameter
+        values.
+
+        phi_on = phi_onset(d_onset, cronset)
+        phi_off = phi_fall(d_fall, crfall, clspan)
+        gpp = acm(cf, clma, ceff)
+        temp = temp_term(Theta)
+
+        clab2 = (1 - phi_on)*clab + (1-f_auto)*(1-f_fol)*f_lab*gpp
+        cf2 = (1 - phi_off)*cf + phi_on*clab + (1-f_auto)*f_fol*gpp
+        cr2 = (1 - theta_roo)*cr + (1-f_auto)*(1-f_fol)*(1-f_lab)*f_roo*gpp
+        cw2 = (1 - theta_woo)*cw + (1-f_auto)*(1-f_fol)*(1-f_lab)*(1-f_roo)*gpp
+        cl2 = (1-(theta_lit+theta_min)*temp)*cl + theta_roo*cr + phi_off*cf
+        cs2 = (1 - theta_som*temp)*cs + theta_woo*cw + theta_min*temp*cl
+        """
+        out = algopy.zeros(len(p), dtype=p['cf'])
+        # ACM
+        gpp = self.acm(p['cf'], p['clma'], p['ceff'], self.dC.acm)
+        # Labile release and leaf fall factors
+        phi_on = self.phi_onset(p['d_onset'], p['cronset'])
+        phi_off = self.phi_fall(p['d_fall'], p['crfall'], p['clspan'])
+        # Temperature factor
+        temp = self.temp_term(p['Theta'], self.dC.t_mean[self.x])
+
+        out[-6] = (1-phi_on)*p['clab'] + (1-p['f_auto'])*(1-p['f_fol'])*p['f_lab']*gpp
+        out[-5] = (1-phi_off)*p['cf'] + phi_on*p['clab'] + (1-p['f_auto'])*(1-p['f_fol'])*p['f_lab']*gpp
+        out[-4] = (1-p['theta_roo'])*p['cr'] + (1-p['f_auto'])*(1-p['f_fol'])*(1-p['f_lab'])*p['f_roo']*gpp
+        out[-3] = (1-p['theta_woo'])*p['cw'] + (1-p['f_auto'])*(1-p['f_fol'])*(1-p['f_lab'])*(1-p['f_roo'])*gpp
+        out[-2] = (1-(p['theta_lit']+p['theta_min'])*temp)*p['cl'] + p['theta_roo']*p['cr'] + phi_off*p['cf']
+        out[-1] = (1-p['theta_som']*temp)*p['cs'] + p['theta_woo']*p['cw'] + p['theta_min']*temp*p['cl']
+        for x in xrange(len(p)-6):
+            out[x] = p[self.names[x]]
+        return out
 
     def dalecv2_diff(self, p):
         """DALECV2 carbon balance model
@@ -137,37 +193,31 @@ class DalecModel():
         cs2 = (1 - theta_som*temp)*cs + theta_woo*cw + theta_min*temp*cl
         """
         out = algopy.zeros(6, dtype=p[-6])
-        # phenology
-        self.phenology(p[11], p[12], p[18], p[16])
-        # ACM
-        gpp = self.acm(p[18], p[10], self.dC.acm)
-        # temperature term
-        temp = self.temp_term(p[9], self.dC.t_mean[self.x])
-        # fluxes
-        r_alabt = p[4]*(1-p[13])*p[15]*p[18]*self.mtf*temp
-        r_alabf = p[14]*p[15]*p[17]*self.mtl*temp
-        # r_a = p[1]*gpp + r_alabt + r_alabf
-        npp1 = (1-p[1])*gpp
-        a_tolab = p[4]*(1-p[13])*(1-p[15])*p[18]*self.mtf*temp
-        a_fromlab = p[14]*(1-p[15])*p[17]*self.mtl*temp
-        a_f = min(p[16]-p[18], p[2]*npp1)*self.mtl + a_fromlab
-        npp2 = npp1 - min(p[16]-p[18], p[2]*npp1)*self.mtl
-        a_r = p[3]*npp2
-        a_w = (1-p[4])*npp2
-        l_f = p[4]*p[18]*p[13]*self.mtf
-        l_w = p[5]*p[20]
-        l_r = p[6]*p[19]
-        r_h1 = p[7]*p[21]*temp
-        r_h2 = p[8]*p[22]*temp
-        decomp = p[0]*p[21]*temp
 
-        out[0] = p[17] + a_tolab - a_fromlab - r_alabf
-        out[1] = p[18] + a_f - l_f - a_tolab - r_alabt
-        out[2] = p[19] + a_r - l_r
-        out[3] = p[20] + a_w - l_w
-        out[4] = p[21] + l_f + l_r - r_h1 - decomp
-        out[5] = p[22] + l_w + decomp - r_h2
+        phi_on = self.phi_onset(p[11], p[13])
+        phi_off = self.phi_fall(p[14], p[15], p[4])
+        gpp = self.acm(p[18], p[16], p[10], self.dC.acm)
+        temp = self.temp_term(p[9], self.dC.t_mean[self.x])
+
+        out[0] = (1 - phi_on)*p[17] + (1-p[1])*(1-p[2])*p[12]*gpp
+        out[1] = (1 - phi_off)*p[18] + phi_on*p[17] + (1-p[1])*p[2]*gpp
+        out[2] = (1 - p[6])*p[19] + (1-p[1])*(1-p[2])*(1-p[12])*p[3]*gpp
+        out[3] = (1 - p[5])*p[20] + (1-p[1])*(1-p[2])*(1-p[12])*(1-p[3])*gpp
+        out[4] = (1-(p[7]+p[0])*temp)*p[21] + p[6]*p[19] + phi_off*p[18]
+        out[5] = (1 - p[8]*temp)*p[22] + p[5]*p[20] + p[0]*temp*p[21]
         return out
+
+    def jac_dalecv2(self, p):
+        """ Uses algopy reverse mode automatic differentiation to find derivative of DALEC model
+        :param p: set of parameters to differentiate with respect to
+        :return: linearised model w.r.t. p as an array
+        """
+        mat = np.ones((len(p), len(p)))*-9999.
+        mat[0:-6] = np.eye(len(p)-6, len(p))
+        p_algo = algopy.UTPM.init_jacobian(p)
+        p_algo_dic = self.create_ordered_dic(p_algo)
+        mat[-6:] = algopy.UTPM.extract_jacobian(self.dalecv2(p_algo_dic))
+        return mat
 
     def jac2_dalecv2(self, p):
         """ Uses algopy reverse mode automatic differentiation to find derivative of DALEC model
@@ -180,6 +230,21 @@ class DalecModel():
         p_algo_lst = self.create_ordered_lst(p_algo)
         mat[-6:] = algopy.UTPM.extract_jacobian(self.dalecv2_diff(p_algo_lst))
         return mat
+
+    def create_ordered_dic(self, p):
+        """ Creates an ordered dictionary for all parameter values needed to run DALEC
+        :param p: set of parameters to differentiate with respect to
+        :return: full set of parameters as ordered dictionary
+        """
+        param_dic = col.OrderedDict()
+        idx = 0
+        for name in self.dC.param_dict.keys():
+            if name in self.names:
+                param_dic[name] = p[idx]
+                idx += 1
+            else:
+                param_dic[name] = self.dC.param_dict[name]
+        return param_dic
 
     def create_ordered_lst(self, p):
         """ Creates a list for all parameter values needed to run DALEC
@@ -212,10 +277,6 @@ class DalecModel():
             self.x += 1
 
         self.x -= self.endrun
-        self.mtl = 0
-        self.mtf = 0
-        self.gdd = 0
-        self.max_fol = 0
         return mod_list
 
     def linmod_list(self, p):
@@ -238,10 +299,6 @@ class DalecModel():
             self.x += 1
 
         self.x -= self.endrun
-        self.mtl = 0
-        self.mtf = 0
-        self.gdd = 0
-        self.max_fol = 0
         return mod_list, matlist
 
 
@@ -292,91 +349,66 @@ class DalecModel():
     def gpp(self, p):
         """Function calculates gross primary production (gpp).
         """
-        self.phenology(p[11], p[12], p[18], p[16])
-        gpp = self.acm(p[18], p[10], self.dC.acm)
+        gpp = self.acm(p[18], p[16], p[10], self.dC.acm)
         return gpp
 
     def rt(self, p):
         """Function calculates total ecosystem respiration (rec).
         """
-        self.phenology(p[11], p[12], p[18], p[16])
-        gpp = self.acm(p[18], p[10], self.dC.acm)
-        temp = self.temp_term(p[9], self.dC.t_mean[self.x])
-        r_alabt = p[4]*(1-p[13])*p[15]*p[18]*self.mtf*temp
-        r_alabf = p[14]*p[15]*p[17]*self.mtl*temp
-        r_a = p[1]*gpp + r_alabt + r_alabf
-        r_h1 = p[7]*p[21]*temp
-        r_h2 = p[8]*p[22]*temp
-        rec = r_a + r_h1 + r_h2
+        rec = p[1]*self.acm(p[18], p[16], p[10], self.dC.acm) + \
+            (p[7]*p[21] + p[8]*p[22])*self.temp_term(p[9], self.dC.t_mean[self.x])
         return rec
 
     def nee(self, p):
         """Function calculates Net Ecosystem Exchange (nee).
         """
-        self.phenology(p[11], p[12], p[18], p[16])
-        gpp = self.acm(p[18], p[10], self.dC.acm)
-        temp = self.temp_term(p[9], self.dC.t_mean[self.x])
-        r_alabt = p[4]*(1-p[13])*p[15]*p[18]*self.mtf*temp
-        r_alabf = p[14]*p[15]*p[17]*self.mtl*temp
-        r_a = p[1]*gpp + r_alabt + r_alabf
-        r_h1 = p[7]*p[21]*temp
-        r_h2 = p[8]*p[22]*temp
-        nee = -gpp + r_a + r_h1 + r_h2
+        nee = -(1. - p[1])*self.acm(p[18], p[16], p[10], self.dC.acm) + \
+            (p[7]*p[21] + p[8]*p[22])*self.temp_term(p[9], self.dC.t_mean[self.x])
         return nee
 
     def nee_day(self, p):
         """Function calculates daytime Net Ecosystem Exchange (nee).
         """
-        self.phenology(p[11], p[12], p[18], p[16])
-        gpp = self.acm(p[18], p[10], self.dC.acm)
-        temp = self.temp_term(p[9], self.dC.t_day[self.x])
-        r_alabt = p[4]*(1-p[13])*p[15]*p[18]*self.mtf*temp
-        r_alabf = p[14]*p[15]*p[17]*self.mtl*temp
-        r_a = p[1]*gpp + (self.dC.day_len[self.x]/24.)*r_alabt + (self.dC.day_len[self.x]/24.)*r_alabf
-        r_h1 = (self.dC.day_len[self.x]/24.)*p[7]*p[21]*temp
-        r_h2 = (self.dC.day_len[self.x]/24.)*p[8]*p[22]*temp
-        nee = -gpp + r_a + r_h1 + r_h2
+        nee = -(1. - (self.dC.day_len[self.x]/24.)*p[1])*self.acm(p[18], p[16], p[10], self.dC.acm) + \
+               (self.dC.day_len[self.x]/24.)*(p[7]*p[21] + p[8]*p[22])*self.temp_term(p[9], self.dC.t_day[self.x])
         return nee
 
     def nee_night(self, p):
         """Function calculates nighttime Net Ecosystem Exchange (nee).
         """
-        self.phenology(p[11], p[12], p[18], p[16])
-        temp = self.temp_term(p[9], self.dC.t_night[self.x])
-        r_alabt = p[4]*(1-p[13])*p[15]*p[18]*self.mtf*temp
-        r_alabf = p[14]*p[15]*p[17]*self.mtl*temp
-        r_a = (self.dC.night_len[self.x]/24.)*r_alabt + (self.dC.night_len[self.x]/24.)*r_alabf
-        r_h1 = (self.dC.night_len[self.x]/24.)*p[7]*p[21]*temp
-        r_h2 = (self.dC.night_len[self.x]/24.)*p[8]*p[22]*temp
-        nee = r_a + r_h1 + r_h2
+        nee = (self.dC.night_len[self.x]/24.)*p[1]*self.acm(p[18], p[16], p[10], self.dC.acm) + \
+              (self.dC.night_len[self.x]/24.)*(p[7]*p[21] + p[8]*p[22])*self.temp_term(p[9], self.dC.t_night[self.x])
         return nee
 
     def rh(self, p):
         """Fn calculates rh (soilresp+litrep).
         """
-        self.phenology(p[11], p[12], p[18], p[16])
-        temp = self.temp_term(p[9], self.dC.t_mean[self.x])
-        r_h1 = p[7]*p[21]*temp
-        r_h2 = p[8]*p[22]*temp
-        rh = r_h1 + r_h2
+        rh = (p[7]*p[21] + p[8]*p[22])*self.temp_term(p[9], self.dC.t_mean[self.x])
         return rh
 
     def ra(self, p):
         """Fn calculates ra (autotrophic resp.).
         """
-        self.phenology(p[11], p[12], p[18], p[16])
-        gpp = self.acm(p[18], p[10], self.dC.acm)
-        temp = self.temp_term(p[9], self.dC.t_mean[self.x])
-        r_alabt = p[4]*(1-p[13])*p[15]*p[18]*self.mtf*temp
-        r_alabf = p[14]*p[15]*p[17]*self.mtl*temp
-        r_a = p[1]*gpp + r_alabt + r_alabf
-        return r_a
+        ra = p[1]*self.acm(p[18], p[16], p[10], self.dC.acm)
+        return ra
 
     def lai(self, p):
         """Fn calculates leaf area index (cf/clma).
         """
-        lai = p[18] / 29.
+        lai = p[18] / p[16]
         return lai
+
+    def clma(self, p):
+        """Fn calculates clma (carbon leaf mass per area)
+        """
+        clma = p[16]
+        return clma
+
+    def lf(self, p):
+        """Fn calulates litter fall.
+        """
+        lf = self.phi_fall(p[14], p[15], p[4])*p[18]
+        return lf
 
     def clab(self, p):
         """Fn calulates labile carbon.
@@ -413,6 +445,24 @@ class DalecModel():
         """
         cs = p[22]
         return cs
+
+    def d_onset(self, p):
+        """Fn calculates day of leaf on,
+        """
+        d_onset = p[11]
+        return d_onset
+
+    def phi_on(self, p):
+        """Fn calculates day of leaf on,
+        """
+        phi_on_ob = self.phi_onset(p[11], p[13])
+        return phi_on_ob
+
+    def phi_off(self, p):
+        """Fn calculates day of leaf on,
+        """
+        phi_off_ob = self.phi_fall(p[14], p[15], p[4])
+        return phi_off_ob
 
     def linob(self, ob, p):
         """Function returning jacobian of observation with respect to the

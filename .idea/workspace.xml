@@ -2,6 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="37016db7-5123-4be0-aef3-a3a7a2de46ef" name="Default" comment="">
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/model/dalec_d.py" afterPath="$PROJECT_DIR$/src/model/mod_class_param_choice.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/model/data_class_test.py" afterPath="$PROJECT_DIR$/src/model/data_class_param_choice.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/model/experiment_run.py" afterPath="$PROJECT_DIR$/src/model/experiment_run.py" />
     </list>
     <ignored path="ah_dalec2.iws" />
@@ -56,8 +59,8 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="dalec_d.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/model/dalec_d.py">
+      <file leaf-file-name="mod_class_param_choice.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/model/mod_class_param_choice.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="983" column="36" selection-start-line="983" selection-start-column="36" selection-end-line="983" selection-end-column="36" />
@@ -68,18 +71,40 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="data_class.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="data_class.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.57584685">
-              <caret line="212" column="26" selection-start-line="212" selection-start-column="26" selection-end-line="212" selection-end-column="26" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="207" column="31" selection-start-line="207" selection-start-column="31" selection-end-line="207" selection-end-column="31" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="data_class_test.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/model/data_class_test.py">
+      <file leaf-file-name="dalec_d.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/model/dalec_d.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.77466863">
+              <caret line="156" column="39" selection-start-line="156" selection-start-column="39" selection-end-line="156" selection-end-column="39" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="data_class_dalec_d.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/model/data_class_dalec_d.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="42" column="32" selection-start-line="42" selection-start-column="32" selection-end-line="42" selection-end-column="32" />
+              <folding>
+                <element signature="e#0#18#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="data_class_param_choice.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/model/data_class_param_choice.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="161" column="91" selection-start-line="161" selection-start-column="91" selection-end-line="161" selection-end-column="91" />
@@ -138,13 +163,14 @@
         <option value="$PROJECT_DIR$/src/model/twin_experiment_run.py" />
         <option value="$PROJECT_DIR$/src/model/plot.py" />
         <option value="$PROJECT_DIR$/src/model/dalec_d2.py" />
-        <option value="$PROJECT_DIR$/src/model/dalec_d.py" />
         <option value="$PROJECT_DIR$/src/model/mod_class.py" />
         <option value="$PROJECT_DIR$/alice_holt_data/ah_nc_utils.py" />
         <option value="$PROJECT_DIR$/src/model/data_class_test.py" />
         <option value="$PROJECT_DIR$/alice_holt_data/nc_create.py" />
         <option value="$PROJECT_DIR$/src/model/experiment_run.py" />
         <option value="$PROJECT_DIR$/src/model/data_class.py" />
+        <option value="$PROJECT_DIR$/src/model/data_class_dalec_d.py" />
+        <option value="$PROJECT_DIR$/src/model/dalec_d.py" />
       </list>
     </option>
   </component>
@@ -153,6 +179,7 @@
     <detection-done>true</detection-done>
   </component>
   <component name="ProjectFrameBounds">
+    <option name="x" value="7" />
     <option name="y" value="23" />
     <option name="width" value="1440" />
     <option name="height" value="797" />
@@ -447,7 +474,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1440" height="797" extended-state="1" />
+    <frame x="7" y="23" width="1440" height="797" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.286117" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -487,12 +514,12 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="python-line">
-          <url>file://$PROJECT_DIR$/src/model/dalec_d.py</url>
+          <url>file://$PROJECT_DIR$/src/model/mod_class_param_choice.py</url>
           <line>3</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="python-line">
-          <url>file://$PROJECT_DIR$/src/model/data_class_test.py</url>
+          <url>file://$PROJECT_DIR$/src/model/data_class_param_choice.py</url>
           <line>313</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
@@ -502,6 +529,36 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/src/model/data_class_param_choice.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="161" column="91" selection-start-line="161" selection-start-column="91" selection-end-line="161" selection-end-column="91" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/plot.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="114" column="0" selection-start-line="114" selection-start-column="0" selection-end-line="114" selection-end-column="0" />
+          <folding>
+            <element signature="e#46#64#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/experiment_run.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="56" column="40" selection-start-line="56" selection-start-column="40" selection-end-line="56" selection-end-column="40" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/alice_holt_data/ah_nc_utils.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -528,7 +585,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/dalec_d.py">
+    <entry file="file://$PROJECT_DIR$/src/model/mod_class_param_choice.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="983" column="36" selection-start-line="983" selection-start-column="36" selection-end-line="983" selection-end-column="36" />
@@ -546,7 +603,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/data_class_test.py">
+    <entry file="file://$PROJECT_DIR$/src/model/data_class_param_choice.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
@@ -602,7 +659,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/dalec_d.py">
+    <entry file="file://$PROJECT_DIR$/src/model/mod_class_param_choice.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="983" column="36" selection-start-line="983" selection-start-column="36" selection-end-line="983" selection-end-column="36" />
@@ -620,7 +677,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/data_class_test.py">
+    <entry file="file://$PROJECT_DIR$/src/model/data_class_param_choice.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
@@ -843,17 +900,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/dalec_d.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="983" column="36" selection-start-line="983" selection-start-column="36" selection-end-line="983" selection-end-column="36" />
-          <folding>
-            <element signature="e#96#114#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/data_class_test.py">
+    <entry file="file://$PROJECT_DIR$/src/model/data_class_param_choice.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="161" column="91" selection-start-line="161" selection-start-column="91" selection-end-line="161" selection-end-column="91" />
@@ -883,10 +930,38 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/mod_class_param_choice.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="983" column="36" selection-start-line="983" selection-start-column="36" selection-end-line="983" selection-end-column="36" />
+          <folding>
+            <element signature="e#96#114#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.57584685">
-          <caret line="212" column="26" selection-start-line="212" selection-start-column="26" selection-end-line="212" selection-end-column="26" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="207" column="31" selection-start-line="207" selection-start-column="31" selection-end-line="207" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/data_class_dalec_d.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="42" column="32" selection-start-line="42" selection-start-column="32" selection-end-line="42" selection-end-column="32" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/dalec_d.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.77466863">
+          <caret line="156" column="39" selection-start-line="156" selection-start-column="39" selection-end-line="156" selection-end-column="39" />
           <folding />
         </state>
       </provider>
