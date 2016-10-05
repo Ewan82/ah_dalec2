@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="37016db7-5123-4be0-aef3-a3a7a2de46ef" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/model/dalec_d.py" afterPath="$PROJECT_DIR$/src/model/dalec_d.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/model/mod_class.py" afterPath="$PROJECT_DIR$/src/model/mod_class.py" />
     </list>
     <ignored path="ah_dalec2.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -28,7 +29,7 @@
         <entry file="file://$PROJECT_DIR$/src/model/mod_class.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="1042" column="16" selection-start-line="1042" selection-start-column="16" selection-end-line="1042" selection-end-column="16" />
+              <caret line="21" column="29" selection-start-line="21" selection-start-column="29" selection-end-line="21" selection-end-column="29" />
               <folding>
                 <element signature="e#96#114#0" expanded="true" />
               </folding>
@@ -49,8 +50,8 @@
       <file leaf-file-name="dalec_d.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/model/dalec_d.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.52430046">
-              <caret line="1106" column="29" selection-start-line="1106" selection-start-column="29" selection-end-line="1106" selection-end-column="29" />
+            <state vertical-scroll-proportion="0.724595">
+              <caret line="971" column="52" selection-start-line="971" selection-start-column="52" selection-end-line="971" selection-end-column="52" />
               <folding>
                 <element signature="e#96#114#0" expanded="true" />
               </folding>
@@ -125,11 +126,11 @@
         <option value="$PROJECT_DIR$/src/model/data_class_dalec_d.py" />
         <option value="$PROJECT_DIR$/src/model/data_class.py" />
         <option value="$PROJECT_DIR$/src/model/data_class_param_choice.py" />
-        <option value="$PROJECT_DIR$/src/model/mod_class.py" />
         <option value="$PROJECT_DIR$/src/model/experiment_run.py" />
         <option value="$PROJECT_DIR$/alice_holt_data/email.py" />
         <option value="$PROJECT_DIR$/alice_holt_data/myemail.py" />
         <option value="$PROJECT_DIR$/src/model/my_email.py" />
+        <option value="$PROJECT_DIR$/src/model/mod_class.py" />
         <option value="$PROJECT_DIR$/src/model/dalec_d.py" />
       </list>
     </option>
@@ -871,16 +872,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/mod_class.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="1042" column="16" selection-start-line="1042" selection-start-column="16" selection-end-line="1042" selection-end-column="16" />
-          <folding>
-            <element signature="e#96#114#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/model/my_email.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -891,10 +882,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/mod_class.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="21" column="29" selection-start-line="21" selection-start-column="29" selection-end-line="21" selection-end-column="29" />
+          <folding>
+            <element signature="e#96#114#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/model/dalec_d.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.52430046">
-          <caret line="1106" column="29" selection-start-line="1106" selection-start-column="29" selection-end-line="1106" selection-end-column="29" />
+        <state vertical-scroll-proportion="0.724595">
+          <caret line="971" column="52" selection-start-line="971" selection-start-column="52" selection-end-line="971" selection-end-column="52" />
           <folding>
             <element signature="e#96#114#0" expanded="true" />
           </folding>

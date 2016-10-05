@@ -914,7 +914,7 @@ class DalecModel():
                                  disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         return find_min
 
-    def find_min_tnc_cvt(self, pvals, f_name=None, bnds='strict', dispp=5, maxits=2000,
+    def find_min_tnc_cvt(self, pvals, f_name='None', email=0, bnds='strict', dispp=5, maxits=2000,
                          mini=0, f_tol=1e-4):
         """ Function which minimizes 4DVAR cost fn. Takes an initial state
         (pvals).
@@ -940,11 +940,15 @@ class DalecModel():
                                  disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         xa = self.zvals2pvals(find_min[0])
         xa_full = np.array(self.create_ordered_lst(xa))
-        if f_name != None:
-            self.pickle_exp(pvals, find_min, xa, f_name)
+        if f_name != 'None':
+            if email == 0:
+                self.pickle_exp(pvals, find_min, xa, f_name)
+            elif email == 1:
+                exp = self.exp_dict(pvals, find_min, xa)
+                my_email.send_email(exp, f_name)
         return find_min, xa, xa_full
 
-    def findminglob(self, pvals, meth='TNC', bnds='strict', it=300,
+    def findminglob(self, pvals, f_name='None', email=0, meth='TNC', bnds='strict', it=300,
                     stpsize=0.5, temp=1., displ=True, maxits=3000):
         """Function which minimizes 4DVAR cost fn. Takes an initial state
         (pvals), an obs dictionary, an obs error dictionary, a dataClass and
@@ -963,6 +967,9 @@ class DalecModel():
                                                       'jac': self.gradcost2,
                                                       'options': {'maxiter': maxits}},
                                     stepsize=stpsize, T=temp, disp=displ)
+        if f_name != 'None':
+            if email == 1:
+                my_email.send_email(findmin, f_name)
         return findmin
 
     def ensemble(self, pvals):
@@ -1153,3 +1160,14 @@ class DalecModel():
         pickle.dump(exp, f)
         f.close()
         return 'Experiment assimilation results pickled!'
+
+    def exp_dict(self, xb, assim_res, xa):
+        exp = {}
+        exp['obs'] = self.dC.ob_dict
+        exp['obs_err'] = self.dC.ob_err_dict
+        exp['b_mat'] = self.dC.B
+        exp['xb'] = xb
+        exp['assim_res'] = assim_res
+        exp['xa'] = xa
+        return exp
+

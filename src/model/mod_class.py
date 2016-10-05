@@ -9,6 +9,7 @@ import emcee
 import joblib as jl
 import random as rand
 import multiprocessing
+import my_email
 
 
 class DalecModel():
@@ -917,7 +918,7 @@ class DalecModel():
                                 disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         return find_min
 
-    def find_min_tnc_cvt(self, pvals, f_name=None, bnds='strict', dispp=5, maxits=2000,
+    def find_min_tnc_cvt(self, pvals, f_name='None', email=0, bnds='strict', dispp=5, maxits=2000,
                          mini=0, f_tol=1e-4):
         """Function which minimizes 4DVAR cost fn. Takes an initial state
         (pvals).
@@ -933,6 +934,11 @@ class DalecModel():
                                 disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         xa = self.zvals2pvals(find_min[0])
         if f_name != None:
+            if email == 0:
+                self.pickle_exp(pvals, find_min, xa, f_name)
+            elif email == 1:
+                exp = self.exp_dict(pvals, find_min, xa)
+                my_email.send_email(exp, f_name)
             self.pickle_exp(pvals, find_min, xa, f_name)
         return find_min, xa
 
