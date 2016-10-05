@@ -1087,7 +1087,7 @@ class DalecModel():
             return -np.inf
         return self.log_prior(pvals) - self.obcost(pvals)
 
-    def mcmc_run(self, pvals, ndim=23, nwalkers=50, nsteps=10000):
+    def mcmc_run(self, pvals, ndim=23, nwalkers=50, nsteps=10000, f_name='None'):
         """
         ndim = 23  # number of parameters in the model
         nwalkers = 50 # number of MCMC walkers
@@ -1096,6 +1096,10 @@ class DalecModel():
         """
         sampler = emcee.EnsembleSampler(nwalkers, ndim, self.log_posterior)
         sampler.run_mcmc(pvals, nsteps)
+        if f_name != 'None':
+            f = open(f_name, 'w')
+            pickle.dump(sampler, f)
+            f.close()
         return sampler
 
     def mean_pval(self, sampler, nburn=1000):
@@ -1108,9 +1112,9 @@ class DalecModel():
     def tstpvals(self, pvals, bnds):
         """Tests pvals to see if they are within the correct bnds.
         """
-        x=0
+        x = 0
         for bnd in bnds:
-            if bnd[0]<pvals[x]<bnd[1]:
+            if bnd[0] < pvals[x] < bnd[1]:
                 print '%f in bnds' %x
             else:
                 print '%f not in bnds' %x
