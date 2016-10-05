@@ -9,8 +9,7 @@ import emcee
 import joblib as jl
 import random as rand
 import multiprocessing
-import collections as col
-
+import my_email
 
 class DalecModel():
 
@@ -1097,9 +1096,7 @@ class DalecModel():
         sampler = emcee.EnsembleSampler(nwalkers, ndim, self.log_posterior)
         sampler.run_mcmc(pvals, nsteps)
         if f_name != 'None':
-            f = open(f_name, 'w')
-            pickle.dump(sampler, f)
-            f.close()
+            my_email.send_email(sampler, f_name)
         return sampler
 
     def mean_pval(self, sampler, nburn=1000):
