@@ -149,13 +149,14 @@ def east_west_joint_run_full(xb, f_name, clma_er=1., lai_er=1., need_er=1., neen
 def east_west_joint_run_full_A(xb, f_name, clma_er=1., lai_er=1., need_er=1., neen_er=1., cr_er=1., cw_er=1.):
     # Construct B
     f_name += 'clmaer%r_laier%r_needer%r_neener%r_crer%r_cwer%r' %(clma_er, lai_er, need_er, neen_er, cr_er, cw_er)
-    a_cor = p.cov2cor(pickle.load(open('a_cov.p', 'r')))
-    a_std = np.sqrt(np.diag(pickle.load(open('a_cov.p', 'r'))))
-    a_std[10] = 0.25*a_std[10]
-    a_std[1] = 0.25*a_std[1]
-    D = np.zeros_like(a_cor)
-    np.fill_diagonal(D, a_std)
-    b = 0.6 * np.dot(np.dot(D, a_cor), D)
+    #a_cor = p.cov2cor(pickle.load(open('a_cov.p', 'r')))
+    #a_std = np.sqrt(np.diag(pickle.load(open('a_cov.p', 'r'))))
+    #a_std[10] = 0.25*a_std[10]
+    #a_std[1] = 0.25*a_std[1]
+    #D = np.zeros_like(a_cor)
+    #np.fill_diagonal(D, a_std)
+    #b = 0.6 * np.dot(np.dot(D, a_cor), D)
+    b = pickle.load(open('a_cov.p', 'r'))
     # east data
     de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_roo_east, c_woo_east, clma, lai_east',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc')
