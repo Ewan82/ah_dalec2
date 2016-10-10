@@ -1,7 +1,9 @@
 import smtplib
+import os
+import csv
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
-import pickle
+import cPickle
 
 
 def send_email(my_obj, f_name):
@@ -9,11 +11,12 @@ def send_email(my_obj, f_name):
     msg = MIMEMultipart('alternative')
 
     # generate a pickled object
-    str_ob = pickle.dumps(my_obj)
+    pik_ob = cPickle.dumps(my_obj)
 
     # attach the object file
     filename = f_name
-    attachment = MIMEText(str_ob)
+    # f = file(pik_ob)
+    attachment = MIMEText(pik_ob)
     attachment.add_header('Content-Disposition', 'attachment', filename=filename)
     msg.attach(attachment)
 

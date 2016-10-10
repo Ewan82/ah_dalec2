@@ -117,6 +117,14 @@ class DalecData:
                                 6.26033838e+02,   2.35514838e+03])
 
         self.xb = self.pvals
+        self.xb_ew = np.array([6.28988509e-04,   4.03500221e-01,   2.71662772e-01,
+                               3.49284334e-01,   1.00194789e+00,   9.39391318e-05,
+                               6.72893955e-03,   1.80302080e-03,   7.59935575e-05,
+                               8.00000000e-02,   5.95134533e+01,   1.50000000e+02,
+                               4.77523413e-02,   2.46249836e+01,   2.91253056e+02,
+                               1.50000000e+02,   2.70997155e+01,   3.79725951e+01,
+                               1.00342291e+01,   1.29765563e+02,   5.84130622e+03,
+                               3.99395848e+02,   2.52024132e+03])
         # self.B = self.make_b(self.edinburgh_std)
         self.B = pickle.load(open('b_edc.p', 'r'))
 
@@ -130,18 +138,16 @@ class DalecData:
                              0.1*5.45013287e+02,   1.27646316e+03])
         b_cor = pickle.load(open('b_edc_cor.p', 'r'))  # load correlation matrix from 2016 paper
         b_std = self.make_b(np.sqrt(self.std))  # Create diagonal matrix of standard deviations
-        B = np.dot(np.dot(b_std, b_cor), b_std)
+        self.B2 = np.dot(np.dot(b_std, b_cor), b_std)
 
-        self.bnds = ((1e-5, 1e-2), (0.3, 0.7), (0.01, 0.5), (0.01, 0.5), (1.0001, 10.),
-                     (2.5e-5, 1e-3), (1e-4, 1e-2), (1e-4, 1e-2), (1e-7, 1e-3), (0.018, 0.08),
-                     (10, 100), (1, 365), (0.01, 0.5), (10, 100), (1, 365), (10, 100), (10, 400),
-                     (10, 1000), (1e-4, 1000), (10, 1000), (100, 1e5), (10, 1000), (100, 2e5))
-
-        self.bnds_tst = ((1e-5, 1e-2), (0.3, 0.7), (0.01, 0.5), (0.01, 0.5), (1.0001, 10.),
-                         (2.5e-5, 1e-3), (1e-4, 1e-2), (1e-4, 1e-2), (1e-7, 1e-3), (0.018, 0.08),
-                         (10., 100.), (60., 150.), (0.01, 0.5), (10., 100.), (220., 332.), (10., 150.),
-                         (10., 400.), (10., 1000.), (1e-4, 1000.), (10., 1000.), (100., 1e5), (10., 1000.),
-                         (100., 2e5))
+        b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
+        b_std[10] = 0.1*b_std[10]
+        b_std[0] = 0.1*b_std[0]
+        b_std[-6] = 0.5*b_std[-6]
+        b_std[0:17] = 0.5*b_std[0:17]
+        D = np.zeros_like(b_cor)
+        np.fill_diagonal(D, b_std)
+        self.B3 = 0.6 * np.dot(np.dot(D, b_cor), D)
 
         self.xa = None
 
@@ -202,7 +208,7 @@ class DalecData:
         self.sigo_cs = 1500.0  # 30%
         self.sigo_nee = 0.71  # g C m-2 day-1
         self.sigo_nee_day = 0.71
-        self.sigo_nee_night = 4*0.71
+        self.sigo_nee_night = 3*0.71
         self.sigo_lf = 0.5
         self.sigo_lw = 0.5
         self.sigo_litresp = 0.5

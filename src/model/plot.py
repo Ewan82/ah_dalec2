@@ -161,10 +161,10 @@ def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w):
     ax.plot(d_e.dates, obs_lst_e, color=palette[0], label='East')
     ax.plot(d_w.dates, obs_lst_w, color=palette[2], label='West')
     if ob in d_e.ob_dict.keys():
-        ax.plot(d_e.dates, d_e.ob_dict[ob], 'o', color=palette[0], markeredgecolor='black',
-                markeredgewidth=0.5)
-        ax.plot(d_w.dates, d_w.ob_dict[ob], 'o', color=palette[2], markeredgecolor='black',
-                markeredgewidth=0.5)
+        ax.errorbar(d_e.dates, d_e.ob_dict[ob], yerr=d_e.ob_err_dict[ob], fmt='o', color=palette[0],
+                    markeredgecolor='black', markeredgewidth=0.5)
+        ax.errorbar(d_w.dates, d_w.ob_dict[ob], yerr=d_w.ob_err_dict[ob], fmt='o', color=palette[2],
+                    markeredgecolor='black', markeredgewidth=0.5)
     plt.legend()
     ax.set_xlabel('Date')
     ax.set_ylabel(ob)
@@ -518,6 +518,21 @@ def plot_many_guassian(mulst, siglst, bndlst, mulst2=None, siglst2=None, truth=N
         ax[-1].set_xlim((bndlst[i][0], bndlst[i][1]))
         if mulst2 is not None:
             plot_gaussian_dist(mulst2[i], siglst2[i], bndlst[i], axx=ax[-1])
+
+
+# Misc functions
+
+def cov2cor(X):
+    """ Takes a covariance matrix and returns the correlation matrix
+    :param X: Covariance matrix
+    :return: Correlation matrix
+    """
+    D = np.zeros_like(X)
+    d = np.sqrt(np.diag(abs(X)))
+    np.fill_diagonal(D, d)
+    DInv = np.linalg.inv(D)
+    R = np.dot(np.dot(DInv, abs(X)), DInv)
+    return R
 
 
 

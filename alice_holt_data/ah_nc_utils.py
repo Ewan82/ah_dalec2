@@ -281,6 +281,40 @@ def clip_co2_flux(co2_flux, clipped_co2_flux, above_clip=50., below_clip=-65.):
     return 'yay'
 
 
+def clip_co2_flux_u_star(co2_flux, clipped_co2_flux, u_star, is_day):
+    """ Clips co2_flux data based on u_star value and saves in clipped_co2_flux netcdf variable
+    :param co2_flux: co2 flux measurements from tower as netcdf variable
+    :param clipped_co2_flux: netcdf variable to save clipped measurements in
+    :return:
+    """
+    clipped_co2_flux[:, 0, 0] = co2_flux[:, 0, 0]
+    clip_nee = clipped_co2_flux[:, 0, 0]
+    # Value of +/- 70 u mol m-2 s-1 chosen for upper and lower limit to clip.
+    for x in xrange(len(clip_nee)):
+        if is_day[x, 0, 0] == 1:
+            if u_star[x, 0, 0] < 0.1:
+                clip_nee[x] = float('NaN')
+        elif is_day[x, 0, 0] == 0:
+            if u_star[x, 0, 0] < 0.5:
+                clip_nee[x] = float('NaN')
+    clipped_co2_flux[:, 0, 0] = clip_nee
+    return 'yay'
+
+
+def clip_co2_flux_u_star2(co2_flux, clipped_co2_flux, u_star, is_day):
+    """ Clips co2_flux data based on u_star value and saves in clipped_co2_flux netcdf variable
+    :param co2_flux: co2 flux measurements from tower as netcdf variable
+    :param clipped_co2_flux: netcdf variable to save clipped measurements in
+    :return:
+    """
+    clipped_co2_flux[:, 0, 0] = co2_flux[:, 0, 0]
+    clip_nee = clipped_co2_flux[:, 0, 0]
+    # Value of +/- 70 u mol m-2 s-1 chosen for upper and lower limit to clip.
+    clip_nee[u_star[:, 0, 0] < 0.2] = float('NaN')
+    clipped_co2_flux[:, 0, 0] = clip_nee
+    return 'yay'
+
+
 def clip_co2_flux_mean(co2_flux, clipped_co2_flux, idx1, idx2):
     """ Clips co2_flux data and saves in clipped_co2_flux netcdf variable
     :param co2_flux: co2 flux measurements from tower as netcdf variable
@@ -558,9 +592,9 @@ def quality_control_co2_flux_daily(clipped_co2_flux, qc_co2_flux, nee, nee_std, 
         # u mol m-2 s-1 to g C m-2 day-1 (CHECK what units do we want day/night in?)
         nee[idx, 0, 0] = 12.011*1e-6 * (idx2-idx1)*30*60 * np.nanmean(clipped_co2_flux[idx1:idx2, 0, 0])
         nee_std[idx, 0, 0] = 12.011*1e-6 * (idx2-idx1)*30*60 * np.nanstd(clipped_co2_flux[idx1:idx2, 0, 0])
-        if all(0 <= wind < 190 or wind > 295 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from East was 315 now 295
+        if all(0 <= wind < 182 or wind > 295 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from East was 315 now 295
             origin[idx, 0, 0] = 1
-        elif all(295 > wind > 190 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from west was 315 now 295
+        elif all(295 > wind > 182 for wind in wind_dir[idx1:idx2, 0, 0]):  # Obs from west was 315 now 295
             origin[idx, 0, 0] = 2
         else:  # Undetermined obs location
             origin[idx, 0, 0] = 0
