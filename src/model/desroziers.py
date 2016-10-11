@@ -15,11 +15,11 @@ np.fill_diagonal(D, b_std)
 b = 0.6 * np.dot(np.dot(D, b_cor), D)
 
 
-def var_ens(east_west, size_ens=10):
+def var_ens(east_west, f_name, size_ens=10):
     edc_ens = pickle.load(open('xa_param_ens.p', 'r'))
     param_ens = rand.sample(edc_ens, size_ens)
     output = [run_4dvar_desroziers(pvals, east_west) for pvals in param_ens]
-    f = open('misc/var_ens_out2', 'w')
+    f = open(f_name, 'w')
     pickle.dump(output, f)
     f.close()
     return output
