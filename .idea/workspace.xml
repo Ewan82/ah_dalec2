@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="37016db7-5123-4be0-aef3-a3a7a2de46ef" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/model/experiment_run.py" afterPath="$PROJECT_DIR$/src/model/experiment_run.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/model/data_class.py" afterPath="$PROJECT_DIR$/src/model/data_class.py" />
     </list>
     <ignored path="ah_dalec2.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -36,11 +36,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="data_class.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="data_class.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="7.5555553">
-              <caret line="85" column="61" selection-start-line="85" selection-start-column="61" selection-end-line="85" selection-end-column="61" />
+            <state vertical-scroll-proportion="0.59969324">
+              <caret line="85" column="60" selection-start-line="85" selection-start-column="60" selection-end-line="85" selection-end-column="60" />
               <folding />
             </state>
           </provider>
@@ -66,11 +66,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="experiment_run.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="experiment_run.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/model/experiment_run.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.4005891">
-              <caret line="155" column="29" selection-start-line="155" selection-start-column="29" selection-end-line="155" selection-end-column="29" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="157" column="34" selection-start-line="157" selection-start-column="34" selection-end-line="157" selection-end-column="34" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -123,8 +123,8 @@
         <option value="$PROJECT_DIR$/src/model/plot.py" />
         <option value="$PROJECT_DIR$/alice_holt_data/ah_nc_utils.py" />
         <option value="$PROJECT_DIR$/src/model/data_class_param_choice.py" />
-        <option value="$PROJECT_DIR$/src/model/data_class.py" />
         <option value="$PROJECT_DIR$/src/model/experiment_run.py" />
+        <option value="$PROJECT_DIR$/src/model/data_class.py" />
       </list>
     </option>
   </component>
@@ -847,14 +847,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="7.5555553">
-          <caret line="85" column="61" selection-start-line="85" selection-start-column="61" selection-end-line="85" selection-end-column="61" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/model/plot.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -875,11 +867,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/model/experiment_run.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4005891">
-          <caret line="155" column="29" selection-start-line="155" selection-start-column="29" selection-end-line="155" selection-end-column="29" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="157" column="34" selection-start-line="157" selection-start-column="34" selection-end-line="157" selection-end-column="34" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.59969324">
+          <caret line="85" column="60" selection-start-line="85" selection-start-column="60" selection-end-line="85" selection-end-column="60" />
+          <folding />
         </state>
       </provider>
     </entry>
