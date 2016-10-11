@@ -240,3 +240,8 @@ def east_west_run_b(f_name, east_west, net_file="None"):
     ax, fig = p.plot_a_inc(d.edinburgh_mean, xa, east_west)
     fig.savefig(f_name+'_xa_inc.png', bbox_inches='tight')
     return 'all experimented'
+
+
+# ------------------------------------------------------------------------------
+# East West run new B
+# ------------------------------------------------------------------------------
