@@ -146,6 +146,51 @@ def east_west_joint_run_full(xb, f_name, clma_er=1., lai_er=1., need_er=1., neen
     return 'done'
 
 
+def east_west_joint_run_full2(xb, f_name, clma_er=1., lai_er=1., need_er=1., neen_er=1., cr_er=1., cw_er=1.):
+    f_name += 'clmaer%r_laier%r_needer%r_neener%r_crer%r_cwer%r' %(clma_er, lai_er, need_er, neen_er, cr_er, cw_er)
+    # Construct B
+    b_cor = pickle.load(open('b_edc_cor.p', 'r'))
+    b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
+    b_std[10] = 0.25*b_std[10]
+    b_std[1] = 0.25*b_std[1]
+    b_std[0:17] = 0.5*b_std[0:17]
+    D = np.zeros_like(b_cor)
+    np.fill_diagonal(D, b_std)
+    b = np.dot(np.dot(D, b_cor), D)
+    # east data
+    de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_roo_east, c_woo_east, clma, lai_east',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc')
+    de.B = b
+    # obs err scaling
+    de.ob_err_dict['clma'] = clma_er * de.ob_err_dict['clma']
+    de.ob_err_dict['lai'] = lai_er * de.ob_err_dict['lai']
+    de.ob_err_dict['nee_day'] = need_er * de.ob_err_dict['nee_day']
+    de.ob_err_dict['nee_night'] = neen_er * de.ob_err_dict['nee_night']
+    de.ob_err_dict['c_roo'] = cr_er * de.ob_err_dict['c_roo']
+    de.ob_err_dict['c_woo'] = cw_er * de.ob_err_dict['c_woo']
+
+    # west data
+    dw = dc.DalecData(2015, 2016, 'nee_day_west, nee_night_west, c_roo_west, c_woo_west, clma, lai_west',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc')
+    dw.B = b
+    # obs err scaling
+    dw.ob_err_dict['clma'] = clma_er * dw.ob_err_dict['clma']
+    dw.ob_err_dict['lai'] = lai_er * dw.ob_err_dict['lai']
+    dw.ob_err_dict['nee_day'] = need_er * dw.ob_err_dict['nee_day']
+    dw.ob_err_dict['nee_night'] = neen_er * dw.ob_err_dict['nee_night']
+    dw.ob_err_dict['c_roo'] = cr_er * dw.ob_err_dict['c_roo']
+    dw.ob_err_dict['c_woo'] = cw_er * dw.ob_err_dict['c_woo']
+    # setup model
+    me = mc.DalecModel(de)
+    mw = mc.DalecModel(dw)
+    # run DA scheme
+    xa_e = me.find_min_tnc_cvt(xb, f_name+'east_assim')
+    xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
+    #save plots
+    save_plots(f_name, xb, xa_e[1], xa_w[1], de, dw)
+    return 'done'
+
+
 # ------------------------------------------------------------------------------
 # Exp runs
 # ------------------------------------------------------------------------------
@@ -157,6 +202,16 @@ def new_b_run(xb, f_name):
     east_west_joint_run_full(xb, f_name, clma_er=0.33, lai_er=0.33, need_er=1, neen_er=0.5, cr_er=1, cw_er=1)
     east_west_joint_run_full(xb, f_name, clma_er=1.5, lai_er=1.5, need_er=3, neen_er=2, cr_er=0.5, cw_er=0.5)
     east_west_joint_run_full(xb, f_name, clma_er=0.5, lai_er=0.5, need_er=1.5, neen_er=0.5, cr_er=3, cw_er=3)
+    return 'done'
+
+
+def new_b_run2(xb, f_name):
+    east_west_joint_run_full2(xb, f_name, clma_er=1, lai_er=1, need_er=1, neen_er=1, cr_er=1, cw_er=1)
+    east_west_joint_run_full2(xb, f_name, clma_er=1, lai_er=1, need_er=2.5, neen_er=1, cr_er=2, cw_er=2)
+    east_west_joint_run_full2(xb, f_name, clma_er=0.33, lai_er=0.33, need_er=1.5, neen_er=0.75, cr_er=2, cw_er=2)
+    east_west_joint_run_full2(xb, f_name, clma_er=0.33, lai_er=0.33, need_er=1, neen_er=0.5, cr_er=1, cw_er=1)
+    east_west_joint_run_full2(xb, f_name, clma_er=1.5, lai_er=1.5, need_er=3, neen_er=2, cr_er=0.5, cw_er=0.5)
+    east_west_joint_run_full2(xb, f_name, clma_er=0.5, lai_er=0.5, need_er=1.5, neen_er=0.5, cr_er=3, cw_er=3)
     return 'done'
 
 # ------------------------------------------------------------------------------
