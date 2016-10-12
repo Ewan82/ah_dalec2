@@ -13,7 +13,7 @@ class DalecData:
     Data class for the DALEC2 model
     """
     def __init__(self, start_date=None, end_date=None, ob_str=None,
-                 nc_file='../../alice_holt_data/ah_data_daily_test.nc', delta_t=None, k=None):
+                 nc_file='../../alice_holt_data/ah_data_daily_test.nc', scale_nee=0, delta_t=None, k=None):
         """ Extracts data from netcdf file
         :param start_date: date for model runs to begin as an integer (year) or tuple (year, month, day)
         :param end_date: date for model runs to end as an integer (year) or tuple (year, month, day)
@@ -251,6 +251,8 @@ class DalecData:
         self.sigo_clma = 5.0  # from AH litter scans
         self.sigo_donset = 5.
         self.sigo_dfall = 7.
+        self.nee_day_scale = 0.1
+        self.nee_night_scale = 0.2
 
         self.error_dict = {'clab': self.sigo_clab, 'cf': self.sigo_cf, 'c_woo': self.sigo_cw,
                            'cl': self.sigo_cl, 'c_roo': self.sigo_cr, 'cs': self.sigo_cs,
@@ -266,10 +268,10 @@ class DalecData:
                              'd_onset', 'd_fall', 'groundresp']
 
         # Extract observations for assimilation
-        self.ob_dict, self.ob_err_dict = self.assimilation_obs(ob_str, data)
+        self.ob_dict, self.ob_err_dict = self.assimilation_obs(ob_str, data, scale_nee)
         data.close()
 
-    def assimilation_obs(self, ob_str, data):
+    def assimilation_obs(self, ob_str, data, scale_nee=0):
         """ Extracts observations and errors for assimilation into dictionaries
         :param obs_str: string of observations separated by commas
         :return: dictionary of observation values, dictionary of corresponding observation errors
@@ -317,6 +319,11 @@ class DalecData:
                 obs = data.variables[ob][self.start_idx:self.end_idx, 0, 0]
                 obs_dict[ob] = obs
                 obs_err_dict[ob] = (obs/obs) * self.error_dict[ob]
+        if scale_nee == 1:
+            if 'nee_day' in obs_dict.keys():
+                obs_err_dict['nee_day'] = abs(obs_dict['nee_day'])*self.nee_day_scale + 0.2
+            if 'nee_night' in obs_dict.keys():
+                obs_err_dict['nee_night'] = abs(obs_dict['nee_night'])*self.nee_night_scale + 0.3
 
         return obs_dict, obs_err_dict
 
@@ -346,10 +353,10 @@ class DalecData:
 
 
 class DalecDataTwin(DalecData):
-    def __init__(self, start_date, end_date, ob_str, err_scale=0.25,
+    def __init__(self, start_date, end_date, ob_str, scale_nee=0, err_scale=0.25,
                  nc_file='../../alice_holt_data/ah_data_daily_test.nc'):
 
-        DalecData.__init__(self, start_date, end_date, ob_str, nc_file)
+        DalecData.__init__(self, start_date, end_date, ob_str, nc_file, scale_nee)
         self.m = mc.DalecModel(self)
 
         # Define truth and background
