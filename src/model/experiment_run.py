@@ -260,12 +260,12 @@ def new_b_run2(xb, f_name):
 
 
 def new_b_run_scale_nee_err(xb, f_name):
-    east_west_joint_run_full2(xb, f_name, clma_er=1, lai_er=1, need_er=1, neen_er=1, cr_er=1, cw_er=1)
-    east_west_joint_run_full2(xb, f_name, clma_er=1, lai_er=1, need_er=2.5, neen_er=1, cr_er=2, cw_er=2)
-    east_west_joint_run_full2(xb, f_name, clma_er=0.33, lai_er=0.33, need_er=1.5, neen_er=0.75, cr_er=2, cw_er=2)
-    east_west_joint_run_full2(xb, f_name, clma_er=0.33, lai_er=0.33, need_er=1, neen_er=0.5, cr_er=1, cw_er=1)
-    east_west_joint_run_full2(xb, f_name, clma_er=1.5, lai_er=1.5, need_er=3, neen_er=2, cr_er=0.5, cw_er=0.5)
-    east_west_joint_run_full2(xb, f_name, clma_er=0.5, lai_er=0.5, need_er=1.5, neen_er=0.5, cr_er=3, cw_er=3)
+    east_west_joint_run_nee_err(xb, f_name, clma_er=1, lai_er=1, need_er=1, neen_er=1, cr_er=1, cw_er=1)
+    east_west_joint_run_nee_err(xb, f_name, clma_er=1, lai_er=1, need_er=2.5, neen_er=1, cr_er=2, cw_er=2)
+    east_west_joint_run_nee_err(xb, f_name, clma_er=0.33, lai_er=0.33, need_er=1.5, neen_er=0.75, cr_er=2, cw_er=2)
+    east_west_joint_run_nee_err(xb, f_name, clma_er=0.33, lai_er=0.33, need_er=1, neen_er=0.5, cr_er=1, cw_er=1)
+    east_west_joint_run_nee_err(xb, f_name, clma_er=1.5, lai_er=1.5, need_er=3, neen_er=2, cr_er=0.5, cw_er=0.5)
+    east_west_joint_run_nee_err(xb, f_name, clma_er=0.5, lai_er=0.5, need_er=1.5, neen_er=0.5, cr_er=3, cw_er=3)
     return 'done'
 
 # ------------------------------------------------------------------------------
