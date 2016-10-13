@@ -370,5 +370,9 @@ def r_mat_corr(yerroblist, ytimestep, y_strlst, r_diag, corr=0.3, tau=1., cut_of
                     if abs(ytimestep[i]-ytimestep[j]) < cut_off:
                         r_corr[i, j] = corr*np.exp(-(abs(float(ytimestep[i])-float(ytimestep[j]))**2)/float(tau)**2) \
                                       + (1-corr)*smp.KroneckerDelta(ytimestep[i], ytimestep[j])
+                    if y_strlst[j] == 'nee_day' and y_strlst[i] == 'nee_night':
+                        r_corr[i, j] = corr*np.exp(-(abs(float(ytimestep[i])-float(ytimestep[j]))**2)/float(tau)**2)
+                    elif y_strlst[i] == 'nee_day' and y_strlst[j] == 'nee_night':
+                        r_corr[i, j] = corr*np.exp(-(abs(float(ytimestep[i])-float(ytimestep[j]))**2)/float(tau)**2)
     r = np.dot(np.dot((np.sqrt(r_diag)), r_corr), np.sqrt(r_diag))
     return r_corr, r
