@@ -228,9 +228,9 @@ def east_west_joint_run_nee_err(xb, f_name, clma_er=1., lai_er=1., need_er=1., n
     dw.ob_err_dict['c_woo'] = cw_er * dw.ob_err_dict['c_woo']
     # setup model
     me = mc.DalecModel(de)
-    me.rmatrix = r_mat_corr(me.yerroblist, me.ytimestep, me.y_strlst, me.rmatrix, tau=4.)
+    me.rmatrix = r_mat_corr(me.yerroblist, me.ytimestep, me.y_strlst, me.rmatrix, tau=4.)[1]
     mw = mc.DalecModel(dw)
-    mw.rmatrix = r_mat_corr(mw.yerroblist, mw.ytimestep, mw.y_strlst, mw.rmatrix, tau=4.)
+    mw.rmatrix = r_mat_corr(mw.yerroblist, mw.ytimestep, mw.y_strlst, mw.rmatrix, tau=4.)[1]
     # run DA scheme
     xa_e = me.find_min_tnc_cvt(xb, f_name+'east_assim')
     xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
