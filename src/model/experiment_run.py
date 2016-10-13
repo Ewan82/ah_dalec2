@@ -2,6 +2,7 @@ import data_class as dc
 import mod_class as mc
 import mod_class_param_choice as mc_p
 import numpy as np
+import sympy as smp
 import plot as p
 import pickle
 
@@ -227,7 +228,9 @@ def east_west_joint_run_nee_err(xb, f_name, clma_er=1., lai_er=1., need_er=1., n
     dw.ob_err_dict['c_woo'] = cw_er * dw.ob_err_dict['c_woo']
     # setup model
     me = mc.DalecModel(de)
+    me.rmatrix = r_mat_corr(me.yerroblist, me.ytimestep, me.y_strlst, me.rmatrix, tau=4.)
     mw = mc.DalecModel(dw)
+    mw.rmatrix = r_mat_corr(mw.yerroblist, mw.ytimestep, mw.y_strlst, mw.rmatrix, tau=4.)
     # run DA scheme
     xa_e = me.find_min_tnc_cvt(xb, f_name+'east_assim')
     xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
@@ -353,5 +356,19 @@ def east_west_run_b(f_name, east_west, net_file="None"):
 
 
 # ------------------------------------------------------------------------------
-# East West run new B
+# R matrix
 # ------------------------------------------------------------------------------
+
+def r_mat_corr(yerroblist, ytimestep, y_strlst, r_diag, corr=0.3, tau=1., cut_off=4.):
+    """ Creates a correlated R matrix.
+    """
+    r_corr = np.eye(len(ytimestep)) #MAKE SURE ALL VALUES ARE FLOATS FIRST!!!!
+    for i in xrange(len(ytimestep)):
+        if y_strlst[i] == 'nee_day' or y_strlst[i] == 'nee_night':
+            for j in xrange(len(ytimestep)):
+                if y_strlst[j] == 'nee_day' or y_strlst[j] == 'nee_night':
+                    if abs(ytimestep[i]-ytimestep[j]) < cut_off:
+                        r_corr[i, j] = corr*np.exp(-(abs(float(ytimestep[i])-float(ytimestep[j]))**2)/float(tau)**2) \
+                                      + (1-corr)*smp.KroneckerDelta(ytimestep[i], ytimestep[j])
+    r = np.dot(np.dot((np.sqrt(r_diag)), r_corr), np.sqrt(r_diag))
+    return r_corr, r

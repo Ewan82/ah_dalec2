@@ -300,8 +300,9 @@ class DalecData:
                 obs_dict[ob_del] = obs
                 obs_err_dict[ob_del] = (obs/obs) * self.error_dict[ob_del]
                 origin = data.variables[ob_del+'_origin'][self.start_idx:self.end_idx, 0, 0]
-                idx = np.where(origin < 2)
-                for x in idx[0]:
+                idx = np.where(origin == 1)
+                idx2 = np.where(origin == 0)
+                for x in np.concatenate((idx[0], idx2[0]), axis=0):
                     obs_dict[ob_del][x] = float('NaN')
                     obs_err_dict[ob_del][x] = float('NaN')
             elif ob in ['c_woo_east', 'c_woo_west', 'lai_east', 'lai_west', 'c_roo_east', 'c_roo_west']:

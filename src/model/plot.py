@@ -524,6 +524,19 @@ def plot_many_guassian(mulst, siglst, bndlst, mulst2=None, siglst2=None, truth=N
             plot_gaussian_dist(mulst2[i], siglst2[i], bndlst[i], axx=ax[-1])
 
 
+def plot_rmat(rmat):
+    """Plots a R matrix.
+    """
+    sns.set(style="whitegrid")
+    sns.set_context('poster', font_scale=1.2)
+    fig, ax = plt.subplots(figsize=(11,9))
+    ax.set_aspect('equal')
+    sns.heatmap(rmat, ax=ax, vmax=1., xticklabels=False, yticklabels=False,
+                linewidths=.5, cbar=True, cbar_kws={'label': 'Correlation'})
+    #sns.heatmap(rmat, ax=ax, xticklabels=np.arange(len(rmat)), yticklabels=np.arange(len(rmat)))
+    return ax, fig
+
+
 # Misc functions
 
 def cov2cor(X):
