@@ -143,7 +143,7 @@ def plot_obs(ob, pvals, dC):
     return ax, fig
 
 
-def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w):
+def plot_obs_east_west(ob, xb, xa_east, xa_west, d_e, d_w):
     """Plots a specified observation using obs eqn in obs module. Takes an
     observation string, a dataClass (dC) and a start and finish point.
     """
@@ -156,10 +156,14 @@ def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w):
     mod_lst_w = mw.mod_list(xa_west)
     obs_lst_w = mw.oblist(ob, mod_lst_w)
 
+    mod_lst_xb = mw.mod_list(xb)
+    obs_lst_xb = mw.oblist(ob, mod_lst_xb)
+
     palette = sns.color_palette("colorblind", 11)
 
     ax.plot(d_e.dates, obs_lst_e, color=palette[0], label='East')
     ax.plot(d_w.dates, obs_lst_w, color=palette[2], label='West')
+    ax.plot(d_w.dates, obs_lst_xb, '--', color=palette[3], label='Prior model')
     if ob in d_e.ob_dict.keys():
         ax.errorbar(d_e.dates, d_e.ob_dict[ob], yerr=d_e.ob_err_dict[ob], fmt='o', color=palette[0],
                     markeredgecolor='black', markeredgewidth=0.5)

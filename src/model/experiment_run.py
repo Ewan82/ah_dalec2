@@ -8,29 +8,29 @@ import pickle
 
 def save_plots(f_name, xb, xa_east, xa_west, d_e, d_w):
     # Plot 4dvar time series
-    ax, fig = p.plot_obs_east_west('nee', xa_east, xa_west, d_e, d_w)
+    ax, fig = p.plot_obs_east_west('nee', xb, xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_nee.png', bbox_inches='tight')
-    ax, fig = p.plot_obs_east_west('nee_night', xa_east, xa_west, d_e, d_w)
+    ax, fig = p.plot_obs_east_west('nee_night', xb, xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_neen.png', bbox_inches='tight')
-    ax, fig = p.plot_obs_east_west('nee_day', xa_east, xa_west, d_e, d_w)
+    ax, fig = p.plot_obs_east_west('nee_day', xb, xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_need.png', bbox_inches='tight')
-    ax, fig = p.plot_obs_east_west('lai', xa_east, xa_west, d_e, d_w)
+    ax, fig = p.plot_obs_east_west('lai', xb, xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_lai.png', bbox_inches='tight')
-    ax, fig = p.plot_obs_east_west('c_woo', xa_east, xa_west, d_e, d_w)
+    ax, fig = p.plot_obs_east_west('c_woo', xb, xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_cwoo.png', bbox_inches='tight')
-    ax, fig = p.plot_obs_east_west('c_roo', xa_east, xa_west, d_e, d_w)
+    ax, fig = p.plot_obs_east_west('c_roo', xb, xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_croo.png', bbox_inches='tight')
-    ax, fig = p.plot_obs_east_west('gpp', xa_east, xa_west, d_e, d_w)
+    ax, fig = p.plot_obs_east_west('gpp', xb, xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_gpp.png', bbox_inches='tight')
-    ax, fig = p.plot_obs_east_west('rt', xa_east, xa_west, d_e, d_w)
+    ax, fig = p.plot_obs_east_west('rt', xb, xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_rt.png', bbox_inches='tight')
-    ax, fig = p.plot_obs_east_west('rh', xa_east, xa_west, d_e, d_w)
+    ax, fig = p.plot_obs_east_west('rh', xb, xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_rh.png', bbox_inches='tight')
-    ax, fig = p.plot_obs_east_west('ra', xa_east, xa_west, d_e, d_w)
+    ax, fig = p.plot_obs_east_west('ra', xb, xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_ra.png', bbox_inches='tight')
-    ax, fig = p.plot_obs_east_west('cl', xa_east, xa_west, d_e, d_w)
+    ax, fig = p.plot_obs_east_west('cl', xb, xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_clit.png', bbox_inches='tight')
-    ax, fig = p.plot_obs_east_west('cf', xa_east, xa_west, d_e, d_w)
+    ax, fig = p.plot_obs_east_west('cf', xb, xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_cfol.png', bbox_inches='tight')
 
     # Plot error in analysis and background
@@ -141,7 +141,7 @@ def east_west_joint_run_full(xb, f_name, clma_er=1., lai_er=1., need_er=1., neen
     # run DA scheme
     xa_e = me.find_min_tnc_cvt(xb, f_name+'east_assim')
     xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
-    #save plots
+    # save plots
     save_plots(f_name, xb, xa_e[1], xa_w[1], de, dw)
     return 'done'
 
@@ -153,7 +153,7 @@ def east_west_joint_run_full2(xb, f_name, clma_er=1., lai_er=1., need_er=1., nee
     b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
     b_std[10] = 0.25*b_std[10]
     b_std[1] = 0.25*b_std[1]
-    b_std[0:17] = 0.5*b_std[0:17]
+    # b_std[0:17] = 0.5*b_std[0:17]
     D = np.zeros_like(b_cor)
     np.fill_diagonal(D, b_std)
     b = np.dot(np.dot(D, b_cor), D)
@@ -186,7 +186,7 @@ def east_west_joint_run_full2(xb, f_name, clma_er=1., lai_er=1., need_er=1., nee
     # run DA scheme
     xa_e = me.find_min_tnc_cvt(xb, f_name+'east_assim')
     xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
-    #save plots
+    # save plots
     save_plots(f_name, xb, xa_e[1], xa_w[1], de, dw)
     return 'done'
 
@@ -196,12 +196,12 @@ def east_west_joint_run_nee_err(xb, f_name, clma_er=1., lai_er=1., need_er=1., n
     # Construct B
     b_cor = pickle.load(open('b_edc_cor.p', 'r'))
     b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
-    b_std[10] = 0.1*b_std[10]
-    b_std[1] = 0.1*b_std[1]
-    #b_std[0:17] = 0.5*b_std[0:17]
+    b_std[10] = 0.25*b_std[10]
+    b_std[1] = 0.25*b_std[1]
+    b_std[0:17] = 0.5*b_std[0:17]
     D = np.zeros_like(b_cor)
     np.fill_diagonal(D, b_std)
-    b = np.dot(np.dot(D, b_cor), D)
+    b = 0.8 * np.dot(np.dot(D, b_cor), D)
     # east data
     de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_roo_east, c_woo_east, clma, lai_east',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc', scale_nee=1)
@@ -231,7 +231,7 @@ def east_west_joint_run_nee_err(xb, f_name, clma_er=1., lai_er=1., need_er=1., n
     # run DA scheme
     xa_e = me.find_min_tnc_cvt(xb, f_name+'east_assim')
     xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
-    #save plots
+    # save plots
     save_plots(f_name, xb, xa_e[1], xa_w[1], de, dw)
     return 'done'
 
