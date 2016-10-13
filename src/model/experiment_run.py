@@ -202,7 +202,7 @@ def east_west_joint_run_nee_err(xb, f_name, clma_er=1., lai_er=1., need_er=1., n
     b_std[0:17] = 0.5*b_std[0:17]
     D = np.zeros_like(b_cor)
     np.fill_diagonal(D, b_std)
-    b = 0.8 * np.dot(np.dot(D, b_cor), D)
+    b = np.dot(np.dot(D, b_cor), D)
     # east data
     de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_roo_east, c_woo_east, clma, lai_east',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc', scale_nee=1)
@@ -228,9 +228,9 @@ def east_west_joint_run_nee_err(xb, f_name, clma_er=1., lai_er=1., need_er=1., n
     dw.ob_err_dict['c_woo'] = cw_er * dw.ob_err_dict['c_woo']
     # setup model
     me = mc.DalecModel(de)
-    me.rmatrix = r_mat_corr(me.yerroblist, me.ytimestep, me.y_strlst, me.rmatrix, tau=4.)[1]
+    me.rmatrix = r_mat_corr(me.yerroblist, me.ytimestep, me.y_strlst, me.rmatrix, tau=2.)[1]
     mw = mc.DalecModel(dw)
-    mw.rmatrix = r_mat_corr(mw.yerroblist, mw.ytimestep, mw.y_strlst, mw.rmatrix, tau=4.)[1]
+    mw.rmatrix = r_mat_corr(mw.yerroblist, mw.ytimestep, mw.y_strlst, mw.rmatrix, tau=2.)[1]
     # run DA scheme
     xa_e = me.find_min_tnc_cvt(xb, f_name+'east_assim')
     xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
@@ -266,7 +266,7 @@ def new_b_run_scale_nee_err(xb, f_name):
     east_west_joint_run_nee_err(xb, f_name, clma_er=1, lai_er=1, need_er=1, neen_er=1, cr_er=1, cw_er=1)
     east_west_joint_run_nee_err(xb, f_name, clma_er=1, lai_er=1, need_er=2.5, neen_er=1, cr_er=2, cw_er=2)
     east_west_joint_run_nee_err(xb, f_name, clma_er=0.33, lai_er=0.33, need_er=1.5, neen_er=0.75, cr_er=2, cw_er=2)
-    east_west_joint_run_nee_err(xb, f_name, clma_er=0.33, lai_er=0.33, need_er=1, neen_er=0.5, cr_er=1, cw_er=1)
+    east_west_joint_run_nee_err(xb, f_name, clma_er=0.33, lai_er=0.33, need_er=1, neen_er=1, cr_er=1, cw_er=1)
     east_west_joint_run_nee_err(xb, f_name, clma_er=1.5, lai_er=1.5, need_er=3, neen_er=2, cr_er=0.5, cw_er=0.5)
     east_west_joint_run_nee_err(xb, f_name, clma_er=0.5, lai_er=0.5, need_er=1.5, neen_er=0.5, cr_er=3, cw_er=3)
     return 'done'
