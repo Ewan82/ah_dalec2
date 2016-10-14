@@ -143,7 +143,7 @@ def plot_obs(ob, pvals, dC):
     return ax, fig
 
 
-def plot_obs_east_west(ob, xb, xa_east, xa_west, d_e, d_w):
+def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, xb='None'):
     """Plots a specified observation using obs eqn in obs module. Takes an
     observation string, a dataClass (dC) and a start and finish point.
     """
@@ -156,14 +156,14 @@ def plot_obs_east_west(ob, xb, xa_east, xa_west, d_e, d_w):
     mod_lst_w = mw.mod_list(xa_west)
     obs_lst_w = mw.oblist(ob, mod_lst_w)
 
-    mod_lst_xb = mw.mod_list(xb)
-    obs_lst_xb = mw.oblist(ob, mod_lst_xb)
-
     palette = sns.color_palette("colorblind", 11)
 
     ax.plot(d_e.dates, obs_lst_e, color=palette[0], label='East')
     ax.plot(d_w.dates, obs_lst_w, color=palette[2], label='West')
-    ax.plot(d_w.dates, obs_lst_xb, '--', color=palette[3], label='Prior model')
+    if xb != 'None':
+        mod_lst_xb = mw.mod_list(xb)
+        obs_lst_xb = mw.oblist(ob, mod_lst_xb)
+        ax.plot(d_w.dates, obs_lst_xb, '--', color=palette[3], label='Prior model')
     if ob in d_e.ob_dict.keys():
         ax.errorbar(d_e.dates, d_e.ob_dict[ob], yerr=d_e.ob_err_dict[ob], fmt='o', color=palette[0],
                     markeredgecolor='black', markeredgewidth=0.5)
@@ -534,6 +534,31 @@ def plot_rmat(rmat):
     sns.heatmap(rmat, ax=ax, vmax=1., xticklabels=False, yticklabels=False,
                 linewidths=.5, cbar=True, cbar_kws={'label': 'Correlation'})
     #sns.heatmap(rmat, ax=ax, xticklabels=np.arange(len(rmat)), yticklabels=np.arange(len(rmat)))
+    return ax, fig
+
+
+def plot_bmat(bmat):
+    """Plots a B matrix.
+    """
+    sns.set(style="whitegrid")
+    sns.set_context('poster', font_scale=1.2)
+    fig, ax = plt.subplots(figsize=(11,9))
+    ax.set_aspect('equal')
+    keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
+            r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
+            r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
+            r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
+    ax.set_xticks(np.arange(23))
+    ax.set_xticklabels(keys, rotation=90)
+    ax.set_yticks(np.arange(23))
+    ax.set_yticklabels(keys)
+    cmap = sns.diverging_palette(220, 10, as_cmap=True)
+    mask = np.eye(23, dtype=bool)
+    sns.heatmap(bmat, xticklabels=keys, yticklabels=keys, ax=ax,
+                cmap=cmap, vmax=.6, square=True, linewidths=.5, cbar=True,
+                cbar_kws={'label': 'Correlation'})
+
+    #ax.set_label('Correlation')
     return ax, fig
 
 
