@@ -65,7 +65,7 @@ def r_estimate(yoblist, pvals, out, east_west):
     m = mc.DalecModel(d)
     m.yoblist = yoblist
     pvallistxb = m.mod_list(pvals)
-    pvallistxa = m.mod_list(out[1])
+    pvallistxa = m.mod_list(out)
     yhxb = m.yoblist - m.hxcost(pvallistxb)
     yhxa = m.yoblist - m.hxcost(pvallistxa)
     r_estimate = np.dot(np.matrix(yhxa).T, np.matrix(yhxb))
