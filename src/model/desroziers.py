@@ -2,6 +2,7 @@ import data_class as dc
 import mod_class as mc
 import numpy as np
 import random as rand
+import scipy as sp
 import pickle
 
 # Background cov mat
@@ -42,6 +43,39 @@ def run_4dvar_desroziers(pvals, east_west):
     m.yoblist = perturb_obs(m.yoblist, m.yerroblist)
     out = m.find_min_tnc_cvt(pvals, dispp=0)
     return m.yoblist, pvals, out
+
+
+def localise_mat(mat, no_diag=3):
+    if no_diag % 2 == 0:
+        raise ValueError('no_diag must be odd number')
+    k_diags = np.arange(-(no_diag - (no_diag+1)/2), -(no_diag-(no_diag+1)/2) + no_diag, 1)
+    loc_mat = sp.sparse.diags([1]*no_diag, k_diags, (mat.shape[0], mat.shape[0]))
+    return mat * loc_mat.toarray()
+
+
+def make_symmetric(r_mat):
+    return (r_mat + np.transpose(r_mat))/2.
+
+
+def r_estimate(yoblist, pvals, out, east_west):
+    d = dc.DalecData(2015, 2016, 'nee_day_'+east_west+', nee_night_'+east_west+', c_roo_'+east_west+','
+                     ' c_woo_'+east_west+', clma, lai_'+east_west,
+                     nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc')
+    d.B = b
+    m = mc.DalecModel(d)
+    m.yoblist = yoblist
+    pvallistxb = m.mod_list(pvals)
+    pvallistxa = m.mod_list(out[1])
+    yhxb = m.yoblist - m.hxcost(pvallistxb)
+    yhxa = m.yoblist - m.hxcost(pvallistxa)
+    r_estimate = np.dot(np.matrix(yhxa).T, np.matrix(yhxb))
+    return r_estimate
+
+
+def r_desroziers(output, east_west):
+    r_list = [r_estimate(out[0], out[1], out[2][1], east_west) for out in output]
+    r_desroziers = np.mean(r_list, axis=0)
+    return r_desroziers
 
 
 def create_ensemble_trunc_uc(d, mean, cov):
