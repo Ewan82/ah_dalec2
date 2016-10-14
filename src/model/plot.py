@@ -548,10 +548,10 @@ def plot_bmat(bmat):
             r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
             r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
             r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
-    ax.set_xticks(np.arange(23))
-    ax.set_xticklabels(keys, rotation=90)
     ax.set_yticks(np.arange(23))
     ax.set_yticklabels(keys)
+    ax.set_xticks(np.arange(23))
+    ax.set_xticklabels(keys, rotation=90)
     cmap = sns.diverging_palette(220, 10, as_cmap=True)
     mask = np.eye(23, dtype=bool)
     sns.heatmap(bmat, xticklabels=keys, yticklabels=keys, ax=ax,
@@ -570,10 +570,10 @@ def cov2cor(X):
     :return: Correlation matrix
     """
     D = np.zeros_like(X)
-    d = np.sqrt(np.diag(abs(X)))
+    d = np.sqrt(np.diag(X))
     np.fill_diagonal(D, d)
     DInv = np.linalg.inv(D)
-    R = np.dot(np.dot(DInv, abs(X)), DInv)
+    R = np.dot(np.dot(DInv, X), DInv)
     return R
 
 

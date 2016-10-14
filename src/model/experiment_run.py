@@ -38,8 +38,8 @@ def save_plots(f_name, xb, xa_east, xa_west, d_e, d_w, me, mw):
     ax, fig = p.plot_inc_east_west(xb, xa_east, xa_west)
     fig.savefig(f_name+'_xa_inc.png', bbox_inches='tight')
     # Plot error cov mats
-    ax, fig = p.plot_bmat(p.cov2cor(me.dC.B))
-    fig.savefig(f_name+'_bmat.png', bbox_inches='tight')
+    # ax, fig = p.plot_bmat(p.cov2cor(me.dC.B))
+    # fig.savefig(f_name+'_bmat.png', bbox_inches='tight')
     ax, fig = p.plot_rmat(p.cov2cor(me.rmatrix))
     fig.savefig(f_name+'_rmat_east.png', bbox_inches='tight')
     ax, fig = p.plot_bmat(p.cov2cor(mw.rmatrix))
