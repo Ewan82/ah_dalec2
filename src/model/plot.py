@@ -577,4 +577,14 @@ def cov2cor(X):
     return R
 
 
-
+def cov2cor_abs(X):
+    """ Takes a covariance matrix and returns the correlation matrix
+    :param X: Covariance matrix
+    :return: Correlation matrix
+    """
+    D = np.zeros_like(X)
+    d = np.sqrt(np.diag(abs(X)))
+    np.fill_diagonal(D, d)
+    DInv = np.linalg.inv(D)
+    R = np.dot(np.dot(DInv, abs(X)), DInv)
+    return R
