@@ -34,7 +34,7 @@ class DalecModel():
                           'phi_fall': self.phi_off}
         self.startrun = strtrun
         self.endrun = self.lenrun
-        self.yoblist, self.yerroblist, self.ytimestep = self.obscost()
+        self.yoblist, self.yerroblist, self.ytimestep, self.y_strlst = self.obscost()
         self.rmatrix = self.rmat(self.yerroblist)
         self.obs_time_step = self.no_obs_at_time()
         self.diag_b = np.diag(np.diag(self.dC.B))
@@ -494,6 +494,7 @@ class DalecModel():
         yoblist = np.array([])
         yerrlist = np.array([])
         ytimestep = np.array([])
+        y_strlst = np.array([])
         for t in xrange(self.startrun, self.endrun):
             for ob in self.dC.ob_dict.iterkeys():
                 if np.isnan(self.dC.ob_dict[ob][t]) != True:
@@ -501,7 +502,8 @@ class DalecModel():
                     yerrlist = np.append(yerrlist,
                                          self.dC.ob_err_dict[ob][t])
                     ytimestep = np.append(ytimestep, t)
-        return yoblist, yerrlist, ytimestep
+                    y_strlst = np.append(y_strlst, ob)
+        return yoblist, yerrlist, ytimestep, y_strlst
 
     def hxcost(self, pvallist):
         """Function returning a list of observation values as predicted by the

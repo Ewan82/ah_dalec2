@@ -7,6 +7,8 @@ import matplotlib.mlab as mlab
 import matplotlib.gridspec as gridspec
 import mod_class as mc
 import data_class as dc
+import scipy
+import pickle
 import seaborn as sns
 
 # ------------------------------------------------------------------------------
@@ -143,7 +145,7 @@ def plot_obs(ob, pvals, dC):
     return ax, fig
 
 
-def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, xb='None'):
+def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None', ob_std_e=0, ob_std_w=0):
     """Plots a specified observation using obs eqn in obs module. Takes an
     observation string, a dataClass (dC) and a start and finish point.
     """
@@ -159,7 +161,13 @@ def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, xb='None'):
     palette = sns.color_palette("colorblind", 11)
 
     ax.plot(d_e.dates, obs_lst_e, color=palette[0], label='East')
+    if ob_std_e is not 0:
+        ax.fill_between(d_e.dates, obs_lst_e-ob_std_e, obs_lst_e+ob_std_e, facecolor=palette[0],
+                        alpha=0.5, linewidth=0.0)
     ax.plot(d_w.dates, obs_lst_w, color=palette[2], label='West')
+    if ob_std_w is not 0:
+        ax.fill_between(d_w.dates, obs_lst_w-ob_std_e, obs_lst_w+ob_std_e, facecolor=palette[2],
+                        alpha=0.5, linewidth=0.0)
     if xb != 'None':
         mod_lst_xb = mw.mod_list(xb)
         obs_lst_xb = mw.oblist(ob, mod_lst_xb)
@@ -171,7 +179,10 @@ def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, xb='None'):
                     markeredgecolor='black', markeredgewidth=0.5)
     plt.legend()
     ax.set_xlabel('Date')
-    ax.set_ylabel(ob)
+    if y_label == 'None':
+        ax.set_ylabel(ob)
+    else:
+        ax.set_ylabel(y_label)
     plt.gcf().autofmt_xdate()
     return ax, fig
 
@@ -560,6 +571,121 @@ def plot_bmat(bmat):
 
     #ax.set_label('Correlation')
     return ax, fig
+
+
+# Paper Plots disturbance
+
+def plot_east_west_paper(ob, xa_east, xa_west, d_e, d_w, acov_e, acov_w, y_label='None'):
+    e_ens = create_ensemble(d_e, acov_e, xa_east)
+    w_ens = create_ensemble(d_w, acov_w, xa_west)
+    ob_ens_e = ob_ensemble(d_e, e_ens, ob)
+    ob_ens_w = ob_ensemble(d_w, w_ens, ob)
+    ob_std_e = ob_mean_std(ob_ens_e)[1]
+    ob_std_w = ob_mean_std(ob_ens_w)[1]
+    return plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label=y_label, ob_std_e=ob_std_e, ob_std_w=ob_std_w)
+
+
+def plot_east_west_paper2(ob, xa_east, xa_west, d_e, d_w, y_label='None'):
+    e_ens = pickle.load(open('east_ens.p', 'r'))
+    w_ens = pickle.load(open('west_ens.p', 'r'))
+    ob_ens_e = ob_ensemble(d_e, e_ens, ob)
+    ob_ens_w = ob_ensemble(d_w, w_ens, ob)
+    ob_std_e = ob_mean_std(ob_ens_e)[1]
+    ob_std_w = ob_mean_std(ob_ens_w)[1]
+    return plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label=y_label, ob_std_e=ob_std_e, ob_std_w=ob_std_w)
+
+def test_bnds(dC, pvals):
+    """
+    Test if a parameter set falls within given bounds.
+    :param dC: DALEC2 data class
+    :param pvals: parameter set to test
+    :return: True or False (Pass or Fail)
+    """
+    tst = 0
+    for bnd in enumerate(dC.bnds_tst):
+        if bnd[1][0] <= pvals[bnd[0]] <= bnd[1][1]:
+            tst += 1
+        else:
+            continue
+    if tst == 23:
+        return True
+    else:
+        return False
+
+
+def create_ensemble(dC, covmat, pvals):
+    ensemble = []
+    while len(ensemble) < 500:
+        rand = np.random.multivariate_normal(pvals, covmat, 100)
+        for xa in rand:
+            if test_bnds(dC, xa) == True and pvals_test_uc(dC, xa) == True:
+                ensemble.append(xa)
+            else:
+                continue
+    return ensemble
+
+
+def ob_ensemble(dC, ensemble, ob):
+    m = mc.DalecModel(dC)
+    nee_ens = np.ones((len(ensemble), len(dC.I)))
+    for pvals in enumerate(ensemble):
+        plist = m.mod_list(pvals[1])
+        nee_ens[pvals[0]] = m.oblist(ob, plist)
+    return nee_ens
+
+
+def nee_cumsum_ensemble(dC, ensemble, ob):
+    m = mc.DalecModel(dC)
+    nee_ens = np.ones((len(ensemble), len(dC.I)))
+    nee_cumsum = [np.cumsum(m.oblist(ob, ensemble[x])) for x in xrange(len(ensemble))]
+    for x in xrange(len(ensemble)):
+        nee_ens[x] = nee_cumsum[x]
+    return nee_ens
+
+
+def ob_mean_std(ob_ens):
+    nee_mean = np.nanmean(ob_ens, axis=0)
+    nee_std = np.nanstd(ob_ens, axis=0)
+    return nee_mean, nee_std
+
+
+def mean_confidence_interval(data, confidence=0.95):
+    a = 1.0*np.array(data)
+    n = len(a)
+    m, se = np.mean(a, axis=0), scipy.stats.sem(a, axis=0)
+    h = se * scipy.stats.t.ppf((1+confidence)/2., n-1,)
+    return m, m-h, m+h, h
+
+
+def pvals_test_uc(dC, pvals):
+    """ Test if pvals pass constraints.
+    """
+    #calculate carbon fluxes
+    f_auto = pvals[1]
+    f_fol = (1-f_auto)*pvals[2]
+    f_lab = (1-f_auto-f_fol)*pvals[12]
+    f_roo = (1-f_auto-f_fol-f_lab)*pvals[3]
+    f_woo = (1 - f_auto - f_fol - f_lab - f_roo)
+
+    #universal constraint tests
+    uc = [10*pvals[16] > pvals[18],
+          pvals[8] < pvals[7],
+          pvals[0] > pvals[8],
+          pvals[5] < 1/(365.25*pvals[4]),
+          pvals[6] > pvals[8]*np.exp(pvals[9]*dC.t_mean[0]),
+          0.2*f_roo < (f_fol+f_lab) < 5*f_roo,
+          pvals[14]-pvals[11]>45]
+    if all(uc) == True:
+        return True
+    else:
+        return False
+
+
+def remove_nan_vals(ob_ens):
+    nan_arr = np.unique(np.where(np.isnan(ob_ens) == True)[0])
+    nee_arr = np.delete(ob_ens, nan_arr, 0)
+    return nee_arr
+
 
 
 # Misc functions
