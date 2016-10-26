@@ -145,7 +145,7 @@ def plot_obs(ob, pvals, dC):
     return ax, fig
 
 
-def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None', ob_std_e=0, ob_std_w=0):
+def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None', ob_std_e=0, ob_std_w=0, y_lim='None'):
     """Plots a specified observation using obs eqn in obs module. Takes an
     observation string, a dataClass (dC) and a start and finish point.
     """
@@ -160,11 +160,11 @@ def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None'
 
     palette = sns.color_palette("colorblind", 11)
 
-    ax.plot(d_e.dates, obs_lst_e, color=palette[0], label='East')
+    ax.plot(d_e.dates, obs_lst_e, color=palette[0], label='Unthinned')
     if ob_std_e is not 0:
         ax.fill_between(d_e.dates, obs_lst_e-ob_std_e, obs_lst_e+ob_std_e, facecolor=palette[0],
                         alpha=0.5, linewidth=0.0)
-    ax.plot(d_w.dates, obs_lst_w, color=palette[2], label='West')
+    ax.plot(d_w.dates, obs_lst_w, color=palette[2], label='Thinned')
     if ob_std_w is not 0:
         ax.fill_between(d_w.dates, obs_lst_w-ob_std_e, obs_lst_w+ob_std_e, facecolor=palette[2],
                         alpha=0.5, linewidth=0.0)
@@ -183,6 +183,9 @@ def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None'
         ax.set_ylabel(ob)
     else:
         ax.set_ylabel(y_label)
+    if y_lim != 'None':
+        axes = plt.gca()
+        axes.set_ylim(y_lim)
     plt.gcf().autofmt_xdate()
     return ax, fig
 
@@ -311,9 +314,9 @@ def plot_inc_east_west(xb, xa_east, xa_west):
     #fig = plt.figure()
     #ax = fig.add_subplot(111)
     rects1 = ax.bar(ind, (xa_east-xb)/xb, width, color=sns.xkcd_rgb["faded green"],
-                    label='East')
+                    label='Unthinned')
     rects2 = ax.bar(ind+width, (xa_west-xb)/xb, width, color=sns.xkcd_rgb["pale red"],
-                    label='West')
+                    label='Thinned')
     ax.set_ylabel('Normalised analysis increment')
     #ax.set_title('% error in parameter values for xa and xb')
     ax.set_xticks(ind+width)
@@ -322,7 +325,7 @@ def plot_inc_east_west(xb, xa_east, xa_west):
             r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
             r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
     ax.set_xticklabels(keys, rotation=90)
-    ax.legend()
+    ax.legend(loc=2)
     return ax, fig
 
 
@@ -575,14 +578,15 @@ def plot_bmat(bmat):
 
 # Paper Plots disturbance
 
-def plot_east_west_paper(ob, xa_east, xa_west, d_e, d_w, acov_e, acov_w, y_label='None'):
+def plot_east_west_paper(ob, xa_east, xa_west, d_e, d_w, acov_e, acov_w, y_label='None', y_lim='None'):
     e_ens = create_ensemble(d_e, acov_e, xa_east)
     w_ens = create_ensemble(d_w, acov_w, xa_west)
     ob_ens_e = ob_ensemble(d_e, e_ens, ob)
     ob_ens_w = ob_ensemble(d_w, w_ens, ob)
     ob_std_e = ob_mean_std(ob_ens_e)[1]
     ob_std_w = ob_mean_std(ob_ens_w)[1]
-    return plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label=y_label, ob_std_e=ob_std_e, ob_std_w=ob_std_w)
+    return plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label=y_label, ob_std_e=ob_std_e, ob_std_w=ob_std_w,
+                              y_lim=y_lim)
 
 
 def plot_east_west_paper2(ob, xa_east, xa_west, d_e, d_w, y_label='None'):

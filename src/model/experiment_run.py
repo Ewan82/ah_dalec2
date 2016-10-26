@@ -51,11 +51,11 @@ def save_paper_plots(f_name, exp_name):
     east = pickle.load(open(exp_name+'clmaer0.3_laier0.3_needer1.0_neener1.0_crer1.0_cwer1.0east_assim', 'r'))
     west = pickle.load(open(exp_name+'clmaer0.3_laier0.3_needer1.0_neener1.0_crer1.0_cwer1.0west_assim', 'r'))
     de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_woo_east, clma, lai_east',
-                      nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc', scale_nee=1)
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
     de.ob_err_dict['clma'] = 0.33 * de.ob_err_dict['clma']
     de.ob_err_dict['lai'] = 0.33 * de.ob_err_dict['lai']
     dw = dc.DalecData(2015, 2016, 'nee_day_west, nee_night_west, c_woo_west, clma, lai_west',
-                      nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc', scale_nee=1)
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
     dw.ob_err_dict['clma'] = 0.33 * dw.ob_err_dict['clma']
     dw.ob_err_dict['lai'] = 0.33 * dw.ob_err_dict['lai']
     a_east = pickle.load(open('a_east.p', 'r'))
@@ -65,10 +65,10 @@ def save_paper_plots(f_name, exp_name):
                                      y_label=r'Heterotrophic respiration (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'rh.pdf', bbox_inches='tight')
     ax, fig = p.plot_east_west_paper('nee_day', east['xa'], west['xa'], de, dw, a_east, a_west,
-                                     y_label=r'NEE$_{day}$ (g C m$^{-2}$ day$^{-1}$)')
+                                     y_label=r'NEE$_{day}$ (g C m$^{-2}$ day$^{-1}$)', y_lim=[-15, 5])
     fig.savefig(f_name+'nee_day.pdf', bbox_inches='tight')
     ax, fig = p.plot_east_west_paper('nee_night', east['xa'], west['xa'], de, dw, a_east, a_west,
-                                     y_label=r'NEE$_{day}$ (g C m$^{-2}$ day$^{-1}$)')
+                                     y_label=r'NEE$_{night}$ (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'nee_night.pdf', bbox_inches='tight')
     ax, fig = p.plot_east_west_paper('gpp', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label=r'Gross primary production (g C m$^{-2}$ day$^{-1}$)')
@@ -77,7 +77,8 @@ def save_paper_plots(f_name, exp_name):
                                      y_label=r'Leaf area index')
     fig.savefig(f_name+'lai.pdf', bbox_inches='tight')
     ax, fig = p.plot_east_west_paper('c_woo', east['xa'], west['xa'], de, dw, a_east, a_west,
-                                     y_label=r'Woody biomass and coarse root carbon (g C m$^{-2}$)')
+                                     y_label=r'Woody biomass and coarse root carbon (g C m$^{-2}$)',
+                                     y_lim=[9000, 14500])
     fig.savefig(f_name+'c_woo.pdf', bbox_inches='tight')
     ax, fig = p.plot_east_west_paper('ra', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label=r'Autotrophic respiration (g C m$^{-2}$ day$^{-1}$)')
@@ -261,7 +262,7 @@ def east_west_joint_run_nee_err_r(xb, f_name, nee_scale=0, clma_er=1., lai_er=1.
     b = 0.6*np.dot(np.dot(D, b_cor), D)
     # east data
     de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_roo_east, c_woo_east, clma, lai_east',
-                      nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc', scale_nee=nee_scale)
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=nee_scale)
     de.B = b
     # obs err scaling
     de.ob_err_dict['clma'] = clma_er * de.ob_err_dict['clma']
@@ -273,7 +274,7 @@ def east_west_joint_run_nee_err_r(xb, f_name, nee_scale=0, clma_er=1., lai_er=1.
 
     # west data
     dw = dc.DalecData(2015, 2016, 'nee_day_west, nee_night_west, c_roo_west, c_woo_west, clma, lai_west',
-                      nc_file='../../alice_holt_data/ah_data_daily_test_nee.nc', scale_nee=nee_scale)
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=nee_scale)
     dw.B = b
     # obs err scaling
     dw.ob_err_dict['clma'] = clma_er * dw.ob_err_dict['clma']
