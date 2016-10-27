@@ -48,18 +48,36 @@ def save_plots(f_name, xb, xa_east, xa_west, d_e, d_w, me, mw):
 
 
 def save_paper_plots(f_name, exp_name):
-    east = pickle.load(open(exp_name+'clmaer0.3_laier0.3_needer1.0_neener1.0_crer1.0_cwer1.0east_assim', 'r'))
-    west = pickle.load(open(exp_name+'clmaer0.3_laier0.3_needer1.0_neener1.0_crer1.0_cwer1.0west_assim', 'r'))
-    de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_woo_east, clma, lai_east',
+    east = pickle.load(open(exp_name+'east_assim', 'r'))
+    west = pickle.load(open(exp_name+'west_assim', 'r'))
+    b_cor = pickle.load(open('b_edc_cor.p', 'r'))
+    b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
+    b_std[10] = 0.2*b_std[10]
+    b_std[1] = 0.2*b_std[1]
+    #b_std[2] = 0.1*b_std[2]
+    b_std[0:17] = b_std[0:17]*0.5
+    D = np.zeros_like(b_cor)
+    np.fill_diagonal(D, b_std)
+    b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
+    # east data
+    de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_roo_east, c_woo_east, clma, lai_east',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
-    de.ob_err_dict['clma'] = 0.33 * de.ob_err_dict['clma']
-    de.ob_err_dict['lai'] = 0.33 * de.ob_err_dict['lai']
-    dw = dc.DalecData(2015, 2016, 'nee_day_west, nee_night_west, c_woo_west, clma, lai_west',
+    de.B = b
+    # obs err scaling
+    # west data
+    dw = dc.DalecData(2015, 2016, 'nee_day_west, nee_night_west, c_roo_west, c_woo_west, clma, lai_west',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
-    dw.ob_err_dict['clma'] = 0.33 * dw.ob_err_dict['clma']
-    dw.ob_err_dict['lai'] = 0.33 * dw.ob_err_dict['lai']
-    a_east = pickle.load(open('a_east.p', 'r'))
-    a_west = pickle.load(open('a_west.p', 'r'))
+    dw.B = b
+    # obs err scaling
+    # setup model
+    me = mc.DalecModel(de)
+    me.rmatrix = r_mat_corr(me.yerroblist, me.ytimestep, me.y_strlst, me.rmatrix, corr=0.3, tau=2.)[1]
+    mw = mc.DalecModel(dw)
+    mw.rmatrix = r_mat_corr(mw.yerroblist, mw.ytimestep, mw.y_strlst, mw.rmatrix, corr=0.3, tau=2.)[1]
+    # a_east = pickle.load(open('a_east.p', 'r'))
+    # a_west = pickle.load(open('a_west.p', 'r'))
+    a_east = me.acovmat(east['xa'])
+    a_west = mw.acovmat(west['xa'])
 
     ax, fig = p.plot_east_west_paper('rh', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label=r'Heterotrophic respiration (g C m$^{-2}$ day$^{-1}$)')
@@ -411,6 +429,40 @@ def east_west_joint_run_ceff_a(xb, f_name):
     xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
     xbb = np.array(me.create_ordered_lst(np.array(xb.tolist()[0], dtype=np.float)))
     save_plots(f_name, xbb, xa_e[2], xa_w[2], de, dw, me, mw)
+    return 'done'
+
+
+def east_west_joint_run_nee_err_r_errs(xb, f_name):
+    # Construct B
+    b_cor = pickle.load(open('b_edc_cor.p', 'r'))
+    b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
+    b_std[10] = 0.2*b_std[10]
+    b_std[1] = 0.2*b_std[1]
+    #b_std[2] = 0.1*b_std[2]
+    b_std[0:17] = b_std[0:17]*0.5
+    D = np.zeros_like(b_cor)
+    np.fill_diagonal(D, b_std)
+    b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
+    # east data
+    de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_roo_east, c_woo_east, clma, lai_east',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
+    de.B = b
+    # obs err scaling
+    # west data
+    dw = dc.DalecData(2015, 2016, 'nee_day_west, nee_night_west, c_roo_west, c_woo_west, clma, lai_west',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
+    dw.B = b
+    # obs err scaling
+    # setup model
+    me = mc.DalecModel(de)
+    me.rmatrix = r_mat_corr(me.yerroblist, me.ytimestep, me.y_strlst, me.rmatrix, corr=0.3, tau=2.)[1]
+    mw = mc.DalecModel(dw)
+    mw.rmatrix = r_mat_corr(mw.yerroblist, mw.ytimestep, mw.y_strlst, mw.rmatrix, corr=0.3, tau=2.)[1]
+    # run DA scheme
+    xa_e = me.find_min_tnc_cvt(xb, f_name+'east_assim')
+    xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
+    # save plots
+    save_plots(f_name, xb, xa_e[1], xa_w[1], de, dw, me, mw)
     return 'done'
 
 # ------------------------------------------------------------------------------
