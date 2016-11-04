@@ -34,6 +34,19 @@ def save_plots(f_name, xb, xa_east, xa_west, d_e, d_w, me, mw):
     ax, fig = p.plot_obs_east_west('cf', xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_cfol.png', bbox_inches='tight')
 
+    ax, fig = p.plot_obs_east_west_cum('nee_day', xa_east, xa_west, d_e, d_w,
+                                     y_label='Cumulative NEE (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'nee_day_cum.png', bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west_cum('nee', xa_east, xa_west, d_e, d_w,
+                                     y_label='Cumulative NEE (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'nee_cum.png', bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west_cum('rt', xa_east, xa_west, d_e, d_w,
+                                     y_label='Cumulative ecosystem respiration (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'rt_cum.png', bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west_cum('gpp', xa_east, xa_west, d_e, d_w,
+                                     y_label='Cumulative GPP (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'gpp_cum.png', bbox_inches='tight')
+
     # Plot error in analysis and background
     ax, fig = p.plot_inc_east_west(xb, xa_east, xa_west)
     fig.savefig(f_name+'_xa_inc.pdf', bbox_inches='tight')
@@ -85,12 +98,21 @@ def save_paper_plots(f_name, exp_name):
     ax, fig = p.plot_east_west_paper('nee_day', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label=r'NEE$_{day}$ (g C m$^{-2}$ day$^{-1}$)', y_lim=[-15, 5])
     fig.savefig(f_name+'nee_day.pdf', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper_cum('nee_day', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label='Cumulative NEE (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'nee_day_cum.pdf', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper_cum('nee', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label='Cumulative NEE (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'nee_cum.pdf', bbox_inches='tight')
     ax, fig = p.plot_east_west_paper('nee_night', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label=r'NEE$_{night}$ (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'nee_night.pdf', bbox_inches='tight')
     ax, fig = p.plot_east_west_paper('gpp', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label=r'Gross primary production (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'gpp.pdf', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper_cum('gpp', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label='Cumulative GPP (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'gpp_cum.pdf', bbox_inches='tight')
     ax, fig = p.plot_east_west_paper('lai', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label=r'Leaf area index')
     fig.savefig(f_name+'lai.pdf', bbox_inches='tight')
@@ -104,6 +126,9 @@ def save_paper_plots(f_name, exp_name):
     ax, fig = p.plot_east_west_paper('rt', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label=r'Total ecosystem respiration (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'rt.pdf', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper_cum('rt', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label='Cumulative ecosystem respiration (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'rt_cum.pdf', bbox_inches='tight')
     ax, fig = p.plot_inc_east_west(east['xb'], east['xa'], west['xa'])
     fig.savefig(f_name+'xa_inc.pdf', bbox_inches='tight')
     return 'done!'
@@ -436,20 +461,20 @@ def east_west_joint_run_nee_err_r_errs(xb, f_name):
     # Construct B
     b_cor = pickle.load(open('b_edc_cor.p', 'r'))
     b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
-    b_std[10] = 0.2*b_std[10]
-    b_std[1] = 0.2*b_std[1]
+    b_std[10] = 0.25*b_std[10]
+    b_std[1] = 0.25*b_std[1]
     #b_std[2] = 0.1*b_std[2]
     b_std[0:17] = b_std[0:17]*0.5
     D = np.zeros_like(b_cor)
     np.fill_diagonal(D, b_std)
     b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
     # east data
-    de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_roo_east, c_woo_east, clma, lai_east',
+    de = dc.DalecData(2015, 2016, 'nee_east, nee_night_east, c_roo_east, c_woo_east, clma, lai_east',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
     de.B = b
     # obs err scaling
     # west data
-    dw = dc.DalecData(2015, 2016, 'nee_day_west, nee_night_west, c_roo_west, c_woo_west, clma, lai_west',
+    dw = dc.DalecData(2015, 2016, 'nee_west, nee_night_west, c_roo_west, c_woo_west, clma, lai_west',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
     dw.B = b
     # obs err scaling

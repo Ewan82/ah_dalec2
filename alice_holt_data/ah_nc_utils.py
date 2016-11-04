@@ -567,27 +567,27 @@ def quality_control_co2_flux_daily(clipped_co2_flux, qc_co2_flux, nee, nee_std, 
     for x in xrange(idx1, idx2):
         if np.isnan(clipped_co2_flux[x, 0, 0]) == True:
             fill += 1
+        #elif foot_print[x, 0, 0] < 10:
+        #    fill += 1
+        #    break
+        #elif qc_co2_flux[x, 0, 0] == 2:
+        #    qc_flag2 += 1
+        #elif qc_co2_flux[x, 0, 0] == 1:
+        #    qc_flag1 += 1
+        if fill > 1:
             break
-        elif foot_print[x, 0, 0] < 10:
-            fill += 1
-            break
-        if is_day[x, 0, 0] == 0:
-            if qc_co2_flux[x, 0, 0] == 2:
-                qc_flag2 += 1
-            elif qc_co2_flux[x, 0, 0] == 1:
-                qc_flag1 += 1
         else:
             continue
 
-    if fill > 0:
+    if fill > 1:
         nee[idx, 0, 0] = float('NaN')
         nee_std[idx, 0, 0] = float('NaN')
         origin[idx, 0, 0] = float('NaN')
-    elif qc_flag2 >= 1:
+    elif qc_flag2 >= 3:
         nee[idx, 0, 0] = float('NaN')
         nee_std[idx, 0, 0] = float('NaN')
         origin[idx, 0, 0] = float('NaN')
-    elif qc_flag1 > 2:
+    elif qc_flag1 >= 7:
         nee[idx, 0, 0] = float('NaN')
         nee_std[idx, 0, 0] = float('NaN')
         origin[idx, 0, 0] = float('NaN')

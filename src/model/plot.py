@@ -190,6 +190,47 @@ def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None'
     return ax, fig
 
 
+def plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None', ob_std_e=0, ob_std_w=0,
+                           y_lim='None'):
+    """Plots a specified observation using obs eqn in obs module. Takes an
+    observation string, a dataClass (dC) and a start and finish point.
+    """
+    sns.set_context(rc={'lines.linewidth': .8, 'lines.markersize': 6})
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    me = mc.DalecModel(d_e)
+    mw = mc.DalecModel(d_w)
+    mod_lst_e = me.mod_list(xa_east)
+    obs_lst_e = me.oblist(ob, mod_lst_e)
+    mod_lst_w = mw.mod_list(xa_west)
+    obs_lst_w = mw.oblist(ob, mod_lst_w)
+
+    palette = sns.color_palette("colorblind", 11)
+
+    ax.plot(d_e.dates, np.cumsum(obs_lst_e), color=palette[0], label='Unthinned')
+    if ob_std_e is not 0:
+        ax.fill_between(d_e.dates, np.cumsum(obs_lst_e-ob_std_e), np.cumsum(obs_lst_e+ob_std_e), facecolor=palette[0],
+                        alpha=0.5, linewidth=0.0)
+    ax.plot(d_w.dates, np.cumsum(obs_lst_w), color=palette[2], label='Thinned')
+    if ob_std_w is not 0:
+        ax.fill_between(d_w.dates, np.cumsum(obs_lst_w-ob_std_e), np.cumsum(obs_lst_w+ob_std_e), facecolor=palette[2],
+                        alpha=0.5, linewidth=0.0)
+    if xb != 'None':
+        mod_lst_xb = mw.mod_list(xb)
+        obs_lst_xb = mw.oblist(ob, mod_lst_xb)
+        ax.plot(d_w.dates, obs_lst_xb, '--', color=palette[3], label='Prior model')
+    plt.legend()
+    ax.set_xlabel('Date')
+    if y_label == 'None':
+        ax.set_ylabel(ob)
+    else:
+        ax.set_ylabel(y_label)
+    if y_lim != 'None':
+        axes = plt.gca()
+        axes.set_ylim(y_lim)
+    plt.gcf().autofmt_xdate()
+    return ax, fig
+
+
 def plot_4dvar(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=None):
     """Plots a model predicted observation value for two initial states (xb,xa)
     and also the actual observations taken of the physical quantity. Takes a ob
@@ -586,6 +627,17 @@ def plot_east_west_paper(ob, xa_east, xa_west, d_e, d_w, acov_e, acov_w, y_label
     ob_std_e = ob_mean_std(ob_ens_e)[1]
     ob_std_w = ob_mean_std(ob_ens_w)[1]
     return plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label=y_label, ob_std_e=ob_std_e, ob_std_w=ob_std_w,
+                              y_lim=y_lim)
+
+
+def plot_east_west_paper_cum(ob, xa_east, xa_west, d_e, d_w, acov_e, acov_w, y_label='None', y_lim='None'):
+    e_ens = create_ensemble(d_e, acov_e, xa_east)
+    w_ens = create_ensemble(d_w, acov_w, xa_west)
+    ob_ens_e = ob_ensemble(d_e, e_ens, ob)
+    ob_ens_w = ob_ensemble(d_w, w_ens, ob)
+    ob_std_e = ob_mean_std(ob_ens_e)[1]
+    ob_std_w = ob_mean_std(ob_ens_w)[1]
+    return plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label=y_label, ob_std_e=ob_std_e, ob_std_w=ob_std_w,
                               y_lim=y_lim)
 
 
