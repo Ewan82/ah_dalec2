@@ -4,6 +4,7 @@ import numpy as np
 import sympy as smp
 import plot as p
 import re
+import os
 import pickle
 
 
@@ -98,6 +99,8 @@ def save_plots(f_name, xb, xa_east, xa_west, d_e, d_w, me, mw):
 
 
 def east_west_joint_run(xb, f_name, obs_str, b_mat):
+    if not os.path.exists(f_name):
+        os.makedirs(f_name)
     # east data
     obs_east = ob_str_east_west(obs_str, 'east')
     de = dc.DalecData(2015, 2016, obs_east,

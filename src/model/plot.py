@@ -520,6 +520,21 @@ def plot_a_inc_all(xb, xadiag, xaedc, xarcor, xaedcrcor):
     return ax, fig
 
 
+def plot_infmat(infmat, cmin=-0.3, cmax=0.3):
+    """Plots influence matrix.
+    """
+    sns.set(style="ticks")
+    sns.set_context('poster', font_scale=1.2)
+    fig, ax = plt.subplots(figsize=(11,9))
+    #ax.set_aspect('equal')
+    plt.imshow(infmat, interpolation='nearest', cmap='bwr', vmin=cmin, vmax=cmax, aspect='auto')
+    plt.colorbar(label='Observation influence')
+    ax.set_ylabel('Day of year')
+    ax.set_xlabel('Day of year')
+    #sns.heatmap(rmat, ax=ax, xticklabels=np.arange(len(rmat)), yticklabels=np.arange(len(rmat)))
+    return ax, fig
+
+
 def plot_gaussian_dist(mu, sigma, bounds, xt=None, axx=None):
     """
     Plots a Gausian
