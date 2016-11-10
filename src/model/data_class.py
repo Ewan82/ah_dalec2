@@ -239,8 +239,8 @@ class DalecData:
         self.sigo_cl = 7.0  # 30%
         self.sigo_cs = 1500.0  # 30%
         self.sigo_nee = 0.71  # g C m-2 day-1
-        self.sigo_nee_day = 0.8  # 0.71
-        self.sigo_nee_night = 3*self.sigo_nee_day
+        self.sigo_nee_day = 1.  # 0.71
+        self.sigo_nee_night = 1.5  # 3*self.sigo_nee_day
         self.sigo_lf = 0.5
         self.sigo_lw = 0.5
         self.sigo_litresp = 0.5
