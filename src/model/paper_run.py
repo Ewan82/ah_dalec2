@@ -205,13 +205,13 @@ def east_west_joint_run_prior(xb, f_name, obs_str, b_mat, rm='None'):
 
 
 def experiment_prior(f_name, b_mat, xb=d.xb_ew_lai_hi):
-    east_west_joint_run(xb, f_name+'nee/', 'nee, clma', b_mat)
-    east_west_joint_run(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
-    east_west_joint_run(xb, f_name+'lai/', 'lai, clma', b_mat)
-    east_west_joint_run(xb, f_name+'needn_lai/', 'nee_day, nee_night, lai, clma', b_mat)
-    east_west_joint_run(xb, f_name+'nee_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma', b_mat)
-    east_west_joint_run(xb, f_name+'nee_lai/', 'nee, lai, clma', b_mat)
-    east_west_joint_run(xb, f_name+'neeconst_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma, c_woo, c_roo',
+    east_west_joint_run_prior(xb, f_name+'nee/', 'nee, clma', b_mat)
+    east_west_joint_run_prior(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
+    east_west_joint_run_prior(xb, f_name+'lai/', 'lai, clma', b_mat)
+    east_west_joint_run_prior(xb, f_name+'needn_lai/', 'nee_day, nee_night, lai, clma', b_mat)
+    east_west_joint_run_prior(xb, f_name+'nee_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma', b_mat)
+    east_west_joint_run_prior(xb, f_name+'nee_lai/', 'nee, lai, clma', b_mat)
+    east_west_joint_run_prior(xb, f_name+'neeconst_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma, c_woo, c_roo',
                         b_mat, rm='nee')
     return 'done!'
 
