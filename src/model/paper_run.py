@@ -107,13 +107,13 @@ def east_west_joint_run(xb, f_name, obs_str, b_mat, rm='None'):
     # east data
     obs_east = ob_str_east_west(obs_str, 'east', rm_obs=rm)
     de = dc.DalecData(2015, 2016, obs_east,
-                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=0)
     de.B = b_mat
     # obs err scaling
     # west data
     obs_west = ob_str_east_west(obs_str, 'west', rm_obs=rm)
     dw = dc.DalecData(2015, 2016, obs_west,
-                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=0)
     dw.B = b_mat
     # obs err scaling
     # setup model
