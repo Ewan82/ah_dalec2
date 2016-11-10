@@ -19,7 +19,7 @@ def experiment_bmat(f_name):
     D = np.zeros_like(b_cor)
     np.fill_diagonal(D, b_std)
     b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
-    experiment(f_name, b)
+    experiment2(f_name, b)
     return 'done!'
 
 
@@ -34,7 +34,7 @@ def experiment_bmat_ceff(f_name):
     D = np.zeros_like(b_cor)
     np.fill_diagonal(D, b_std)
     b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
-    experiment(f_name, b)
+    experiment2(f_name, b)
     return 'done!'
 
 
@@ -48,6 +48,13 @@ def experiment(f_name, b_mat, xb=d.xb_ew_lai_hi):
     east_west_joint_run(xb, f_name+'needn_lai_cw_cr/', 'nee_day, nee_night, lai, clma, c_woo, c_roo', b_mat)
     east_west_joint_run(xb, f_name+'nee_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma, c_woo, c_roo', b_mat)
     east_west_joint_run(xb, f_name+'nee_lai_cw_cr/', 'nee, lai, clma, c_woo, c_roo', b_mat)
+    return 'done!'
+
+
+def experiment2(f_name, b_mat, xb=d.xb_ew_lai_hi):
+    east_west_joint_run(xb, f_name+'nee_lai/', 'nee, lai, clma', b_mat)
+    east_west_joint_run(xb, f_name+'neeconst_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma, c_woo, c_roo',
+                        b_mat, rm='nee')
     return 'done!'
 
 
@@ -98,17 +105,17 @@ def save_plots(f_name, xb, xa_east, xa_west, d_e, d_w, me, mw):
     return 'done'
 
 
-def east_west_joint_run(xb, f_name, obs_str, b_mat):
+def east_west_joint_run(xb, f_name, obs_str, b_mat, rm='None'):
     if not os.path.exists(f_name):
         os.makedirs(f_name)
     # east data
-    obs_east = ob_str_east_west(obs_str, 'east')
+    obs_east = ob_str_east_west(obs_str, 'east', rm_obs=rm)
     de = dc.DalecData(2015, 2016, obs_east,
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=0)
     de.B = b_mat
     # obs err scaling
     # west data
-    obs_west = ob_str_east_west(obs_str, 'west')
+    obs_west = ob_str_east_west(obs_str, 'west', rm_obs=rm)
     dw = dc.DalecData(2015, 2016, obs_west,
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=0)
     dw.B = b_mat
@@ -153,9 +160,11 @@ def r_mat_corr(yerroblist, ytimestep, y_strlst, r_diag, corr=0.3, tau=1., cut_of
 # Ob_str
 # ------------------------------------------------------------------------------
 
-def ob_str_east_west(ob_str, east_west):
+def ob_str_east_west(ob_str, east_west, rm_obs='None'):
     obs_lst = re.findall(r'[^,;\s]+', ob_str)
     ob_east_west = ['nee', 'nee_day', 'nee_night', 'lai', 'c_woo', 'c_roo']
+    if rm_obs != 'None':
+        ob_east_west.remove(rm_obs)
     new_ob_str = ''
     for ob in obs_lst:
         if ob in ob_east_west:
