@@ -169,3 +169,55 @@ def ob_str_east_west(ob_str, east_west, rm_obs='None'):
             ob = ob
         new_ob_str += ob + ', '
     return new_ob_str
+
+
+# ------------------------------------------------------------------------------
+# Prior
+# ------------------------------------------------------------------------------
+
+
+def east_west_joint_run_prior(xb, f_name, obs_str, b_mat, rm='None'):
+    if not os.path.exists(f_name):
+        os.makedirs(f_name)
+    # east data
+    obs_east = ob_str_east_west(obs_str, 'east', rm_obs=rm)
+    de = dc.DalecData(2012, 2014, obs_east,
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
+    de.B = b_mat
+    # obs err scaling
+    # west data
+    obs_west = ob_str_east_west(obs_str, 'west', rm_obs=rm)
+    dw = dc.DalecData(2012, 2014, obs_west,
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
+    dw.B = b_mat
+    # obs err scaling
+    # setup model
+    me = mc.DalecModel(de)
+    me.rmatrix = r_mat_corr(me.yerroblist, me.ytimestep, me.y_strlst, me.rmatrix, corr=0.3, tau=2.)[1]
+    mw = mc.DalecModel(dw)
+    mw.rmatrix = r_mat_corr(mw.yerroblist, mw.ytimestep, mw.y_strlst, mw.rmatrix, corr=0.3, tau=2.)[1]
+    # run DA scheme
+    xa_e = me.find_min_tnc_cvt(xb, f_name+'east_assim')
+    xa_w = mw.find_min_tnc_cvt(xb, f_name+'west_assim')
+    # save plots
+    save_plots(f_name, xb, xa_e[1], xa_w[1], de, dw, me, mw)
+    return 'done'
+
+
+def experiment_prior(f_name, b_mat, xb=d.xb_ew_lai_hi):
+    east_west_joint_run(xb, f_name+'nee/', 'nee, clma', b_mat)
+    east_west_joint_run(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
+    east_west_joint_run(xb, f_name+'lai/', 'lai, clma', b_mat)
+    east_west_joint_run(xb, f_name+'needn_lai/', 'nee_day, nee_night, lai, clma', b_mat)
+    east_west_joint_run(xb, f_name+'nee_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma', b_mat)
+    east_west_joint_run(xb, f_name+'nee_lai/', 'nee, lai, clma', b_mat)
+    east_west_joint_run(xb, f_name+'neeconst_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma, c_woo, c_roo',
+                        b_mat, rm='nee')
+    return 'done!'
+
+
+def experiment_prior_run(f_name):
+    # Construct B
+    b = pickle.load(open('b_edc.p', 'r'))
+    experiment(f_name, b, xb=d.edinburgh_mean)
+    return 'done!'
