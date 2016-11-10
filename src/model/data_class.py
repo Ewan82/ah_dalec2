@@ -251,8 +251,8 @@ class DalecData:
         self.sigo_clma = 2.  # 5.0  # from AH litter scans
         self.sigo_donset = 5.
         self.sigo_dfall = 7.
-        self.nee_day_scale = 0.05  # 0.03  # 0.05
-        self.nee_night_scale = 3*0.05  # 0.03*3  # 0.15
+        self.nee_day_scale = 0.04  # 0.03  # 0.05
+        self.nee_night_scale = 3*0.04  # 0.03*3  # 0.15
 
         self.error_dict = {'clab': self.sigo_clab, 'cf': self.sigo_cf, 'c_woo': self.sigo_cw,
                            'cl': self.sigo_cl, 'c_roo': self.sigo_cr, 'cs': self.sigo_cs,
@@ -322,9 +322,9 @@ class DalecData:
                 obs_err_dict[ob] = (obs/obs) * self.error_dict[ob]
         if scale_nee == 1:
             if 'nee_day' in obs_dict.keys():
-                obs_err_dict['nee_day'] = abs(obs_dict['nee_day'])*self.nee_day_scale + 0.2 #0.71
+                obs_err_dict['nee_day'] = abs(obs_dict['nee_day'])*self.nee_day_scale + 0.45 #0.71
             if 'nee_night' in obs_dict.keys():
-                obs_err_dict['nee_night'] = abs(obs_dict['nee_night'])*self.nee_night_scale + 0.6 #1.2
+                obs_err_dict['nee_night'] = abs(obs_dict['nee_night'])*self.nee_night_scale + 0.45*3 #1.2
 
         return obs_dict, obs_err_dict
 

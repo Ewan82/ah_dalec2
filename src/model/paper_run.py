@@ -219,5 +219,5 @@ def experiment_prior(f_name, b_mat, xb=d.xb_ew_lai_hi):
 def experiment_prior_run(f_name):
     # Construct B
     b = pickle.load(open('b_edc.p', 'r'))
-    experiment(f_name, b, xb=d.edinburgh_mean)
+    experiment_prior(f_name, b, xb=d.edinburgh_mean)
     return 'done!'
