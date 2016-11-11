@@ -90,7 +90,7 @@ def save_plots(f_name, xb, xa_east, xa_west, d_e, d_w, me, mw):
 
     # Plot error in analysis and background
     ax, fig = p.plot_inc_east_west(xb, xa_east, xa_west)
-    fig.savefig(f_name+'_xa_inc.pdf', bbox_inches='tight')
+    fig.savefig(f_name+'_xa_inc.png', bbox_inches='tight')
     # Plot error cov mats
     # ax, fig = p.plot_bmat(p.cov2cor(me.dC.B))
     # fig.savefig(f_name+'_bmat.png', bbox_inches='tight')
@@ -209,15 +209,20 @@ def experiment_prior(f_name, b_mat, xb=d.xb_ew_lai_hi):
     east_west_joint_run_prior(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
     east_west_joint_run_prior(xb, f_name+'lai/', 'lai, clma', b_mat)
     east_west_joint_run_prior(xb, f_name+'needn_lai/', 'nee_day, nee_night, lai, clma', b_mat)
-    east_west_joint_run_prior(xb, f_name+'nee_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma', b_mat)
+    east_west_joint_run_prior(xb, f_name+'nee_needn_lai/', 'nee, nee_day, nee_night, lai, clma', b_mat)
     east_west_joint_run_prior(xb, f_name+'nee_lai/', 'nee, lai, clma', b_mat)
-    east_west_joint_run_prior(xb, f_name+'neeconst_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma, c_woo, c_roo',
+    east_west_joint_run_prior(xb, f_name+'neeconst_needn_lai/', 'nee, nee_day, nee_night, lai, clma,',
                         b_mat, rm='nee')
     return 'done!'
 
 
 def experiment_prior_run(f_name):
     # Construct B
-    b = pickle.load(open('b_edc.p', 'r'))
-    experiment_prior(f_name, b, xb=d.edinburgh_mean)
+    b_cor = pickle.load(open('b_edc_cor.p', 'r'))
+    b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
+    b_std[0:17] = b_std[0:17]*0.5
+    D = np.zeros_like(b_cor)
+    np.fill_diagonal(D, b_std)
+    b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
+    experiment_prior(f_name, b, xb=d.xb_ew_lai_hi)
     return 'done!'
