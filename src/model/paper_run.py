@@ -91,6 +91,8 @@ def save_plots(f_name, xb, xa_east, xa_west, d_e, d_w, me, mw):
     # Plot error in analysis and background
     ax, fig = p.plot_inc_east_west(xb, xa_east, xa_west)
     fig.savefig(f_name+'_xa_inc.png', bbox_inches='tight')
+    ax, fig = p.plot_table(xb, xa_east, xa_west)
+    fig.savefig(f_name+'_table.png', bbox_inches='tight')
     # Plot error cov mats
     # ax, fig = p.plot_bmat(p.cov2cor(me.dC.B))
     # fig.savefig(f_name+'_bmat.png', bbox_inches='tight')

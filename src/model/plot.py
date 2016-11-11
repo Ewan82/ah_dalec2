@@ -520,6 +520,22 @@ def plot_a_inc_all(xb, xadiag, xaedc, xarcor, xaedcrcor):
     return ax, fig
 
 
+def plot_table(xb, xa_east, xa_west):
+    keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
+            r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
+            r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
+            r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
+    col_lab = ['xb', 'xa_east', 'xa_west']
+    dat = np.hstack([np.array([xb]).T,np.array([xa_east]).T,np.array([xa_west]).T])
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    ax.axis('tight')
+    ax.axis('off')
+    ax.xaxis.set_visible(False)
+    ax.yaxis.set_visible(False)
+    ax.table(cellText=dat, rowLabels=keys, colLabels=col_lab, loc='center',)
+    return ax, fig
+
+
 def plot_infmat(infmat, cmin=-0.3, cmax=0.3):
     """Plots influence matrix.
     """
