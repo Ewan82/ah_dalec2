@@ -525,8 +525,26 @@ def plot_table(xb, xa_east, xa_west):
             r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
             r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
             r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
-    col_lab = ['xb', 'xa_east', 'xa_west']
-    dat = np.hstack([np.array([xb]).T,np.array([xa_east]).T,np.array([xa_west]).T])
+    lower_bnd = np.array([1e-5, 0.3, 0.01,
+                          0.01, 1.0001, 2.5e-5,
+                          1e-4, 1e-4, 1e-7,
+                          0.018, 10., 60.,
+                          0.01, 10., 220.,
+                          10., 10., 10.,
+                          1e-4, 10., 100.,
+                          10., 100.,])
+
+    upper_bnd = np.array([1e-2, 0.7, 0.5,
+                          0.5, 10., 1e-3,
+                          1e-2, 1e-2, 1e-3,
+                          0.1, 100., 185.,
+                          0.5, 100., 332.,
+                          170., 400., 1000.,
+                          1000., 1000., 1e5,
+                          1000., 2e5])
+    col_lab = ['xb', 'xa_east', 'xa_west', 'low_bnd', 'high_bnd']
+    dat = np.hstack([np.array([xb]).T, np.array([xa_east]).T, np.array([xa_west]).T, np.array([lower_bnd]).T,
+                    np.array([upper_bnd]).T])
     fig, ax = plt.subplots(nrows=1, ncols=1)
     ax.axis('tight')
     ax.axis('off')

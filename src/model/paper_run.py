@@ -29,7 +29,7 @@ def experiment_bmat_ceff(f_name):
     b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
     b_std[10] = 0.25*b_std[10]
     b_std[1] = 0.25*b_std[1]
-    #b_std[2] = 0.1*b_std[2]
+    b_std[2] = 0.25*b_std[2]
     b_std[0:17] = b_std[0:17]*0.5
     D = np.zeros_like(b_cor)
     np.fill_diagonal(D, b_std)
@@ -41,7 +41,9 @@ def experiment_bmat_ceff(f_name):
 def experiment(f_name, b_mat, xb=d.xb_ew_lai_hi):
     east_west_joint_run(xb, f_name+'nee/', 'nee, clma', b_mat)
     east_west_joint_run(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
+    east_west_joint_run(xb, f_name+'nee_needn/', 'nee, nee_day, nee_night, clma', b_mat)
     east_west_joint_run(xb, f_name+'lai/', 'lai, clma', b_mat)
+    east_west_joint_run(xb, f_name+'cw/', 'cw, clma', b_mat)
     east_west_joint_run(xb, f_name+'needn_lai/', 'nee_day, nee_night, lai, clma', b_mat)
     east_west_joint_run(xb, f_name+'needn_lai_cw/', 'nee_day, nee_night, lai, clma, c_woo', b_mat)
     east_west_joint_run(xb, f_name+'needn_cw/', 'nee_day, nee_night, c_woo', b_mat)
