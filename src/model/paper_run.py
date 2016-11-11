@@ -43,7 +43,7 @@ def experiment(f_name, b_mat, xb=d.xb_ew_lai_hi):
     east_west_joint_run(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
     east_west_joint_run(xb, f_name+'nee_needn/', 'nee, nee_day, nee_night, clma', b_mat)
     east_west_joint_run(xb, f_name+'lai/', 'lai, clma', b_mat)
-    east_west_joint_run(xb, f_name+'cw/', 'cw, clma', b_mat)
+    east_west_joint_run(xb, f_name+'cw/', 'c_woo, clma', b_mat)
     east_west_joint_run(xb, f_name+'needn_lai/', 'nee_day, nee_night, lai, clma', b_mat)
     east_west_joint_run(xb, f_name+'needn_lai_cw/', 'nee_day, nee_night, lai, clma, c_woo', b_mat)
     east_west_joint_run(xb, f_name+'needn_cw/', 'nee_day, nee_night, c_woo', b_mat)
