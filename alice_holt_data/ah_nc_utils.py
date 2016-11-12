@@ -546,7 +546,7 @@ def daily_rg_values(half_hourly_rg, total_daily_rg):
 
 
 def quality_control_co2_flux_daily(clipped_co2_flux, qc_co2_flux, nee, nee_std, wind_dir, origin, foot_print, idx1,
-                                   idx2, idx, is_day, qc_tol=3):
+                                   idx2, idx, is_day, qc2_tol=2, qc1_tol=6):
     """ Quality controls flux data and processes it to daily or half daily
     :param clipped_co2_flux: half hourly clipped co2 flux as netcdf variable
     :param qc_co2_flux: qc flags as nc variable corresponding to half hourly co2 flux
@@ -567,27 +567,30 @@ def quality_control_co2_flux_daily(clipped_co2_flux, qc_co2_flux, nee, nee_std, 
     for x in xrange(idx1, idx2):
         if np.isnan(clipped_co2_flux[x, 0, 0]) == True:
             fill += 1
-        #elif foot_print[x, 0, 0] < 10:
-        #    fill += 1
-        #    break
-        #elif qc_co2_flux[x, 0, 0] == 2:
-        #    qc_flag2 += 1
-        #elif qc_co2_flux[x, 0, 0] == 1:
-        #    qc_flag1 += 1
-        if fill > 1:
+        elif foot_print[x, 0, 0] < 10:
+            fill += 1
+        elif qc_co2_flux[x, 0, 0] == 2:
+            qc_flag2 += 1
+            if qc_flag2 > qc2_tol:
+                break
+        elif qc_co2_flux[x, 0, 0] == 1:
+            qc_flag1 += 1
+            if qc_flag1 > qc1_tol:
+                break
+        if fill > 2:
             break
         else:
             continue
 
-    if fill > 1:
+    if fill > 2:
         nee[idx, 0, 0] = float('NaN')
         nee_std[idx, 0, 0] = float('NaN')
         origin[idx, 0, 0] = float('NaN')
-    elif qc_flag2 >= 3:
+    elif qc_flag2 >= qc2_tol:
         nee[idx, 0, 0] = float('NaN')
         nee_std[idx, 0, 0] = float('NaN')
         origin[idx, 0, 0] = float('NaN')
-    elif qc_flag1 >= 7:
+    elif qc_flag1 >= qc1_tol:
         nee[idx, 0, 0] = float('NaN')
         nee_std[idx, 0, 0] = float('NaN')
         origin[idx, 0, 0] = float('NaN')
@@ -604,7 +607,7 @@ def quality_control_co2_flux_daily(clipped_co2_flux, qc_co2_flux, nee, nee_std, 
 
 
 def process_co2_flux_daily_d(clipped_co2_flux, qc_co2_flux, daily_nee, daily_nee_std, is_day, wind_dir, origin,
-                             foot_print, times, time_lst, qc_tol=5):
+                             foot_print, times, time_lst, qc2_tol=5, qc1_tol=5):
     """ Produces a daily NEE product
     :param clipped_co2_flux: half hourly clipped co2 flux as netcdf variable
     :param qc_co2_flux: qc flags as nc variable corresponding to half hourly co2 flux
@@ -617,12 +620,12 @@ def process_co2_flux_daily_d(clipped_co2_flux, qc_co2_flux, daily_nee, daily_nee
     for t in enumerate(time_lst):
         idx = nC.date2index(t[1], times)
         quality_control_co2_flux_daily(clipped_co2_flux, qc_co2_flux, daily_nee, daily_nee_std, wind_dir, origin,
-                                       foot_print, idx, idx+48, t[0], is_day, qc_tol)
+                                       foot_print, idx, idx+48, t[0], is_day, qc2_tol, qc1_tol)
     return 'yay'
 
 
 def process_co2_flux_daytime_d(clipped_co2_flux, qc_co2_flux, nee_day, nee_day_std, is_day, wind_dir, origin,
-                               foot_print, times, time_lst, qc_tol=4):
+                               foot_print, times, time_lst, qc2_tol=4, qc1_tol=5):
     """ Produces a daytime NEE product
     :param clipped_co2_flux: half hourly clipped co2 flux as netcdf variable
     :param qc_co2_flux: qc flags as nc variable corresponding to half hourly co2 flux
@@ -636,12 +639,12 @@ def process_co2_flux_daytime_d(clipped_co2_flux, qc_co2_flux, nee_day, nee_day_s
         idx = nC.date2index(t[1], times)
         where_day = np.where(is_day[idx:idx+48, 0, 0] == 1)[0]
         quality_control_co2_flux_daily(clipped_co2_flux, qc_co2_flux, nee_day, nee_day_std, wind_dir, origin,
-                                       foot_print, idx+where_day[0], idx+where_day[-1], t[0], is_day, qc_tol)
+                                       foot_print, idx+where_day[0], idx+where_day[-1], t[0], is_day, qc2_tol, qc1_tol)
     return 'yay'
 
 
 def process_co2_flux_nighttime_d(clipped_co2_flux, qc_co2_flux, nee_night, nee_night_std, is_day, wind_dir, origin,
-                                 foot_print, times, time_lst, qc_tol=1):
+                                 foot_print, times, time_lst, qc2_tol=1, qc1_tol=5):
     """ Produces a nighttime NEE product
     :param clipped_co2_flux: half hourly clipped co2 flux as netcdf variable
     :param qc_co2_flux: qc flags as nc variable corresponding to half hourly co2 flux
@@ -665,7 +668,7 @@ def process_co2_flux_nighttime_d(clipped_co2_flux, qc_co2_flux, nee_night, nee_n
             break
         else:
             quality_control_co2_flux_daily(clipped_co2_flux, qc_co2_flux, nee_night, nee_night_std, wind_dir, origin,
-                                           foot_print, night_idx1, night_idx2-1, t[0], is_day, qc_tol)
+                                           foot_print, night_idx1, night_idx2-1, t[0], is_day, qc2_tol, qc1_tol)
             if nee_night[t[0], 0, 0] < 0.0:
                 nee_night[t[0], 0, 0] = float('NaN')
             else:
@@ -755,15 +758,15 @@ def add_data2daily_netcdf_nee(half_hourly_nc, daily_nc):
     time_lst = nC.num2date(daily_times[:], daily_times.units)
     # update daily NEE values and origins
     process_co2_flux_daily_d(co2_flux, qc_co2_flux, nee, nee_std, is_day, wind_dir, nee_origin, foot_print, hh_times,
-                             time_lst)
+                             time_lst, 9, 15)
     print 'daily nee done'
     # update daytime NEE values and origins
     process_co2_flux_daytime_d(co2_flux, qc_co2_flux, nee_day,nee_day_std, is_day, wind_dir, nee_origin_day, foot_print,
-                               hh_times, time_lst)
+                               hh_times, time_lst, 5, 9)
     print 'daytime nee done'
     # update nighttime NEE values and origins
     process_co2_flux_nighttime_d(co2_flux, qc_co2_flux, nee_night, nee_night_std, is_day, wind_dir, nee_origin_night,
-                                 foot_print, hh_times, time_lst)
+                                 foot_print, hh_times, time_lst, 1, 3)
     print 'nighttime nee done'
     hh_data.close()
     d_data.close()
