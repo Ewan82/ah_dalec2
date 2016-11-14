@@ -63,24 +63,29 @@ def save_plots(f_name, xb, xa_east, xa_west, d_e, d_w, me, mw):
 def save_paper_plots(f_name, exp_name):
     east = pickle.load(open(exp_name+'east_assim', 'r'))
     west = pickle.load(open(exp_name+'west_assim', 'r'))
-    b_cor = pickle.load(open('b_edc_cor.p', 'r'))
-    b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
-    b_std[10] = 0.2*b_std[10]
-    b_std[1] = 0.2*b_std[1]
+    #b_cor = pickle.load(open('b_edc_cor.p', 'r'))
+    #b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
+    #b_std[10] = 0.2*b_std[10]
+    #b_std[1] = 0.2*b_std[1]
     #b_std[2] = 0.1*b_std[2]
-    b_std[0:17] = b_std[0:17]*0.5
-    D = np.zeros_like(b_cor)
-    np.fill_diagonal(D, b_std)
-    b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
+    #b_std[0:17] = b_std[0:17]*0.5
+    #D = np.zeros_like(b_cor)
+    #np.fill_diagonal(D, b_std)
+    #b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
+    b = east['b_mat']
     # east data
-    de = dc.DalecData(2015, 2016, 'nee_day_east, nee_night_east, c_roo_east, c_woo_east, clma, lai_east',
+    de = dc.DalecData(2015, 2016, 'clma',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
     de.B = b
+    de.ob_dict = east['obs']
+    de.ob_err_dict = east['obs_err']
     # obs err scaling
     # west data
-    dw = dc.DalecData(2015, 2016, 'nee_day_west, nee_night_west, c_roo_west, c_woo_west, clma, lai_west',
+    dw = dc.DalecData(2015, 2016, 'clma',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
     dw.B = b
+    dw.ob_dict = west['obs']
+    dw.ob_err_dict = west['obs_err']
     # obs err scaling
     # setup model
     me = mc.DalecModel(de)
