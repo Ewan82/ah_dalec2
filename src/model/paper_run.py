@@ -226,18 +226,18 @@ def ob_str_east_west(ob_str, east_west, rm_obs='None'):
 # ------------------------------------------------------------------------------
 
 
-def east_west_joint_run_prior(xb, f_name, obs_str, b_mat, rm='None'):
+def east_west_joint_run_prior(xb, f_name, obs_str, b_mat, rm='None', end_yr=2014, start_yr=2012):
     if not os.path.exists(f_name):
         os.makedirs(f_name)
     # east data
     obs_east = ob_str_east_west(obs_str, 'east', rm_obs=rm)
-    de = dc.DalecData(2012, 2014, obs_east,
+    de = dc.DalecData(start_yr, end_yr, obs_east,
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=0)
     de.B = b_mat
     # obs err scaling
     # west data
     obs_west = ob_str_east_west(obs_str, 'west', rm_obs=rm)
-    dw = dc.DalecData(2012, 2014, obs_west,
+    dw = dc.DalecData(start_yr, end_yr, obs_west,
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=0)
     dw.B = b_mat
     # obs err scaling
@@ -255,9 +255,11 @@ def east_west_joint_run_prior(xb, f_name, obs_str, b_mat, rm='None'):
 
 
 def experiment_prior(f_name, b_mat, xb=d.xb_ew_lai_hi):
+    east_west_joint_run_prior(xb, f_name+'nee_needn/', 'nee, nee_day, nee_night, clma', b_mat)
+    east_west_joint_run_prior(xb, f_name+'nee_needn_1314/', 'nee, nee_day, nee_night, clma', b_mat, end_yr=2015,
+                              start_yr=2013)
     east_west_joint_run_prior(xb, f_name+'nee/', 'nee, clma', b_mat)
     east_west_joint_run_prior(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
-    east_west_joint_run_prior(xb, f_name+'nee_needn/', 'nee, nee_day, nee_night, clma', b_mat)
     east_west_joint_run_prior(xb, f_name+'lai/', 'lai, clma', b_mat)
     east_west_joint_run_prior(xb, f_name+'needn_lai/', 'nee_day, nee_night, lai, clma', b_mat)
     east_west_joint_run_prior(xb, f_name+'nee_needn_lai/', 'nee, nee_day, nee_night, lai, clma', b_mat)
