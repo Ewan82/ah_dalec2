@@ -237,7 +237,7 @@ class DalecData:
         #                        lat = 51.153525 deg, lon = -0.858352 deg
 
         # misc
-        self.ca = 390.0  # atmospheric carbon
+        self.ca = 400.  # 390.0  # atmospheric carbon
         self.radconv = 365.25 / np.pi
         self.delta_t = delta_t
 
