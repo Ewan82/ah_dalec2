@@ -758,11 +758,11 @@ def add_data2daily_netcdf_nee(half_hourly_nc, daily_nc):
     time_lst = nC.num2date(daily_times[:], daily_times.units)
     # update daily NEE values and origins
     process_co2_flux_daily_d(co2_flux, qc_co2_flux, nee, nee_std, is_day, wind_dir, nee_origin, foot_print, hh_times,
-                             time_lst, 9, 15)
+                             time_lst, 12, 25)
     print 'daily nee done'
     # update daytime NEE values and origins
     process_co2_flux_daytime_d(co2_flux, qc_co2_flux, nee_day,nee_day_std, is_day, wind_dir, nee_origin_day, foot_print,
-                               hh_times, time_lst, 5, 9)
+                               hh_times, time_lst, 6, 12)
     print 'daytime nee done'
     # update nighttime NEE values and origins
     process_co2_flux_nighttime_d(co2_flux, qc_co2_flux, nee_night, nee_night_std, is_day, wind_dir, nee_origin_night,

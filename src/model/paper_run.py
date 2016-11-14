@@ -74,14 +74,14 @@ def experiment(f_name, b_mat, xb=d.xb_ew_lai_hi):
     east_west_joint_run(xb, f_name+'nee_needn/', 'nee, nee_day, nee_night, clma', b_mat)
     #east_west_joint_run(xb, f_name+'lai/', 'lai, clma', b_mat)
     #east_west_joint_run(xb, f_name+'cw/', 'c_woo, clma', b_mat)
-    #east_west_joint_run(xb, f_name+'needn_lai/', 'nee_day, nee_night, lai, clma', b_mat)
+    east_west_joint_run(xb, f_name+'needn_lai/', 'nee_day, nee_night, lai, clma', b_mat)
     #east_west_joint_run(xb, f_name+'needn_lai_cw/', 'nee_day, nee_night, lai, clma, c_woo', b_mat)
-    #east_west_joint_run(xb, f_name+'needn_cw/', 'nee_day, nee_night, c_woo', b_mat)
-    #east_west_joint_run(xb, f_name+'needn_lai_cw_cr/', 'nee_day, nee_night, lai, clma, c_woo, c_roo', b_mat)
+    east_west_joint_run(xb, f_name+'needn_cw/', 'nee_day, nee_night, c_woo', b_mat)
+    east_west_joint_run(xb, f_name+'needn_lai_cw_cr/', 'nee_day, nee_night, lai, clma, c_woo, c_roo', b_mat)
     east_west_joint_run(xb, f_name+'nee_needn_lai/', 'nee, nee_day, nee_night, lai, clma', b_mat)
     east_west_joint_run(xb, f_name+'nee_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma, c_woo, c_roo', b_mat)
     #east_west_joint_run(xb, f_name+'nee_lai_cw_cr/', 'nee, lai, clma, c_woo, c_roo', b_mat)
-    #east_west_joint_run(xb, f_name+'nee_lai/', 'nee, lai, clma', b_mat)
+    east_west_joint_run(xb, f_name+'nee_lai/', 'nee, lai, clma', b_mat)
     #east_west_joint_run(xb, f_name+'neeconst_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma, c_woo, c_roo',
     #                    b_mat, rm='nee')
     return 'done!'
@@ -142,13 +142,13 @@ def east_west_joint_run(xb, f_name, obs_str, b_mat, rm='None'):
     # east data
     obs_east = ob_str_east_west(obs_str, 'east', rm_obs=rm)
     de = dc.DalecData(2015, 2016, obs_east,
-                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=0)
     de.B = b_mat
     # obs err scaling
     # west data
     obs_west = ob_str_east_west(obs_str, 'west', rm_obs=rm)
     dw = dc.DalecData(2015, 2016, obs_west,
-                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=0)
     dw.B = b_mat
     # obs err scaling
     # setup model
