@@ -257,6 +257,7 @@ def east_west_joint_run_prior(xb, f_name, obs_str, b_mat, rm='None'):
 def experiment_prior(f_name, b_mat, xb=d.xb_ew_lai_hi):
     east_west_joint_run_prior(xb, f_name+'nee/', 'nee, clma', b_mat)
     east_west_joint_run_prior(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
+    east_west_joint_run_prior(xb, f_name+'nee_needn/', 'nee, nee_day, nee_night, clma', b_mat)
     east_west_joint_run_prior(xb, f_name+'lai/', 'lai, clma', b_mat)
     east_west_joint_run_prior(xb, f_name+'needn_lai/', 'nee_day, nee_night, lai, clma', b_mat)
     east_west_joint_run_prior(xb, f_name+'nee_needn_lai/', 'nee, nee_day, nee_night, lai, clma', b_mat)
@@ -280,11 +281,12 @@ def experiment_prior_run(f_name):
 
 def experiment_prior_run2(f_name):
     # Construct B
-    b_cor = pickle.load(open('b_edc_cor.p', 'r'))
-    b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
-    b_std[0:17] = b_std[0:17]*0.5
-    D = np.zeros_like(b_cor)
-    np.fill_diagonal(D, b_std)
-    b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
+    #b_cor = pickle.load(open('b_edc_cor.p', 'r'))
+    #b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
+    #b_std[0:17] = b_std[0:17]*0.5
+    #D = np.zeros_like(b_cor)
+    #np.fill_diagonal(D, b_std)
+    #b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
+    b = pickle.load(open('b_edc.p', 'r'))
     experiment_prior(f_name, b, xb=d.edinburgh_median)
     return 'done!'
