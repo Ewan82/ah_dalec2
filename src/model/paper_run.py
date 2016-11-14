@@ -217,13 +217,13 @@ def east_west_joint_run_prior(xb, f_name, obs_str, b_mat, rm='None'):
     # east data
     obs_east = ob_str_east_west(obs_str, 'east', rm_obs=rm)
     de = dc.DalecData(2012, 2014, obs_east,
-                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=0)
     de.B = b_mat
     # obs err scaling
     # west data
     obs_west = ob_str_east_west(obs_str, 'west', rm_obs=rm)
     dw = dc.DalecData(2012, 2014, obs_west,
-                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=0)
     dw.B = b_mat
     # obs err scaling
     # setup model
@@ -260,4 +260,16 @@ def experiment_prior_run(f_name):
     np.fill_diagonal(D, b_std)
     b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
     experiment_prior(f_name, b, xb=d.xb_ew_lai_hi)
+    return 'done!'
+
+
+def experiment_prior_run2(f_name):
+    # Construct B
+    b_cor = pickle.load(open('b_edc_cor.p', 'r'))
+    b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
+    b_std[0:17] = b_std[0:17]*0.5
+    D = np.zeros_like(b_cor)
+    np.fill_diagonal(D, b_std)
+    b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
+    experiment_prior(f_name, b, xb=d.edinburgh_median)
     return 'done!'
