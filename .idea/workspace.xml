@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="37016db7-5123-4be0-aef3-a3a7a2de46ef" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/model/data_class.py" afterPath="$PROJECT_DIR$/src/model/data_class.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/model/paper_run.py" afterPath="$PROJECT_DIR$/src/model/paper_run.py" />
     </list>
     <ignored path="ah_dalec2.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -36,11 +37,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="data_class.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="data_class.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6259205">
-              <caret line="272" column="32" selection-start-line="272" selection-start-column="32" selection-end-line="272" selection-end-column="32" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="346" column="98" selection-start-line="346" selection-start-column="98" selection-end-line="346" selection-end-column="98" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -60,11 +61,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="paper_run.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="paper_run.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/model/paper_run.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="168" column="17" selection-start-line="168" selection-start-column="17" selection-end-line="168" selection-end-column="17" />
+            <state vertical-scroll-proportion="0.3490427">
+              <caret line="92" column="29" selection-start-line="92" selection-start-column="29" selection-end-line="92" selection-end-column="29" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -132,9 +133,9 @@
         <option value="$PROJECT_DIR$/alice_holt_data/ah_data_half_hourly_compress_test2.nc" />
         <option value="$PROJECT_DIR$/alice_holt_data/ah_nc_utils.py" />
         <option value="$PROJECT_DIR$/src/model/plot.py" />
-        <option value="$PROJECT_DIR$/src/model/paper_run.py" />
         <option value="$PROJECT_DIR$/src/model/experiment_run.py" />
         <option value="$PROJECT_DIR$/src/model/data_class.py" />
+        <option value="$PROJECT_DIR$/src/model/paper_run.py" />
       </list>
     </option>
   </component>
@@ -879,22 +880,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/paper_run.py">
+    <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="168" column="17" selection-start-line="168" selection-start-column="17" selection-end-line="168" selection-end-column="17" />
+          <caret line="346" column="98" selection-start-line="346" selection-start-column="98" selection-end-line="346" selection-end-column="98" />
           <folding>
-            <element signature="e#0#23#0" expanded="true" />
+            <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/data_class.py">
+    <entry file="file://$PROJECT_DIR$/src/model/paper_run.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6259205">
-          <caret line="272" column="32" selection-start-line="272" selection-start-column="32" selection-end-line="272" selection-end-column="32" />
+        <state vertical-scroll-proportion="0.3490427">
+          <caret line="92" column="29" selection-start-line="92" selection-start-column="29" selection-end-line="92" selection-end-column="29" />
           <folding>
-            <element signature="e#0#18#0" expanded="true" />
+            <element signature="e#0#23#0" expanded="true" />
           </folding>
         </state>
       </provider>

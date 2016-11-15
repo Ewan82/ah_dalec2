@@ -83,6 +83,22 @@ def experiment_bmat_ceff_fauto_ffol(f_name):
     return 'done!'
 
 
+def experiment_bmat_ceff_fauto_ffol_flab(f_name):
+    # Construct B
+    b_cor = pickle.load(open('b_edc_cor.p', 'r'))
+    b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
+    b_std[10] = 0.25*b_std[10]
+    b_std[1] = 0.25*b_std[1]
+    b_std[2] = 0.25*b_std[2] # Maybe get rid of this constraint
+    b_std[12] = 0.25*b_std[12]
+    b_std[0:17] = b_std[0:17]*0.5
+    D = np.zeros_like(b_cor)
+    np.fill_diagonal(D, b_std)
+    b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
+    experiment(f_name, b)
+    return 'done!'
+
+
 def experiment(f_name, b_mat, xb=d.xb_ew_lai_hi):
     #east_west_joint_run(xb, f_name+'nee/', 'nee, clma', b_mat)
     east_west_joint_run(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
