@@ -85,7 +85,7 @@ def experiment_bmat_ceff_fauto_ffol(f_name):
 
 def experiment(f_name, b_mat, xb=d.xb_ew_lai_hi):
     #east_west_joint_run(xb, f_name+'nee/', 'nee, clma', b_mat)
-    #east_west_joint_run(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
+    east_west_joint_run(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
     east_west_joint_run(xb, f_name+'nee_needn/', 'nee, nee_day, nee_night, clma', b_mat)
     #east_west_joint_run(xb, f_name+'lai/', 'lai, clma', b_mat)
     #east_west_joint_run(xb, f_name+'cw/', 'c_woo, clma', b_mat)
@@ -95,7 +95,7 @@ def experiment(f_name, b_mat, xb=d.xb_ew_lai_hi):
     east_west_joint_run(xb, f_name+'needn_lai_cw_cr/', 'nee_day, nee_night, lai, clma, c_woo, c_roo', b_mat)
     east_west_joint_run(xb, f_name+'nee_needn_lai/', 'nee, nee_day, nee_night, lai, clma', b_mat)
     east_west_joint_run(xb, f_name+'nee_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma, c_woo, c_roo', b_mat)
-    #east_west_joint_run(xb, f_name+'nee_lai_cw_cr/', 'nee, lai, clma, c_woo, c_roo', b_mat)
+    east_west_joint_run(xb, f_name+'nee_lai_cw_cr/', 'nee, lai, clma, c_woo, c_roo', b_mat)
     east_west_joint_run(xb, f_name+'nee_lai/', 'nee, lai, clma', b_mat)
     #east_west_joint_run(xb, f_name+'neeconst_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma, c_woo, c_roo',
     #                    b_mat, rm='nee')
@@ -157,13 +157,13 @@ def east_west_joint_run(xb, f_name, obs_str, b_mat, rm='None'):
     # east data
     obs_east = ob_str_east_west(obs_str, 'east', rm_obs=rm)
     de = dc.DalecData(2015, 2016, obs_east,
-                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=0)
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
     de.B = b_mat
     # obs err scaling
     # west data
     obs_west = ob_str_east_west(obs_str, 'west', rm_obs=rm)
     dw = dc.DalecData(2015, 2016, obs_west,
-                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=0)
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
     dw.B = b_mat
     # obs err scaling
     # setup model
@@ -198,6 +198,12 @@ def r_mat_corr(yerroblist, ytimestep, y_strlst, r_diag, corr=0.3, tau=1., cut_of
                         r_corr[i, j] = corr*np.exp(-(abs(float(ytimestep[i])-float(ytimestep[j]))**2)/float(tau)**2)
                     elif y_strlst[i] == 'nee_day' and y_strlst[j] == 'nee_night':
                         r_corr[i, j] = corr*np.exp(-(abs(float(ytimestep[i])-float(ytimestep[j]))**2)/float(tau)**2)
+        if y_strlst[i] == 'nee':
+            for j in xrange(len(ytimestep)):
+                if y_strlst[j] == 'nee':
+                    if abs(ytimestep[i]-ytimestep[j]) < cut_off:
+                        r_corr[i, j] = corr*np.exp(-(abs(float(ytimestep[i])-float(ytimestep[j]))**2)/float(tau)**2) \
+                                      + (1-corr)*smp.KroneckerDelta(ytimestep[i], ytimestep[j])
     r = np.dot(np.dot((np.sqrt(r_diag)), r_corr), np.sqrt(r_diag))
     return r_corr, r
 
