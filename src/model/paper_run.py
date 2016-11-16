@@ -139,16 +139,16 @@ def save_plots(f_name, xb, xa_east, xa_west, d_e, d_w, me, mw):
     ax, fig = p.plot_obs_east_west('ra', xa_east, xa_west, d_e, d_w)
     fig.savefig(f_name+'_ra.png', bbox_inches='tight')
 
-    ax, fig, cum_east, cum_west = p.plot_obs_east_west_cum('nee_day', xa_east, xa_west, d_e, d_w,
+    ax, fig = p.plot_obs_east_west_cum('nee_day', xa_east, xa_west, d_e, d_w,
                                      y_label='Cumulative NEE (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'nee_day_cum.png', bbox_inches='tight')
-    ax, fig, cum_east, cum_west = p.plot_obs_east_west_cum('nee', xa_east, xa_west, d_e, d_w,
+    ax, fig = p.plot_obs_east_west_cum('nee', xa_east, xa_west, d_e, d_w,
                                      y_label='Cumulative NEE (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'nee_cum.png', bbox_inches='tight')
-    ax, fig, cum_east, cum_west = p.plot_obs_east_west_cum('rt', xa_east, xa_west, d_e, d_w,
+    ax, fig = p.plot_obs_east_west_cum('rt', xa_east, xa_west, d_e, d_w,
                                      y_label='Cumulative ecosystem respiration (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'rt_cum.png', bbox_inches='tight')
-    ax, fig, cum_east, cum_west = p.plot_obs_east_west_cum('gpp', xa_east, xa_west, d_e, d_w,
+    ax, fig = p.plot_obs_east_west_cum('gpp', xa_east, xa_west, d_e, d_w,
                                      y_label='Cumulative GPP (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'gpp_cum.png', bbox_inches='tight')
 

@@ -232,7 +232,10 @@ def plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='N
         axes = plt.gca()
         axes.set_ylim(y_lim)
     plt.gcf().autofmt_xdate()
-    return ax, fig, cum_east, cum_west
+    if ob_std_e is not 0:
+        return ax, fig, cum_east, cum_west
+    else:
+        return ax, fig
 
 
 def plot_4dvar(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=None):
