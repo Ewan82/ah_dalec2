@@ -158,6 +158,11 @@ def save_plots(f_name, xb, xa_east, xa_west, d_e, d_w, me, mw):
     ax, fig = p.plot_table(xb, xa_east, xa_west)
     fig.savefig(f_name+'_table.png', bbox_inches='tight')
     # Plot error cov mats
+    b = d_e.B
+    a_east = me.acovmat(xa_east)
+    a_west = mw.acovmat(xa_west)
+    ax, fig = p.plot_var_red_east_west(b, a_east, a_west)
+    fig.savefig(f_name+'var_red.png', bbox_inches='tight')
     # ax, fig = p.plot_bmat(p.cov2cor(me.dC.B))
     # fig.savefig(f_name+'_bmat.png', bbox_inches='tight')
     ax, fig = p.plot_rmat(p.cov2cor(me.rmatrix))
