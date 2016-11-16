@@ -210,12 +210,14 @@ def plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='N
     if ob_std_e is not 0:
         ax.fill_between(d_e.dates, np.cumsum(obs_lst_e-ob_std_e), np.cumsum(obs_lst_e+ob_std_e), facecolor=palette[0],
                         alpha=0.5, linewidth=0.0)
-        print y_label+'_east', np.cumsum(obs_lst_e)[-1], np.cumsum(ob_std_e)[-1]
+        cum_east = y_label+'_east: ' + str(np.cumsum(obs_lst_e)[-1])+' +/- ' + str(np.cumsum(ob_std_e)[-1])
+        print cum_east
     ax.plot(d_w.dates, np.cumsum(obs_lst_w), color=palette[2], label='Thinned')
     if ob_std_w is not 0:
         ax.fill_between(d_w.dates, np.cumsum(obs_lst_w-ob_std_w), np.cumsum(obs_lst_w+ob_std_w), facecolor=palette[2],
                         alpha=0.5, linewidth=0.0)
-        print y_label+'_west', np.cumsum(obs_lst_w)[-1], np.cumsum(ob_std_w)[-1]
+        cum_west = y_label+'_west: ' + str(np.cumsum(obs_lst_w)[-1])+' +/- ' + str(np.cumsum(ob_std_w)[-1])
+        print cum_west
     if xb != 'None':
         mod_lst_xb = mw.mod_list(xb)
         obs_lst_xb = mw.oblist(ob, mod_lst_xb)
@@ -230,7 +232,7 @@ def plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='N
         axes = plt.gca()
         axes.set_ylim(y_lim)
     plt.gcf().autofmt_xdate()
-    return ax, fig
+    return ax, fig, cum_east, cum_west
 
 
 def plot_4dvar(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=None):

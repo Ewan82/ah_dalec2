@@ -346,6 +346,7 @@ def save_paper_plots(f_name, exp_name):
     a_east = me.acovmat(east['xa'])
     a_west = mw.acovmat(west['xa'])
 
+    annual_flux_lst = []
     ax, fig = p.plot_var_red_east_west(b, a_east, a_west)
     fig.savefig(f_name+'var_red.png', bbox_inches='tight')
 
@@ -355,21 +356,25 @@ def save_paper_plots(f_name, exp_name):
     ax, fig = p.plot_east_west_paper('nee_day', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label=r'NEE$_{day}$ (g C m$^{-2}$ day$^{-1}$)', y_lim=[-15, 5])
     fig.savefig(f_name+'nee_day.png', bbox_inches='tight')
-    ax, fig = p.plot_east_west_paper_cum('nee_day', east['xa'], west['xa'], de, dw, a_east, a_west,
+    ax, fig, cum_east, cum_west = p.plot_east_west_paper_cum('nee_day', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label='Cumulative NEE (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'nee_day_cum.png', bbox_inches='tight')
-    ax, fig = p.plot_east_west_paper_cum('nee', east['xa'], west['xa'], de, dw, a_east, a_west,
+    ax, fig, cum_east, cum_west = p.plot_east_west_paper_cum('nee', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label='Cumulative NEE (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'nee_cum.png', bbox_inches='tight')
+    annual_flux_lst.append(cum_east)
+    annual_flux_lst.append(cum_west)
     ax, fig = p.plot_east_west_paper('nee_night', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label=r'NEE$_{night}$ (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'nee_night.png', bbox_inches='tight')
     ax, fig = p.plot_east_west_paper('gpp', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label=r'Gross primary production (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'gpp.png', bbox_inches='tight')
-    ax, fig = p.plot_east_west_paper_cum('gpp', east['xa'], west['xa'], de, dw, a_east, a_west,
+    ax, fig, cum_east, cum_west = p.plot_east_west_paper_cum('gpp', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label='Cumulative GPP (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'gpp_cum.png', bbox_inches='tight')
+    annual_flux_lst.append(cum_east)
+    annual_flux_lst.append(cum_west)
     ax, fig = p.plot_east_west_paper('lai', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label=r'Leaf area index')
     fig.savefig(f_name+'lai.png', bbox_inches='tight')
@@ -383,9 +388,21 @@ def save_paper_plots(f_name, exp_name):
     ax, fig = p.plot_east_west_paper('rt', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label=r'Total ecosystem respiration (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'rt.png', bbox_inches='tight')
-    ax, fig = p.plot_east_west_paper_cum('rt', east['xa'], west['xa'], de, dw, a_east, a_west,
+    ax, fig, cum_east, cum_west = p.plot_east_west_paper_cum('rt', east['xa'], west['xa'], de, dw, a_east, a_west,
                                      y_label='Cumulative ecosystem respiration (g C m$^{-2}$ day$^{-1}$)')
     fig.savefig(f_name+'rt_cum.png', bbox_inches='tight')
+    annual_flux_lst.append(cum_east)
+    annual_flux_lst.append(cum_west)
     ax, fig = p.plot_inc_east_west(east['xb'], east['xa'], west['xa'])
     fig.savefig(f_name+'xa_inc.png', bbox_inches='tight')
+    f = open('annual_fluxes.txt', 'w')
+    for item in annual_flux_lst:
+        f.write("%s\n" % item)
+    f.close()
     return 'done!'
+
+
+def do_plots(f_name):
+    for item in ['nee_needn', 'nee_needn_lai', 'nee_needn_lai_cw']:
+        save_paper_plots(f_name+item+'_pp/', f_name+item+'/')
+    return 'done'
