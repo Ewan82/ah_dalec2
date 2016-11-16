@@ -317,6 +317,8 @@ def experiment_prior_run2(f_name):
 
 
 def save_paper_plots(f_name, exp_name):
+    if not os.path.exists(f_name):
+        os.makedirs(f_name)
     east = pickle.load(open(exp_name+'east_assim', 'r'))
     west = pickle.load(open(exp_name+'west_assim', 'r'))
     b = east['b_mat']
