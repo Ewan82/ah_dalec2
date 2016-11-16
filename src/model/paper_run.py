@@ -395,7 +395,7 @@ def save_paper_plots(f_name, exp_name):
     annual_flux_lst.append(cum_west)
     ax, fig = p.plot_inc_east_west(east['xb'], east['xa'], west['xa'])
     fig.savefig(f_name+'xa_inc.png', bbox_inches='tight')
-    f = open('annual_fluxes.txt', 'w')
+    f = open(f_name+'annual_fluxes.txt', 'w')
     for item in annual_flux_lst:
         f.write("%s\n" % item)
     f.close()
