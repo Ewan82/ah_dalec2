@@ -372,6 +372,36 @@ def plot_inc_east_west(xb, xa_east, xa_west):
     return ax, fig
 
 
+def plot_var_red_east_west(b_mat, a_cov_east, a_cov_west):
+    """Plot error between truth and xa/xb shows as a bar chart.
+    """
+    sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth': 1, 'lines.markersize': 10})
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 5))
+    sns.set_style('ticks')
+    n = 23
+    width = 0.35
+    ind = np.arange(n)
+    #fig = plt.figure()
+    #ax = fig.add_subplot(111)
+    xa_east = np.diag(a_cov_east)
+    xa_west = np.diag(a_cov_west)
+    xb = np.diag(b_mat)
+    rects1 = ax.bar(ind, -100*(xa_east-xb)/xb, width, color=sns.xkcd_rgb["faded green"],
+                    label='Unthinned')
+    rects2 = ax.bar(ind+width, -100*(xa_west-xb)/xb, width, color=sns.xkcd_rgb["pale red"],
+                    label='Thinned')
+    ax.set_ylabel('Reduction in error (%)')
+    #ax.set_title('% error in parameter values for xa and xb')
+    ax.set_xticks(ind+width)
+    keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
+            r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
+            r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
+            r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
+    ax.set_xticklabels(keys, rotation=90)
+    ax.legend(loc=2)
+    return ax, fig
+
+
 def plot_scatter_twin(ob, pvals, dC, awindl, bfa='a'):
     """Plots scatter plot of obs vs model predicted values. Takes an initial
     parameter set, a dataClass (must have only desired ob for comparison

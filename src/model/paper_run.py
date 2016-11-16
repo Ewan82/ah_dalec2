@@ -101,18 +101,18 @@ def experiment_bmat_ceff_fauto_ffol_flab(f_name):
 
 def experiment(f_name, b_mat, xb=d.xb_ew_lai_hi):
     #east_west_joint_run(xb, f_name+'nee/', 'nee, clma', b_mat)
-    east_west_joint_run(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
-    east_west_joint_run(xb, f_name+'nee_needn/', 'nee, nee_day, nee_night, clma', b_mat)
+    #east_west_joint_run(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
+    east_west_joint_run(xb, f_name+'nee_needn/', 'nee, nee_day, nee_night', b_mat)
     #east_west_joint_run(xb, f_name+'lai/', 'lai, clma', b_mat)
     #east_west_joint_run(xb, f_name+'cw/', 'c_woo, clma', b_mat)
-    east_west_joint_run(xb, f_name+'needn_lai/', 'nee_day, nee_night, lai, clma', b_mat)
+    #east_west_joint_run(xb, f_name+'needn_lai/', 'nee_day, nee_night, lai, clma', b_mat)
     #east_west_joint_run(xb, f_name+'needn_lai_cw/', 'nee_day, nee_night, lai, clma, c_woo', b_mat)
-    east_west_joint_run(xb, f_name+'needn_cw/', 'nee_day, nee_night, c_woo', b_mat)
-    east_west_joint_run(xb, f_name+'needn_lai_cw_cr/', 'nee_day, nee_night, lai, clma, c_woo, c_roo', b_mat)
+    #east_west_joint_run(xb, f_name+'needn_cw/', 'nee_day, nee_night, c_woo', b_mat)
+    #east_west_joint_run(xb, f_name+'needn_lai_cw_cr/', 'nee_day, nee_night, lai, clma, c_woo, c_roo', b_mat)
     east_west_joint_run(xb, f_name+'nee_needn_lai/', 'nee, nee_day, nee_night, lai, clma', b_mat)
-    east_west_joint_run(xb, f_name+'nee_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma, c_woo, c_roo', b_mat)
-    east_west_joint_run(xb, f_name+'nee_lai_cw_cr/', 'nee, lai, clma, c_woo, c_roo', b_mat)
-    east_west_joint_run(xb, f_name+'nee_lai/', 'nee, lai, clma', b_mat)
+    east_west_joint_run(xb, f_name+'nee_needn_lai_cw/', 'nee, nee_day, nee_night, lai, clma, c_woo', b_mat)
+    #east_west_joint_run(xb, f_name+'nee_lai_cw_cr/', 'nee, lai, clma, c_woo, c_roo', b_mat)
+    #east_west_joint_run(xb, f_name+'nee_lai/', 'nee, lai, clma', b_mat)
     #east_west_joint_run(xb, f_name+'neeconst_needn_lai_cw_cr/', 'nee, nee_day, nee_night, lai, clma, c_woo, c_roo',
     #                    b_mat, rm='nee')
     return 'done!'
@@ -313,4 +313,77 @@ def experiment_prior_run2(f_name):
     #b = 0.6*np.dot(np.dot(D, b_cor), D)  #*0.6
     b = pickle.load(open('b_edc.p', 'r'))
     experiment_prior(f_name, b, xb=d.edinburgh_median)
+    return 'done!'
+
+
+def save_paper_plots(f_name, exp_name):
+    east = pickle.load(open(exp_name+'east_assim', 'r'))
+    west = pickle.load(open(exp_name+'west_assim', 'r'))
+    b = east['b_mat']
+    # east data
+    de = dc.DalecData(2015, 2016, 'clma',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
+    de.B = b
+    de.ob_dict = east['obs']
+    de.ob_err_dict = east['obs_err']
+    # obs err scaling
+    # west data
+    dw = dc.DalecData(2015, 2016, 'clma',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
+    dw.B = b
+    dw.ob_dict = west['obs']
+    dw.ob_err_dict = west['obs_err']
+    # obs err scaling
+    # setup model
+    me = mc.DalecModel(de)
+    me.rmatrix = r_mat_corr(me.yerroblist, me.ytimestep, me.y_strlst, me.rmatrix, corr=0.3, tau=2.)[1]
+    mw = mc.DalecModel(dw)
+    mw.rmatrix = r_mat_corr(mw.yerroblist, mw.ytimestep, mw.y_strlst, mw.rmatrix, corr=0.3, tau=2.)[1]
+    # a_east = pickle.load(open('a_east.p', 'r'))
+    # a_west = pickle.load(open('a_west.p', 'r'))
+    a_east = me.acovmat(east['xa'])
+    a_west = mw.acovmat(west['xa'])
+
+    ax, fig = p.plot_var_red_east_west(b, a_east, a_west)
+    fig.savefig(f_name+'var_red.png', bbox_inches='tight')
+
+    ax, fig = p.plot_east_west_paper('rh', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label=r'Heterotrophic respiration (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'rh.png', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper('nee_day', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label=r'NEE$_{day}$ (g C m$^{-2}$ day$^{-1}$)', y_lim=[-15, 5])
+    fig.savefig(f_name+'nee_day.png', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper_cum('nee_day', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label='Cumulative NEE (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'nee_day_cum.png', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper_cum('nee', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label='Cumulative NEE (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'nee_cum.png', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper('nee_night', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label=r'NEE$_{night}$ (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'nee_night.png', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper('gpp', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label=r'Gross primary production (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'gpp.png', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper_cum('gpp', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label='Cumulative GPP (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'gpp_cum.png', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper('lai', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label=r'Leaf area index')
+    fig.savefig(f_name+'lai.png', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper('c_woo', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label=r'Woody biomass and coarse root carbon (g C m$^{-2}$)',
+                                     y_lim=[9000, 14500])
+    fig.savefig(f_name+'c_woo.png', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper('ra', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label=r'Autotrophic respiration (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'ra.png', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper('rt', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label=r'Total ecosystem respiration (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'rt.png', bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper_cum('rt', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     y_label='Cumulative ecosystem respiration (g C m$^{-2}$ day$^{-1}$)')
+    fig.savefig(f_name+'rt_cum.png', bbox_inches='tight')
+    ax, fig = p.plot_inc_east_west(east['xb'], east['xa'], west['xa'])
+    fig.savefig(f_name+'xa_inc.png', bbox_inches='tight')
     return 'done!'
