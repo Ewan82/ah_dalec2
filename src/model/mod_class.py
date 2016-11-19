@@ -319,8 +319,7 @@ class DalecModel():
     def soilresp(self, p):
         """Function calculates soil respiration (soilresp). (heterotrophic)
         """
-        soilresp = p[8]*p[22]*self.temp_term(p[9], self.dC.t_mean[self.x]) + \
-                   (1./3.)*p[1]*self.acm(p[18], p[16], p[10], self.dC.acm)
+        soilresp = p[8]*p[22]*self.temp_term(p[9], self.dC.t_mean[self.x])
         return soilresp
 
     def groundresp(self, p):
@@ -1146,6 +1145,7 @@ class DalecModel():
         exp['xb'] = xb
         exp['assim_res'] = assim_res
         exp['xa'] = xa
+        exp['rmat'] = self.rmatrix
         f = open(f_name, 'w')
         pickle.dump(exp, f)
         f.close()

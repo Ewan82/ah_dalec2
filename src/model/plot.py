@@ -145,12 +145,18 @@ def plot_obs(ob, pvals, dC):
     return ax, fig
 
 
-def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None', ob_std_e=0, ob_std_w=0, y_lim='None'):
+def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None', ob_std_e=0, ob_std_w=0, y_lim='None',
+                       axes='None'):
     """Plots a specified observation using obs eqn in obs module. Takes an
     observation string, a dataClass (dC) and a start and finish point.
     """
     sns.set_context(rc={'lines.linewidth': .8, 'lines.markersize': 6})
-    fig, ax = plt.subplots(nrows=1, ncols=1)
+    if axes == 'None':
+        fig, ax = plt.subplots(nrows=1, ncols=1)
+        ret_val = ax, fig
+    else:
+        ax = axes
+        ret_val = ax
     me = mc.DalecModel(d_e)
     mw = mc.DalecModel(d_w)
     mod_lst_e = me.mod_list(xa_east)
@@ -187,7 +193,7 @@ def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None'
         axes = plt.gca()
         axes.set_ylim(y_lim)
     plt.gcf().autofmt_xdate()
-    return ax, fig
+    return ret_val
 
 
 def plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None', ob_std_e=0, ob_std_w=0,
@@ -236,6 +242,109 @@ def plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='N
         return ax, fig, cum_east, cum_west
     else:
         return ax, fig
+
+
+def plot_obs_east_west_cum_part(xa_east, xa_west, d_e, d_w, ob_std_e, ob_std_w, y_label='None', xb='None',
+                                y_lim='None'):
+    """Plots a specified observation using obs eqn in obs module. Takes an
+    observation string, a dataClass (dC) and a start and finish point.
+    """
+    sns.set_context(rc={'lines.linewidth': .8, 'lines.markersize': 6})
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    me = mc.DalecModel(d_e)
+    mw = mc.DalecModel(d_w)
+    mod_lst_e = me.mod_list(xa_east)
+    nee_lst_e = me.oblist('nee', mod_lst_e)
+    gpp_lst_e = me.oblist('gpp', mod_lst_e)
+    rt_lst_e = me.oblist('rt', mod_lst_e)
+    mod_lst_w = mw.mod_list(xa_west)
+    nee_lst_w = mw.oblist('nee', mod_lst_w)
+    gpp_lst_w = me.oblist('gpp', mod_lst_w)
+    rt_lst_w = me.oblist('rt', mod_lst_w)
+
+    palette = sns.color_palette("colorblind", 11)
+
+    ax.plot(d_e.dates, np.cumsum(nee_lst_e), color=palette[0], label='Unthinned')
+    ax.fill_between(d_e.dates, np.cumsum(nee_lst_e-ob_std_e[0]), np.cumsum(nee_lst_e+ob_std_e[0]), facecolor=palette[0],
+                        alpha=0.5, linewidth=0.0)
+    ax.plot(d_e.dates, -np.cumsum(gpp_lst_e), '--', color=palette[0])
+    ax.fill_between(d_e.dates, -np.cumsum(gpp_lst_e-ob_std_e[1]), -np.cumsum(gpp_lst_e+ob_std_e[1]), facecolor=palette[0],
+                        alpha=0.5, linewidth=0.0)
+    ax.plot(d_e.dates, np.cumsum(rt_lst_e), ':', color=palette[0])
+    ax.fill_between(d_e.dates, np.cumsum(rt_lst_e-ob_std_e[2]), np.cumsum(rt_lst_e+ob_std_e[2]), facecolor=palette[0],
+                        alpha=0.5, linewidth=0.0)
+
+    ax.plot(d_w.dates, np.cumsum(nee_lst_w), color=palette[2], label='Thinned')
+    ax.fill_between(d_w.dates, np.cumsum(nee_lst_w-ob_std_w[0]), np.cumsum(nee_lst_w+ob_std_w[0]), facecolor=palette[2],
+                        alpha=0.5, linewidth=0.0)
+    ax.plot(d_e.dates, -np.cumsum(gpp_lst_w), '--', color=palette[2])
+    ax.fill_between(d_e.dates, -np.cumsum(gpp_lst_w-ob_std_w[1]), -np.cumsum(gpp_lst_w+ob_std_w[1]), facecolor=palette[2],
+                        alpha=0.5, linewidth=0.0)
+    ax.plot(d_e.dates, np.cumsum(rt_lst_w), ':', color=palette[2])
+    ax.fill_between(d_e.dates, np.cumsum(rt_lst_w-ob_std_w[2]), np.cumsum(rt_lst_w+ob_std_w[2]), facecolor=palette[2],
+                        alpha=0.5, linewidth=0.0)
+
+    plt.legend(loc=2)
+    ax.set_xlabel('Date')
+    if y_label == 'None':
+        ax.set_ylabel('NEE partitioning')
+    else:
+        ax.set_ylabel(y_label)
+    if y_lim != 'None':
+        axes = plt.gca()
+        axes.set_ylim(y_lim)
+    plt.gcf().autofmt_xdate()
+    return ax, fig
+
+
+def plot_obs_east_west_part(xa, d, y_lim='None', axes='None'):
+    """Plots a specified observation using obs eqn in obs module. Takes an
+    observation string, a dataClass (dC) and a start and finish point.
+    """
+    sns.set_context(rc={'lines.linewidth': .8, 'lines.markersize': 6})
+    if axes == 'None':
+        fig, ax = plt.subplots(nrows=1, ncols=1)
+        ret_val = ax, fig
+    else:
+        ax = axes
+        ret_val = ax
+    m = mc.DalecModel(d)
+    mod_lst = m.mod_list(xa)
+    soilr_lst = m.oblist('soilresp', mod_lst)
+    litr_lst = m.oblist('litresp', mod_lst)
+    autor_lst = m.oblist('ra', mod_lst)
+    gpp_lst = m.oblist('gpp', mod_lst)
+    rt_lst = m.oblist('rt', mod_lst)
+
+    palette = sns.color_palette("colorblind", 11)
+
+    ax.stackplot(d.dates, np.cumsum(soilr_lst), np.cumsum(litr_lst), np.cumsum(autor_lst),
+                 colors=(palette[0], palette[1], palette[2]),)
+    ax.text(d.dates[-90], 50, 'Soil respiration', color='w')
+    ax.text(d.dates[-100], 350, 'Litter respiration', color='w')
+    ax.text(d.dates[-120], 940, 'Autotrohpic respiration', color='w')
+    #ax.stackplot(d.dates, -np.cumsum(gpp_lst), color=palette[4])
+    ax.set_xlabel('Date')
+    ax.set_ylabel(r'Cumulative respiration partitioning (g C m$^{-2}$)')
+    ax.set_ylim([0, 1800])
+    plt.gcf().autofmt_xdate()
+    return ret_val
+
+
+def part_plot(xa_east, xa_west, d_e, d_w):
+    sns.set_context('poster', font_scale=1., rc={'lines.linewidth': .8, 'lines.markersize': 1.})
+    sns.set_style('whitegrid')
+    f, ((ax1, ax2)) = plt.subplots(1, 2)
+    # Observed values
+    plot_obs_east_west_part(xa_east, d_e, axes=ax1)
+    ax1.set_title(r'a) Unthinned side')#, y=1.06)
+
+    plot_obs_east_west_part(xa_west, d_w, axes=ax2)
+    ax2.set_title(r'b) Thinned side')#, y=1.06)
+
+    f.tight_layout()
+    #f.subplots_adjust(hspace=.5)
+    return f
 
 
 def plot_4dvar(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=None):
@@ -331,6 +440,7 @@ def plot_a_inc(xb, xa, lab='a_inc'):
     sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth':1, 'lines.markersize':10})
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15,5))
     sns.set_style('ticks')
+
     n = 23
     width = 0.5
     ind = np.arange(n)
@@ -356,6 +466,7 @@ def plot_inc_east_west(xb, xa_east, xa_west):
     sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth': 1, 'lines.markersize': 10})
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 5))
     sns.set_style('ticks')
+    palette = sns.color_palette("colorblind", 11)
     n = 23
     width = 0.35
     ind = np.arange(n)
@@ -383,6 +494,7 @@ def plot_var_red_east_west(b_mat, a_cov_east, a_cov_west):
     sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth': 1, 'lines.markersize': 10})
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 5))
     sns.set_style('ticks')
+    palette = sns.color_palette("colorblind", 11)
     n = 23
     width = 0.35
     ind = np.arange(n)
@@ -415,7 +527,7 @@ def plot_scatter_twin(ob, pvals, dC, awindl, bfa='a'):
     """
     sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth': 1., 'lines.markersize': 6.})
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 10))
-    sns.set_style('ticks')
+    #sns.set_style('ticks')
     palette = sns.color_palette("colorblind", 11)
     m = mc.DalecModel(dC)
     mod_lst = m.mod_list(pvals)
@@ -508,7 +620,7 @@ def plottwinerr(truth, xb, xa, xb_lab='xb', xa_lab='xa'):
     """
     sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth': 1, 'lines.markersize': 10})
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15,5))
-    sns.set_style('ticks')
+    #sns.set_style('ticks')
     n = 23
     width = 0.35
     ind = np.arange(n)
@@ -531,7 +643,7 @@ def plot_a_inc_all(xb, xadiag, xaedc, xarcor, xaedcrcor):
     """
     sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth':1, 'lines.markersize':10})
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15,5))
-    sns.set_style('ticks')
+    #sns.set_style('ticks')
     n = 23
     width = 0.22
     ind = np.arange(n)
@@ -638,7 +750,7 @@ def plot_gaussian_dist(mu, sigma, bounds, xt=None, axx=None):
 def plot_many_guassian(mulst, siglst, bndlst, mulst2=None, siglst2=None, truth=None):
     matplotlib.rcParams.update({'figure.autolayout': True})
     sns.set_context('paper')
-    sns.set_style('ticks')
+    #sns.set_style('ticks')
     # define the figure size and grid layout properties
     figsize = (15, 10)
     cols = 5
@@ -705,25 +817,40 @@ def plot_bmat(bmat):
 
 # Paper Plots disturbance
 
-def plot_east_west_paper(ob, xa_east, xa_west, d_e, d_w, acov_e, acov_w, y_label='None', y_lim='None'):
-    e_ens = create_ensemble(d_e, acov_e, xa_east)
-    w_ens = create_ensemble(d_w, acov_w, xa_west)
-    ob_ens_e = ob_ensemble(d_e, e_ens, ob)
-    ob_ens_w = ob_ensemble(d_w, w_ens, ob)
+def plot_east_west_paper(ob, xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label='None', y_lim='None', axes='None'):
+    ob_ens_e = ob_plist(d_e, e_ens, ob)
+    ob_ens_w = ob_plist(d_w, w_ens, ob)
     ob_std_e = ob_mean_std(ob_ens_e)[1]
     ob_std_w = ob_mean_std(ob_ens_w)[1]
     return plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label=y_label, ob_std_e=ob_std_e, ob_std_w=ob_std_w,
-                              y_lim=y_lim)
+                              y_lim=y_lim, axes=axes)
 
 
-def plot_east_west_paper_cum(ob, xa_east, xa_west, d_e, d_w, acov_e, acov_w, y_label='None', y_lim='None'):
-    e_ens = create_ensemble(d_e, acov_e, xa_east)
-    w_ens = create_ensemble(d_w, acov_w, xa_west)
-    ob_ens_e = ob_ensemble(d_e, e_ens, ob)
-    ob_ens_w = ob_ensemble(d_w, w_ens, ob)
+def plot_east_west_paper_cum(ob, xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label='None', y_lim='None'):
+    ob_ens_e = ob_plist(d_e, e_ens, ob)
+    ob_ens_w = ob_plist(d_w, w_ens, ob)
     ob_std_e = ob_mean_std(ob_ens_e)[1]
     ob_std_w = ob_mean_std(ob_ens_w)[1]
     return plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label=y_label, ob_std_e=ob_std_e, ob_std_w=ob_std_w,
+                              y_lim=y_lim)
+
+
+def plot_east_west_paper_part(xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label='NEE partitioning', y_lim='None'):
+    nee_ens_e = ob_plist(d_e, e_ens, 'nee')
+    nee_ens_w = ob_plist(d_w, w_ens, 'nee')
+    gpp_ens_e = ob_plist(d_e, e_ens, 'gpp')
+    gpp_ens_w = ob_plist(d_w, w_ens, 'gpp')
+    rt_ens_e = ob_plist(d_e, e_ens, 'rt')
+    rt_ens_w = ob_plist(d_w, w_ens, 'rt')
+    ob_std_e = []
+    ob_std_w = []
+    ob_std_e.append(ob_mean_std(nee_ens_e)[1])
+    ob_std_w.append(ob_mean_std(nee_ens_w)[1])
+    ob_std_e.append(ob_mean_std(gpp_ens_e)[1])
+    ob_std_w.append(ob_mean_std(gpp_ens_w)[1])
+    ob_std_e.append(ob_mean_std(rt_ens_e)[1])
+    ob_std_w.append(ob_mean_std(rt_ens_w)[1])
+    return plot_obs_east_west_cum_part(xa_east, xa_west, d_e, d_w, ob_std_e, ob_std_w, y_label=y_label,
                               y_lim=y_lim)
 
 
@@ -765,6 +892,23 @@ def create_ensemble(dC, covmat, pvals):
             else:
                 continue
     return ensemble
+
+
+def plist_ens(dC, ensemble):
+    m = mc.DalecModel(dC)
+    plist_ens = np.ones((len(ensemble), len(dC.I), 23))
+    for pvals in enumerate(ensemble):
+        plist = m.mod_list(pvals[1])
+        plist_ens[pvals[0]] = plist[0:-1]
+    return plist_ens
+
+
+def ob_plist(dC, plist_ens, ob):
+    m = mc.DalecModel(dC)
+    ob_ens = np.ones((len(plist_ens), len(dC.I)))
+    for pvals in enumerate(plist_ens):
+        ob_ens[pvals[0]] = m.oblist(ob, pvals[1])
+    return ob_ens
 
 
 def ob_ensemble(dC, ensemble, ob):

@@ -6,6 +6,8 @@ import plot as p
 import re
 import os
 import pickle
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 d = dc.DalecData(2015, 2016, 'clma', nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=0)
@@ -91,10 +93,27 @@ def experiment_bmat_ceff_fauto_ffol_flab(f_name):
     b_std[1] = 0.25*b_std[1]
     b_std[2] = 0.25*b_std[2] # Maybe get rid of this constraint
     b_std[12] = 0.25*b_std[12]
-    b_std[0:17] = b_std[0:17]*0.5
+    b_std[0:17] = b_std[0:17]
     D = np.zeros_like(b_cor)
     np.fill_diagonal(D, b_std)
-    b = 0.8*np.dot(np.dot(D, b_cor), D)  #*0.6
+    b = np.dot(np.dot(D, b_cor), D)*0.6
+    experiment(f_name, b)
+    return 'done!'
+
+
+def experiment_bmat_ceff_fauto_ffol_flab2(f_name):
+    # Construct B
+    b_cor = pickle.load(open('b_edc_cor.p', 'r'))
+    b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
+    b_std[10] = 0.2*b_std[10]
+    b_std[1] = 0.2*b_std[1]
+    #b_std[2] = 0.2*b_std[2] # Maybe get rid of this constraint
+    #b_std[9] = 0.2*b_std[9]
+    #b_std[12] = 0.2*b_std[12]
+    #b_std[0:17] = b_std[0:17]
+    D = np.zeros_like(b_cor)
+    np.fill_diagonal(D, b_std)
+    b = np.dot(np.dot(D, b_cor), D)*0.5
     experiment(f_name, b)
     return 'done!'
 
@@ -321,12 +340,12 @@ def experiment_prior_run2(f_name):
     return 'done!'
 
 
-def save_paper_plots(f_name, exp_name):
+def save_paper_plots(f_name, exp_name, f_typ='pdf'):
     if not os.path.exists(f_name):
         os.makedirs(f_name)
     east = pickle.load(open(exp_name+'east_assim', 'r'))
     west = pickle.load(open(exp_name+'west_assim', 'r'))
-    b = east['b_mat']
+    b = 1.5*east['b_mat']
     # east data
     de = dc.DalecData(2015, 2016, 'clma',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
@@ -350,60 +369,128 @@ def save_paper_plots(f_name, exp_name):
     # a_west = pickle.load(open('a_west.p', 'r'))
     a_east = me.acovmat(east['xa'])
     a_west = mw.acovmat(west['xa'])
+    e_ens = p.create_ensemble(de, a_east, east['xa'])
+    w_ens = p.create_ensemble(de, a_west, west['xa'])
+    p_e_ens = p.plist_ens(de, e_ens)
+    p_w_ens = p.plist_ens(dw, w_ens)
 
     annual_flux_lst = []
-    ax, fig = p.plot_var_red_east_west(b, a_east, a_west)
-    fig.savefig(f_name+'var_red.png', bbox_inches='tight')
+    # set context
+    sns.set_context('poster', font_scale=1., rc={'lines.linewidth': .8, 'lines.markersize': 1.})
+    sns.set_style('whitegrid')
 
-    ax, fig = p.plot_east_west_paper('rh', east['xa'], west['xa'], de, dw, a_east, a_west,
+    # joint plots
+    ax, fig = p.plot_east_west_paper_part(east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'Cumulative NEE partitioning (g C m$^{-2}$)')
+    fig.savefig(f_name+'nee_cum_part.'+f_typ, bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west_part(east['xa'], de)
+    fig.savefig(f_name+'resp_part_e.'+f_typ, bbox_inches='tight')
+    ax, fig = p.plot_obs_east_west_part(west['xa'], de)
+    fig.savefig(f_name+'resp_part_w.'+f_typ, bbox_inches='tight')
+
+    f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
+    # Observed values
+    p.plot_east_west_paper('nee_day', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'NEE$_{day}$ (g C m$^{-2}$ day$^{-1}$)', y_lim=[-15, 5], axes=ax1)
+    ax1.set_title(r'a) Daytime NEE')#, y=1.06)
+    p.plot_east_west_paper('nee_night', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'NEE$_{night}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax2)
+    ax2.set_title(r'b) Nighttime NEE')#, y=1.06)
+    p.plot_east_west_paper('lai', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'Leaf area index', axes=ax3)
+    ax3.set_title(r'c) Leaf area index')#, y=1.06)
+    p.plot_east_west_paper('c_woo', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'C$_{woo}$ (g C m$^{-2}$)',
+                                     y_lim=[1800, 15000], axes=ax4)  # [9000, 14500][3000, 14500]
+    ax4.set_title(r'd) Woody and coarse root carbon')#, y=1.06)
+    f.tight_layout()
+    #f.subplots_adjust(hspace=.5)
+    f.savefig(f_name+'obs_comp.'+f_typ) #, bbox_inches='tight')
+    """
+    f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
+    # Fluxes
+    p.plot_east_west_paper('gpp', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'GPP (g C m$^{-2}$ day$^{-1}$)', axes=ax1)
+    ax1.set_title(r'a) Gross primary productivity')#, y=1.06)
+
+    p.plot_east_west_paper('rt', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'R$_{eco}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax2)
+    ax2.set_title(r'b) Total ecosystem respiration')#, y=1.06)
+
+    p.plot_east_west_paper('ra', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'R$_{a}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax3)
+    ax3.set_title(r'c) Autotrophic respiration')#, y=1.06)
+
+    p.plot_east_west_paper('rh', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'R$_{h}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax4)
+    ax4.set_title(r'd) Heterotrophic respiration')#, y=1.06)
+    f.tight_layout()
+    #f.subplots_adjust(hspace=.5)
+    f.savefig(f_name+'flux_comp.'+f_typ)
+
+    # std dev reduction
+    ax, fig = p.plot_var_red_east_west(b, a_east, a_west)
+    fig.savefig(f_name+'var_red.'+f_typ, bbox_inches='tight')
+
+    sns.set_style('whitegrid')
+    ax, fig = p.plot_east_west_paper_part(east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label='Cumulative NEE partitioning (g C m$^{-2}$)')
+    fig.savefig(f_name+'nee_cum_part.'+f_typ, bbox_inches='tight')
+
+    ax, fig = p.plot_east_west_paper('rh', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
                                      y_label=r'Heterotrophic respiration (g C m$^{-2}$ day$^{-1}$)')
-    fig.savefig(f_name+'rh.png', bbox_inches='tight')
-    ax, fig = p.plot_east_west_paper('nee_day', east['xa'], west['xa'], de, dw, a_east, a_west,
+    fig.savefig(f_name+'rh.'+f_typ, bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper('nee_day', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
                                      y_label=r'NEE$_{day}$ (g C m$^{-2}$ day$^{-1}$)', y_lim=[-15, 5])
-    fig.savefig(f_name+'nee_day.png', bbox_inches='tight')
-    ax, fig, cum_east, cum_west = p.plot_east_west_paper_cum('nee_day', east['xa'], west['xa'], de, dw, a_east, a_west,
-                                     y_label='Cumulative NEE (g C m$^{-2}$ day$^{-1}$)')
-    fig.savefig(f_name+'nee_day_cum.png', bbox_inches='tight')
-    ax, fig, cum_east, cum_west = p.plot_east_west_paper_cum('nee', east['xa'], west['xa'], de, dw, a_east, a_west,
-                                     y_label='Cumulative NEE (g C m$^{-2}$ day$^{-1}$)')
-    fig.savefig(f_name+'nee_cum.png', bbox_inches='tight')
+    fig.savefig(f_name+'nee_day.'+f_typ, bbox_inches='tight')
+    # ax, fig, cum_east, cum_west = p.plot_east_west_paper_cum('nee_day', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+    #                                 y_label='Cumulative NEE (g C m$^{-2}$ day$^{-1}$)')
+    # fig.savefig(f_name+'nee_day_cum.png', bbox_inches='tight')
+    ax, fig, cum_east, cum_west = p.plot_east_west_paper_cum('nee', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label='Cumulative NEE (g C m$^{-2}$)')
+    fig.savefig(f_name+'nee_cum.'+f_typ, bbox_inches='tight')
     annual_flux_lst.append(cum_east)
     annual_flux_lst.append(cum_west)
-    ax, fig = p.plot_east_west_paper('nee_night', east['xa'], west['xa'], de, dw, a_east, a_west,
+    ax, fig = p.plot_east_west_paper('nee_night', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
                                      y_label=r'NEE$_{night}$ (g C m$^{-2}$ day$^{-1}$)')
-    fig.savefig(f_name+'nee_night.png', bbox_inches='tight')
-    ax, fig = p.plot_east_west_paper('gpp', east['xa'], west['xa'], de, dw, a_east, a_west,
+    fig.savefig(f_name+'nee_night.'+f_typ, bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper('gpp', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
                                      y_label=r'Gross primary production (g C m$^{-2}$ day$^{-1}$)')
-    fig.savefig(f_name+'gpp.png', bbox_inches='tight')
-    ax, fig, cum_east, cum_west = p.plot_east_west_paper_cum('gpp', east['xa'], west['xa'], de, dw, a_east, a_west,
-                                     y_label='Cumulative GPP (g C m$^{-2}$ day$^{-1}$)')
-    fig.savefig(f_name+'gpp_cum.png', bbox_inches='tight')
+    fig.savefig(f_name+'gpp.'+f_typ, bbox_inches='tight')
+    ax, fig, cum_east, cum_west = p.plot_east_west_paper_cum('gpp', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label='Cumulative GPP (g C m$^{-2}$)')
+    fig.savefig(f_name+'gpp_cum.'+f_typ, bbox_inches='tight')
     annual_flux_lst.append(cum_east)
     annual_flux_lst.append(cum_west)
-    ax, fig = p.plot_east_west_paper('lai', east['xa'], west['xa'], de, dw, a_east, a_west,
+    ax, fig = p.plot_east_west_paper('lai', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
                                      y_label=r'Leaf area index')
-    fig.savefig(f_name+'lai.png', bbox_inches='tight')
-    ax, fig = p.plot_east_west_paper('c_woo', east['xa'], west['xa'], de, dw, a_east, a_west,
+    fig.savefig(f_name+'lai.'+f_typ, bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper('c_woo', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
                                      y_label=r'Woody biomass and coarse root carbon (g C m$^{-2}$)',
-                                     y_lim=[9000, 14500])
-    fig.savefig(f_name+'c_woo.png', bbox_inches='tight')
-    ax, fig = p.plot_east_west_paper('ra', east['xa'], west['xa'], de, dw, a_east, a_west,
+                                     )#y_lim=[9000, 14500])
+    fig.savefig(f_name+'c_woo.'+f_typ, bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper('ra', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
                                      y_label=r'Autotrophic respiration (g C m$^{-2}$ day$^{-1}$)')
-    fig.savefig(f_name+'ra.png', bbox_inches='tight')
-    ax, fig = p.plot_east_west_paper('rt', east['xa'], west['xa'], de, dw, a_east, a_west,
+    fig.savefig(f_name+'ra.'+f_typ, bbox_inches='tight')
+    ax, fig = p.plot_east_west_paper('rt', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
                                      y_label=r'Total ecosystem respiration (g C m$^{-2}$ day$^{-1}$)')
-    fig.savefig(f_name+'rt.png', bbox_inches='tight')
-    ax, fig, cum_east, cum_west = p.plot_east_west_paper_cum('rt', east['xa'], west['xa'], de, dw, a_east, a_west,
-                                     y_label='Cumulative ecosystem respiration (g C m$^{-2}$ day$^{-1}$)')
-    fig.savefig(f_name+'rt_cum.png', bbox_inches='tight')
+    fig.savefig(f_name+'rt.'+f_typ, bbox_inches='tight')
+    ax, fig, cum_east, cum_west = p.plot_east_west_paper_cum('rt', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label='Cumulative ecosystem respiration (g C m$^{-2}$)')
+    fig.savefig(f_name+'rt_cum.'+f_typ, bbox_inches='tight')
     annual_flux_lst.append(cum_east)
     annual_flux_lst.append(cum_west)
     ax, fig = p.plot_inc_east_west(east['xb'], east['xa'], west['xa'])
-    fig.savefig(f_name+'xa_inc.png', bbox_inches='tight')
+    fig.savefig(f_name+'xa_inc.'+f_typ, bbox_inches='tight')
+    ax, fig = p.plot_rmat(p.cov2cor(east['rmat']))
+    fig.savefig(f_name+'rmat_east.pdf', bbox_inches='tight')
+    ax, fig = p.plot_rmat(p.cov2cor(west['rmat']))
+    fig.savefig(f_name+'rmat_west.pdf', bbox_inches='tight')
     f = open(f_name+'annual_fluxes.txt', 'w')
     for item in annual_flux_lst:
         f.write("%s\n" % item)
     f.close()
+    """
     return 'done!'
 
 
@@ -411,3 +498,88 @@ def do_plots(f_name):
     for item in ['nee_needn', 'nee_needn_lai', 'nee_needn_lai_cw']:
         save_paper_plots(f_name+item+'_pp/', f_name+item+'/')
     return 'done'
+
+
+def save_paper_plots_test(f_name, exp_name):
+    if not os.path.exists(f_name):
+        os.makedirs(f_name)
+    east = pickle.load(open(exp_name+'east_assim', 'r'))
+    west = pickle.load(open(exp_name+'west_assim', 'r'))
+    b = east['b_mat']
+    # east data
+    de = dc.DalecData(2015, 2016, 'clma',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
+    de.B = b
+    de.ob_dict = east['obs']
+    de.ob_err_dict = east['obs_err']
+    # obs err scaling
+    # west data
+    dw = dc.DalecData(2015, 2016, 'clma',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
+    dw.B = b
+    dw.ob_dict = west['obs']
+    dw.ob_err_dict = west['obs_err']
+    # obs err scaling
+    # setup model
+    me = mc.DalecModel(de)
+    me.rmatrix = r_mat_corr(me.yerroblist, me.ytimestep, me.y_strlst, me.rmatrix, corr=0.3, tau=2.)[1]
+    mw = mc.DalecModel(dw)
+    mw.rmatrix = r_mat_corr(mw.yerroblist, mw.ytimestep, mw.y_strlst, mw.rmatrix, corr=0.3, tau=2.)[1]
+    # a_east = pickle.load(open('a_east.p', 'r'))
+    # a_west = pickle.load(open('a_west.p', 'r'))
+    a_east = me.acovmat(east['xa'])
+    a_west = mw.acovmat(west['xa'])
+    e_ens = p.create_ensemble(de, a_east, east['xa'])
+    w_ens = p.create_ensemble(de, a_west, west['xa'])
+    p_e_ens = p.plist_ens(de, e_ens)
+    p_w_ens = p.plist_ens(dw, w_ens)
+
+    ax, fig = p.plot_var_red_east_west(b, a_east, a_west)
+    fig.savefig(f_name+'var_red.png', bbox_inches='tight')
+    sns.set_context('poster', font_scale=1., rc={'lines.linewidth': .8, 'lines.markersize': 1.})
+    sns.set_style('whitegrid')
+
+    ax, fig = p.plot_east_west_paper_part(east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label='Cumulative NEE partitioning (g C m$^{-2}$)')
+    fig.savefig(f_name+'nee_cum_part.png', bbox_inches='tight')
+
+    f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
+    # Observed values
+    p.plot_east_west_paper('nee_day', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'NEE$_{day}$ (g C m$^{-2}$ day$^{-1}$)', y_lim=[-15, 5], axes=ax1)
+    ax1.set_title(r'a) Daytime NEE')#, y=1.06)
+    p.plot_east_west_paper('nee_night', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'NEE$_{night}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax2)
+    ax2.set_title(r'b) Nighttime NEE')#, y=1.06)
+    p.plot_east_west_paper('lai', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'Leaf area index', axes=ax3)
+    ax3.set_title(r'c) Leaf area index')#, y=1.06)
+    p.plot_east_west_paper('c_woo', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'C$_{woo}$ (g C m$^{-2}$)',
+                                     y_lim=[9000, 14500], axes=ax4)
+    ax4.set_title(r'd) Woody and coarse root carbon')#, y=1.06)
+    f.tight_layout()
+    #f.subplots_adjust(hspace=.5)
+    f.savefig(f_name+'obs_comp.pdf') #, bbox_inches='tight')
+
+    f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
+    # Fluxes
+    p.plot_east_west_paper('gpp', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'GPP (g C m$^{-2}$ day$^{-1}$)', axes=ax1)
+    ax1.set_title(r'a) Gross primary productivity')#, y=1.06)
+
+    p.plot_east_west_paper('rt', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'R$_{eco}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax2)
+    ax2.set_title(r'b) Total ecosystem respiration')#, y=1.06)
+
+    p.plot_east_west_paper('ra', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'R$_{a}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax3)
+    ax3.set_title(r'c) Autotrophic respiration')#, y=1.06)
+
+    p.plot_east_west_paper('rh', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                     y_label=r'R$_{h}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax4)
+    ax4.set_title(r'd) Heterotrophic respiration')#, y=1.06)
+    f.tight_layout()
+    #f.subplots_adjust(hspace=.5)
+    f.savefig(f_name+'flux_comp.pdf') #, bbox_inches='tight')
+    return 'done!'
