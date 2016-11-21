@@ -500,9 +500,9 @@ def plot_var_red_east_west(b_mat, a_cov_east, a_cov_west):
     ind = np.arange(n)
     #fig = plt.figure()
     #ax = fig.add_subplot(111)
-    xa_east = np.diag(a_cov_east)
-    xa_west = np.diag(a_cov_west)
-    xb = np.diag(b_mat)
+    xa_east = np.sqrt(np.diag(a_cov_east))
+    xa_west = np.sqrt(np.diag(a_cov_west))
+    xb = np.sqrt(np.diag(b_mat))
     rects1 = ax.bar(ind, -100*(xa_east-xb)/xb, width, color=sns.xkcd_rgb["faded green"],
                     label='Unthinned')
     rects2 = ax.bar(ind+width, -100*(xa_west-xb)/xb, width, color=sns.xkcd_rgb["pale red"],
