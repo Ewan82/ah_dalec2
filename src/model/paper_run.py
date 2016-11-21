@@ -410,7 +410,7 @@ def save_paper_plots(f_name, exp_name, f_typ='pdf'):
     f.tight_layout()
     #f.subplots_adjust(hspace=.5)
     f.savefig(f_name+'obs_comp.'+f_typ) #, bbox_inches='tight')
-    """
+
     f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
     # Fluxes
     p.plot_east_west_paper('gpp', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
@@ -494,7 +494,6 @@ def save_paper_plots(f_name, exp_name, f_typ='pdf'):
     for item in annual_flux_lst:
         f.write("%s\n" % item)
     f.close()
-    """
     return 'done!'
 
 
