@@ -115,11 +115,11 @@ def experiment_bmat_ceff_fauto_ffol_flab2(f_name):
     b_std[12] = 0.25*b_std[12]  # flab, Maybe get rid of this constraint
     b_std[4] = 0.25*b_std[4]
     b_std[7] = 0.25*b_std[7]
-    b_std[0:17] = b_std[0:17]*0.6
+    b_std[0:17] = b_std[0:17]*0.5
     D = np.zeros_like(b_cor)
     np.fill_diagonal(D, b_std)
-    b = np.dot(np.dot(D, b_cor), D)
-    experiment(f_name, b)
+    b = np.dot(np.dot(D, b_cor), D)*0.8
+    experiment(f_name, 1.75*b)
     return 'done!'
 
 
