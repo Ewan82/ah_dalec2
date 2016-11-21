@@ -472,11 +472,11 @@ def plot_inc_east_west(xb, xa_east, xa_west):
     ind = np.arange(n)
     #fig = plt.figure()
     #ax = fig.add_subplot(111)
-    rects1 = ax.bar(ind, (xa_east-xb)/xb, width, color=sns.xkcd_rgb["faded green"],
+    rects1 = ax.bar(ind, 100*(xa_east-xb)/xb, width, color=sns.xkcd_rgb["faded green"],
                     label='Unthinned')
-    rects2 = ax.bar(ind+width, (xa_west-xb)/xb, width, color=sns.xkcd_rgb["pale red"],
+    rects2 = ax.bar(ind+width, 100*(xa_west-xb)/xb, width, color=sns.xkcd_rgb["pale red"],
                     label='Thinned')
-    ax.set_ylabel('Normalised analysis increment')
+    ax.set_ylabel('Normalised analysis increment (%)')
     #ax.set_title('% error in parameter values for xa and xb')
     ax.set_xticks(ind+width)
     keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
