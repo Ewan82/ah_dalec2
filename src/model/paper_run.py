@@ -118,8 +118,8 @@ def experiment_bmat_ceff_fauto_ffol_flab2(f_name):
     b_std[0:17] = b_std[0:17]*0.5
     D = np.zeros_like(b_cor)
     np.fill_diagonal(D, b_std)
-    b = np.dot(np.dot(D, b_cor), D)*0.8
-    experiment(f_name, 1.75*b)
+    b = np.dot(np.dot(D, b_cor), D)*1.4
+    experiment(f_name, b)
     return 'done!'
 
 
