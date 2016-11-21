@@ -105,6 +105,7 @@ def experiment_bmat_ceff_fauto_ffol_flab2(f_name):
     # Construct B
     b_cor = pickle.load(open('b_edc_cor.p', 'r'))
     b_std = np.sqrt(np.diag(pickle.load(open('b_edc.p', 'r'))))
+    b_std[0] = 0.25*b_std[0]
     b_std[10] = 0.25*b_std[10]
     b_std[1] = 0.25*b_std[1]
     b_std[11] = 0.25*b_std[11]  # start of LAI constraint
@@ -118,7 +119,7 @@ def experiment_bmat_ceff_fauto_ffol_flab2(f_name):
     b_std[0:17] = b_std[0:17]*0.5
     D = np.zeros_like(b_cor)
     np.fill_diagonal(D, b_std)
-    b = np.dot(np.dot(D, b_cor), D)*1.4
+    b = np.dot(np.dot(D, b_cor), D)*1.5
     experiment(f_name, b)
     return 'done!'
 
