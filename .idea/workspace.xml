@@ -63,8 +63,8 @@
       <file leaf-file-name="paper_run.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/model/paper_run.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="3.4536083">
-              <caret line="482" column="55" selection-start-line="482" selection-start-column="55" selection-end-line="482" selection-end-column="55" />
+            <state vertical-scroll-proportion="0.4742268">
+              <caret line="385" column="17" selection-start-line="385" selection-start-column="17" selection-end-line="385" selection-end-column="17" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -888,8 +888,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/model/paper_run.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="3.4536083">
-          <caret line="482" column="55" selection-start-line="482" selection-start-column="55" selection-end-line="482" selection-end-column="55" />
+        <state vertical-scroll-proportion="0.4742268">
+          <caret line="385" column="17" selection-start-line="385" selection-start-column="17" selection-end-line="385" selection-end-column="17" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>
