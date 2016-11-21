@@ -344,7 +344,7 @@ def experiment_prior_run2(f_name):
     return 'done!'
 
 
-def save_paper_plots(f_name, exp_name, f_typ='pdf'):
+def save_paper_plots(f_name, exp_name, f_typ='pdf', exp='a'):
     if not os.path.exists(f_name):
         os.makedirs(f_name)
     east = pickle.load(open(exp_name+'east_assim', 'r'))
@@ -379,6 +379,10 @@ def save_paper_plots(f_name, exp_name, f_typ='pdf'):
     p_w_ens = p.plist_ens(dw, w_ens)
 
     annual_flux_lst = []
+    if exp == 'a' or 'b':
+        cwoo_ylim = [1500, 15000]
+    else:
+        cwoo_ylim = [9000, 14500]
     # set context
     sns.set_context('poster', font_scale=1., rc={'lines.linewidth': .8, 'lines.markersize': 1.})
     sns.set_style('whitegrid')
@@ -405,7 +409,7 @@ def save_paper_plots(f_name, exp_name, f_typ='pdf'):
     ax3.set_title(r'c) Leaf area index')#, y=1.06)
     p.plot_east_west_paper('c_woo', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
                                      y_label=r'C$_{woo}$ (g C m$^{-2}$)',
-                                     y_lim=[1800, 15000], axes=ax4)  # [9000, 14500][3000, 14500]
+                                     y_lim=cwoo_ylim, axes=ax4)  # [9000, 14500][3000, 14500]
     ax4.set_title(r'd) Woody and coarse root carbon')#, y=1.06)
     f.tight_layout()
     #f.subplots_adjust(hspace=.5)
@@ -471,7 +475,7 @@ def save_paper_plots(f_name, exp_name, f_typ='pdf'):
     fig.savefig(f_name+'lai.'+f_typ, bbox_inches='tight')
     ax, fig = p.plot_east_west_paper('c_woo', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
                                      y_label=r'Woody biomass and coarse root carbon (g C m$^{-2}$)',
-                                     )#y_lim=[9000, 14500])
+                                     y_lim=cwoo_ylim)
     fig.savefig(f_name+'c_woo.'+f_typ, bbox_inches='tight')
     ax, fig = p.plot_east_west_paper('ra', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
                                      y_label=r'Autotrophic respiration (g C m$^{-2}$ day$^{-1}$)')
