@@ -383,7 +383,7 @@ def save_paper_plots(f_name, exp_name, f_typ='pdf', exp='a'):
     annual_flux_lst = []
     if exp == 'a' or 'b':
         cwoo_ylim = [1500, 16000]
-    elif exp != 'a' or 'b':
+    elif exp == 'c':
         cwoo_ylim = [9000, 14500]
     # set context
     sns.set_context('poster', font_scale=1., rc={'lines.linewidth': .8, 'lines.markersize': 1.})
