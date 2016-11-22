@@ -393,10 +393,12 @@ def save_paper_plots(f_name, exp_name, f_typ='pdf', exp='a'):
     ax, fig = p.plot_east_west_paper_part(east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
                                      y_label=r'Cumulative NEE partitioning (g C m$^{-2}$)')
     fig.savefig(f_name+'nee_cum_part.'+f_typ, bbox_inches='tight')
-    ax, fig = p.plot_obs_east_west_part(east['xa'], de)
-    fig.savefig(f_name+'resp_part_e.'+f_typ, bbox_inches='tight')
-    ax, fig = p.plot_obs_east_west_part(west['xa'], de)
-    fig.savefig(f_name+'resp_part_w.'+f_typ, bbox_inches='tight')
+    #ax, fig = p.plot_obs_east_west_part(east['xa'], de)
+    #fig.savefig(f_name+'resp_part_e.'+f_typ, bbox_inches='tight')
+    #ax, fig = p.plot_obs_east_west_part(west['xa'], de)
+    #fig.savefig(f_name+'resp_part_w.'+f_typ, bbox_inches='tight')
+    fig = p.part_plot(east['xa'], west['xa'], de, dw)
+    fig.savefig(f_name+'resp_part.'+f_typ, bbox_inches='tight')
 
     f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
     # Observed values
