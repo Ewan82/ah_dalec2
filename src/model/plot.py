@@ -10,6 +10,7 @@ import data_class as dc
 import scipy
 import pickle
 import seaborn as sns
+from matplotlib.patches import Rectangle
 
 # ------------------------------------------------------------------------------
 # Plot observation time series
@@ -320,13 +321,17 @@ def plot_obs_east_west_part(xa, d, y_lim='None', axes='None'):
 
     ax.stackplot(d.dates, np.cumsum(soilr_lst), np.cumsum(litr_lst), np.cumsum(autor_lst),
                  colors=(palette[0], palette[1], palette[2]),)
-    ax.text(d.dates[-90], 50, 'Soil respiration', color='w')
-    ax.text(d.dates[-100], 350, 'Litter respiration', color='w')
-    ax.text(d.dates[-120], 940, 'Autotrohpic respiration', color='w')
+    #ax.text(d.dates[-90], 50, 'Soil respiration', color='w')
+    #ax.text(d.dates[-100], 350, 'Litter respiration', color='w')
+    #ax.text(d.dates[-120], 940, 'Autotrohpic respiration', color='w')
     #ax.stackplot(d.dates, -np.cumsum(gpp_lst), color=palette[4])
+    p1 = Rectangle((0, 0), 1, 1, fc=palette[0])
+    p2 = Rectangle((0, 0), 1, 1, fc=palette[1])
+    p3 = Rectangle((0, 0), 1, 1, fc=palette[2])
+    plt.legend([p1, p2, p3], ['Soil respiration', 'Litter respiration', 'Autotrophic respiration'], loc=2)
     ax.set_xlabel('Date')
     ax.set_ylabel(r'Cumulative respiration partitioning (g C m$^{-2}$)')
-    ax.set_ylim([0, 1800])
+    ax.set_ylim([0, 2000])
     plt.gcf().autofmt_xdate()
     return ret_val
 
