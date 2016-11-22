@@ -351,7 +351,7 @@ def save_paper_plots(f_name, exp_name, f_typ='pdf', exp='a'):
         os.makedirs(f_name)
     east = pickle.load(open(exp_name+'east_assim', 'r'))
     west = pickle.load(open(exp_name+'west_assim', 'r'))
-    b = 1.5*east['b_mat']
+    b = 2*east['b_mat']
     # east data
     de = dc.DalecData(2015, 2016, 'clma',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
