@@ -347,6 +347,23 @@ def part_plot(xa_east, xa_west, d_e, d_w):
     return f
 
 
+def plot_pheno_obs(d):
+    """Plots a specified observation using obs eqn in obs module. Takes an
+    observation string, a dataClass (dC) and a start and finish point.
+    """
+    sns.set_context(rc={'lines.linewidth': .8, 'lines.markersize': 6})
+    pheno = mlab.csv2rec('/Users/ewan/projects/ah_data/pheno_obs_15.csv')
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    palette = sns.color_palette("colorblind", 11)
+
+    ax.plot(d.dates, pheno['canopy_roi'][0:-1], 'o', color=palette[0])
+
+    ax.set_xlabel('Date')
+    ax.set_ylabel(r'Green fraction')
+    plt.gcf().autofmt_xdate()
+    return ax, fig
+
+
 def plot_4dvar(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=None):
     """Plots a model predicted observation value for two initial states (xb,xa)
     and also the actual observations taken of the physical quantity. Takes a ob

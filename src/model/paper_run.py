@@ -108,10 +108,10 @@ def experiment_bmat_ceff_fauto_ffol_flab2(f_name):
     #b_std[0] = 0.25*b_std[0]
     b_std[10] = 0.25*b_std[10]
     b_std[1] = 0.25*b_std[1]
-    #b_std[11] = 0.3*b_std[11]  # start of LAI constraint
+    #b_std[4] = 0.3*b_std[4]  # start of LAI constraint
+    #b_std[11] = 0.3*b_std[11]
     #b_std[13] = 0.3*b_std[13]
     #b_std[14] = 0.3*b_std[14]
-    #b_std[4] = 0.3*b_std[4]
     b_std[15] = 0.3*b_std[15]  # end of LAI constraint
     b_std[2] = 0.3*b_std[2]  # ffol, Maybe get rid of this constraint
     b_std[12] = 0.25*b_std[12]  # flab, Maybe get rid of this constraint
