@@ -381,10 +381,10 @@ def save_paper_plots(f_name, exp_name, f_typ='pdf', exp='a'):
     p_w_ens = p.plist_ens(dw, w_ens)
 
     annual_flux_lst = []
-    if exp == 'a' or 'b':
-        cwoo_ylim = [1500, 16000]
-    else:
-        cwoo_ylim = [9000, 14500]
+    #if exp == 'a' or 'b':
+    #    cwoo_ylim = [1500, 16000]
+    #else:
+    cwoo_ylim = [9000, 14500]
     # set context
     sns.set_context('poster', font_scale=1., rc={'lines.linewidth': .8, 'lines.markersize': 1.})
     sns.set_style('whitegrid')
