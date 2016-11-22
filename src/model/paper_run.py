@@ -382,7 +382,7 @@ def save_paper_plots(f_name, exp_name, f_typ='pdf', exp='a'):
 
     annual_flux_lst = []
     if exp == 'a' or 'b':
-        cwoo_ylim = [1000, 16000]
+        cwoo_ylim = [0, 16000]
     else:
         cwoo_ylim = [9000, 14500]
     # set context
