@@ -124,11 +124,22 @@ def experiment_bmat_ceff_fauto_ffol_flab2(f_name):
     return 'done!'
 
 
+def exp_paper(f_name):
+    b = pickle.load(open('bmat_paper.p', 'r'))
+    experiment(f_name, b)
+    for folder in enumerate(['nee_needn/', 'nee_needn_lai/', 'lai_cw/', 'nee_needn_lai_cw/']):
+        if folder[0] <= 1:
+            save_paper_plots(f_name+folder[1], f_name+folder[1][0:-1]+'_pp/', exp='a')
+        else:
+            save_paper_plots(f_name+folder[1], f_name+folder[1][0:-1]+'_pp/', exp='c')
+    return 'done!'
+
+
 def experiment(f_name, b_mat, xb=d.xb_ew_lai_hi):
     #east_west_joint_run(xb, f_name+'nee/', 'nee, clma', b_mat)
     #east_west_joint_run(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
     east_west_joint_run(xb, f_name+'nee_needn/', 'nee, nee_day, nee_night', b_mat)
-    #east_west_joint_run(xb, f_name+'lai/', 'lai, clma', b_mat)
+    east_west_joint_run(xb, f_name+'lai_cw/', 'lai, clma, c_woo', b_mat)
     #east_west_joint_run(xb, f_name+'cw/', 'c_woo, clma', b_mat)
     #east_west_joint_run(xb, f_name+'needn_lai/', 'nee_day, nee_night, lai, clma', b_mat)
     #east_west_joint_run(xb, f_name+'needn_lai_cw/', 'nee_day, nee_night, lai, clma, c_woo', b_mat)
@@ -381,7 +392,7 @@ def save_paper_plots(f_name, exp_name, f_typ='pdf', exp='a'):
     p_w_ens = p.plist_ens(dw, w_ens)
 
     annual_flux_lst = []
-    if exp == 'a' or 'b':
+    if exp == 'a':
         cwoo_ylim = [0, 16000]
     else:
         cwoo_ylim = [9000, 14500]
@@ -391,8 +402,8 @@ def save_paper_plots(f_name, exp_name, f_typ='pdf', exp='a'):
 
     # joint plots
     ax, fig = p.plot_east_west_paper_part(east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
-                                     y_label=r'Cumulative NEE partitioning (g C m$^{-2}$)')
-    fig.savefig(f_name+'nee_cum_part.'+f_typ, bbox_inches='tight')
+                                     y_label=r'Cumulative fluxes (g C m$^{-2}$)')
+    fig.savefig(f_name+'cum_flux.'+f_typ, bbox_inches='tight')
     #ax, fig = p.plot_obs_east_west_part(east['xa'], de)
     #fig.savefig(f_name+'resp_part_e.'+f_typ, bbox_inches='tight')
     #ax, fig = p.plot_obs_east_west_part(west['xa'], de)

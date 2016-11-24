@@ -197,6 +197,42 @@ def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None'
     return ret_val
 
 
+def plot_prior(ob, xa, d, y_label='None', y_lim='None', axes='None'):
+    """Plots a specified observation using obs eqn in obs module. Takes an
+    observation string, a dataClass (dC) and a start and finish point.
+    """
+    sns.set_context(rc={'lines.linewidth': .8, 'lines.markersize': 6})
+    if axes == 'None':
+        fig, ax = plt.subplots(nrows=1, ncols=1)
+        ret_val = ax, fig
+    else:
+        ax = axes
+        ret_val = ax
+    m = mc.DalecModel(d)
+    mod_lst = m.mod_list(xa)
+    obs_lst = m.oblist(ob, mod_lst)
+
+
+    palette = sns.color_palette("colorblind", 11)
+
+    ax.plot(d.dates, obs_lst, color=palette[1])
+
+
+    if ob in d.ob_dict.keys():
+        ax.errorbar(d.dates, d.ob_dict[ob], yerr=d.ob_err_dict[ob], fmt='o', color=palette[2],
+                    markeredgecolor='black', markeredgewidth=0.5)
+    ax.set_xlabel('Date')
+    if y_label == 'None':
+        ax.set_ylabel(ob)
+    else:
+        ax.set_ylabel(y_label)
+    if y_lim != 'None':
+        axes = plt.gca()
+        axes.set_ylim(y_lim)
+    plt.gcf().autofmt_xdate()
+    return ret_val
+
+
 def plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None', ob_std_e=0, ob_std_w=0,
                            y_lim='None'):
     """Plots a specified observation using obs eqn in obs module. Takes an
@@ -215,15 +251,15 @@ def plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='N
 
     ax.plot(d_e.dates, np.cumsum(obs_lst_e), color=palette[0], label='Unthinned')
     if ob_std_e is not 0:
-        ax.fill_between(d_e.dates, np.cumsum(obs_lst_e-ob_std_e), np.cumsum(obs_lst_e+ob_std_e), facecolor=palette[0],
+        ax.fill_between(d_e.dates, np.cumsum(obs_lst_e)-ob_std_e, np.cumsum(obs_lst_e)+ob_std_e, facecolor=palette[0],
                         alpha=0.5, linewidth=0.0)
-        cum_east = y_label+'_east: ' + str(np.cumsum(obs_lst_e)[-1])+' +/- ' + str(np.cumsum(ob_std_e)[-1])
+        cum_east = y_label+'_east: ' + str(np.cumsum(obs_lst_e)[-1])+' +/- ' + str(ob_std_e[-1])
         print cum_east
     ax.plot(d_w.dates, np.cumsum(obs_lst_w), color=palette[2], label='Thinned')
     if ob_std_w is not 0:
-        ax.fill_between(d_w.dates, np.cumsum(obs_lst_w-ob_std_w), np.cumsum(obs_lst_w+ob_std_w), facecolor=palette[2],
+        ax.fill_between(d_w.dates, np.cumsum(obs_lst_w)-ob_std_w, np.cumsum(obs_lst_w)+ob_std_w, facecolor=palette[2],
                         alpha=0.5, linewidth=0.0)
-        cum_west = y_label+'_west: ' + str(np.cumsum(obs_lst_w)[-1])+' +/- ' + str(np.cumsum(ob_std_w)[-1])
+        cum_west = y_label+'_west: ' + str(np.cumsum(obs_lst_w)[-1])+' +/- ' + str(ob_std_w[-1])
         print cum_west
     if xb != 'None':
         mod_lst_xb = mw.mod_list(xb)
@@ -246,12 +282,17 @@ def plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='N
 
 
 def plot_obs_east_west_cum_part(xa_east, xa_west, d_e, d_w, ob_std_e, ob_std_w, y_label='None', xb='None',
-                                y_lim='None'):
+                                y_lim='None', axes='None'):
     """Plots a specified observation using obs eqn in obs module. Takes an
     observation string, a dataClass (dC) and a start and finish point.
     """
     sns.set_context(rc={'lines.linewidth': .8, 'lines.markersize': 6})
-    fig, ax = plt.subplots(nrows=1, ncols=1)
+    if axes == 'None':
+        fig, ax = plt.subplots(nrows=1, ncols=1)
+        ret_val = ax, fig
+    else:
+        ax = axes
+        ret_val = ax
     me = mc.DalecModel(d_e)
     mw = mc.DalecModel(d_w)
     mod_lst_e = me.mod_list(xa_east)
@@ -266,23 +307,23 @@ def plot_obs_east_west_cum_part(xa_east, xa_west, d_e, d_w, ob_std_e, ob_std_w, 
     palette = sns.color_palette("colorblind", 11)
 
     ax.plot(d_e.dates, np.cumsum(nee_lst_e), color=palette[0], label='Unthinned')
-    ax.fill_between(d_e.dates, np.cumsum(nee_lst_e-ob_std_e[0]), np.cumsum(nee_lst_e+ob_std_e[0]), facecolor=palette[0],
+    ax.fill_between(d_e.dates, np.cumsum(nee_lst_e)-ob_std_e[0], np.cumsum(nee_lst_e)+ob_std_e[0], facecolor=palette[0],
                         alpha=0.5, linewidth=0.0)
     ax.plot(d_e.dates, -np.cumsum(gpp_lst_e), '--', color=palette[0])
-    ax.fill_between(d_e.dates, -np.cumsum(gpp_lst_e-ob_std_e[1]), -np.cumsum(gpp_lst_e+ob_std_e[1]), facecolor=palette[0],
+    ax.fill_between(d_e.dates, -np.cumsum(gpp_lst_e)-ob_std_e[1], -np.cumsum(gpp_lst_e)+ob_std_e[1], facecolor=palette[0],
                         alpha=0.5, linewidth=0.0)
     ax.plot(d_e.dates, np.cumsum(rt_lst_e), ':', color=palette[0])
-    ax.fill_between(d_e.dates, np.cumsum(rt_lst_e-ob_std_e[2]), np.cumsum(rt_lst_e+ob_std_e[2]), facecolor=palette[0],
+    ax.fill_between(d_e.dates, np.cumsum(rt_lst_e)-ob_std_e[2], np.cumsum(rt_lst_e)+ob_std_e[2], facecolor=palette[0],
                         alpha=0.5, linewidth=0.0)
 
     ax.plot(d_w.dates, np.cumsum(nee_lst_w), color=palette[2], label='Thinned')
-    ax.fill_between(d_w.dates, np.cumsum(nee_lst_w-ob_std_w[0]), np.cumsum(nee_lst_w+ob_std_w[0]), facecolor=palette[2],
+    ax.fill_between(d_w.dates, np.cumsum(nee_lst_w)-ob_std_w[0], np.cumsum(nee_lst_w)+ob_std_w[0], facecolor=palette[2],
                         alpha=0.5, linewidth=0.0)
     ax.plot(d_e.dates, -np.cumsum(gpp_lst_w), '--', color=palette[2])
-    ax.fill_between(d_e.dates, -np.cumsum(gpp_lst_w-ob_std_w[1]), -np.cumsum(gpp_lst_w+ob_std_w[1]), facecolor=palette[2],
+    ax.fill_between(d_e.dates, -np.cumsum(gpp_lst_w)-ob_std_w[1], -np.cumsum(gpp_lst_w)+ob_std_w[1], facecolor=palette[2],
                         alpha=0.5, linewidth=0.0)
     ax.plot(d_e.dates, np.cumsum(rt_lst_w), ':', color=palette[2])
-    ax.fill_between(d_e.dates, np.cumsum(rt_lst_w-ob_std_w[2]), np.cumsum(rt_lst_w+ob_std_w[2]), facecolor=palette[2],
+    ax.fill_between(d_e.dates, np.cumsum(rt_lst_w)-ob_std_w[2], np.cumsum(rt_lst_w)+ob_std_w[2], facecolor=palette[2],
                         alpha=0.5, linewidth=0.0)
 
     plt.legend(loc=2)
@@ -295,7 +336,7 @@ def plot_obs_east_west_cum_part(xa_east, xa_west, d_e, d_w, ob_std_e, ob_std_w, 
         axes = plt.gca()
         axes.set_ylim(y_lim)
     plt.gcf().autofmt_xdate()
-    return ax, fig
+    return ret_val
 
 
 def plot_obs_east_west_part(xa, d, y_lim='None', axes='None'):
@@ -329,10 +370,10 @@ def plot_obs_east_west_part(xa, d, y_lim='None', axes='None'):
     p1 = Rectangle((0, 0), 1, 1, fc=palette[0])
     p2 = Rectangle((0, 0), 1, 1, fc=palette[1])
     p3 = Rectangle((0, 0), 1, 1, fc=palette[2])
-    plt.legend([p1, p2, p3], ['Soil respiration', 'Litter respiration', 'Autotrophic respiration'], loc=2)
+    plt.legend([p3, p2, p1], ['Autotrophic respiration', 'Litter respiration', 'Soil respiration'], loc=2)
     ax.set_xlabel('Date')
     ax.set_ylabel(r'Cumulative respiration partitioning (g C m$^{-2}$)')
-    ax.set_ylim([0, 1850])
+    ax.set_ylim([0, 1800])
     plt.gcf().autofmt_xdate()
     return ret_val
 
@@ -852,8 +893,8 @@ def plot_east_west_paper(ob, xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label='
 def plot_east_west_paper_cum(ob, xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label='None', y_lim='None'):
     ob_ens_e = ob_plist(d_e, e_ens, ob)
     ob_ens_w = ob_plist(d_w, w_ens, ob)
-    ob_std_e = ob_mean_std(ob_ens_e)[1]
-    ob_std_w = ob_mean_std(ob_ens_w)[1]
+    ob_std_e = ob_mean_std_cum(ob_ens_e)[1]
+    ob_std_w = ob_mean_std_cum(ob_ens_w)[1]
     return plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label=y_label, ob_std_e=ob_std_e, ob_std_w=ob_std_w,
                               y_lim=y_lim)
 
@@ -867,14 +908,13 @@ def plot_east_west_paper_part(xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label=
     rt_ens_w = ob_plist(d_w, w_ens, 'rt')
     ob_std_e = []
     ob_std_w = []
-    ob_std_e.append(ob_mean_std(nee_ens_e)[1])
-    ob_std_w.append(ob_mean_std(nee_ens_w)[1])
-    ob_std_e.append(ob_mean_std(gpp_ens_e)[1])
-    ob_std_w.append(ob_mean_std(gpp_ens_w)[1])
-    ob_std_e.append(ob_mean_std(rt_ens_e)[1])
-    ob_std_w.append(ob_mean_std(rt_ens_w)[1])
-    return plot_obs_east_west_cum_part(xa_east, xa_west, d_e, d_w, ob_std_e, ob_std_w, y_label=y_label,
-                              y_lim=y_lim)
+    ob_std_e.append(ob_mean_std_cum(nee_ens_e)[1])
+    ob_std_w.append(ob_mean_std_cum(nee_ens_w)[1])
+    ob_std_e.append(ob_mean_std_cum(gpp_ens_e)[1])
+    ob_std_w.append(ob_mean_std_cum(gpp_ens_w)[1])
+    ob_std_e.append(ob_mean_std_cum(rt_ens_e)[1])
+    ob_std_w.append(ob_mean_std_cum(rt_ens_w)[1])
+    return plot_obs_east_west_cum_part(xa_east, xa_west, d_e, d_w, ob_std_e, ob_std_w, y_label=y_label, y_lim=y_lim)
 
 
 def plot_east_west_paper2(ob, xa_east, xa_west, d_e, d_w, y_label='None'):
@@ -955,6 +995,13 @@ def nee_cumsum_ensemble(dC, ensemble, ob):
 def ob_mean_std(ob_ens):
     nee_mean = np.nanmean(ob_ens, axis=0)
     nee_std = np.nanstd(ob_ens, axis=0)
+    return nee_mean, nee_std
+
+
+def ob_mean_std_cum(ob_ens):
+    nee_cum = np.cumsum(ob_ens, axis=0)
+    nee_mean = np.nanmean(nee_cum, axis=0)
+    nee_std = np.nanstd(nee_cum, axis=0)
     return nee_mean, nee_std
 
 
