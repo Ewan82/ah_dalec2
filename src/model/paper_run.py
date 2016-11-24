@@ -135,6 +135,17 @@ def exp_paper(f_name):
     return 'done!'
 
 
+def exp_save_plots(f_name):
+    for folder in enumerate(['nee_needn/', 'nee_needn_lai/', 'lai_cw/', 'nee_needn_lai_cw/']):
+        if folder[0] <= 1:
+            save_paper_plots(f_name+folder[1][0:-1]+'_pp/', f_name+folder[1], exp='a')
+        else:
+            save_paper_plots(f_name+folder[1][0:-1]+'_pp/', f_name+folder[1], exp='c')
+    f = part_plot(f_name+'nee_needn/', f_name+'nee_needn_lai_cw/')
+    f.savefig(f_name+'flux_part.pdf', bbox_inches='tight')
+    return 'done!'
+
+
 def experiment(f_name, b_mat, xb=d.xb_ew_lai_hi):
     #east_west_joint_run(xb, f_name+'nee/', 'nee, clma', b_mat)
     #east_west_joint_run(xb, f_name+'needn/', 'nee_day, nee_night, clma', b_mat)
@@ -357,12 +368,66 @@ def experiment_prior_run2(f_name):
     return 'done!'
 
 
+def part_plot(exp_name1, exp_name2):
+    sns.set_context('poster', font_scale=1., rc={'lines.linewidth': .8, 'lines.markersize': 1.})
+    sns.set_style('whitegrid')
+    f, ((ax1, ax2)) = plt.subplots(1, 2)
+    # Observed values
+    east1, west1, de1, dw1, p_e_ens1, p_w_ens1 = calc_exp_vals(exp_name1)
+    east2, west2, de2, dw2, p_e_ens2, p_w_ens2 = calc_exp_vals(exp_name2)
+    p.plot_east_west_paper_part(east1['xa'], west1['xa'], de1, dw1, p_e_ens1, p_w_ens1,
+                                y_label=r'Cumulative fluxes (g C m$^{-2}$)', axes=ax1)
+    ax1.set_title(r'a) Experiment A')#, y=1.06)
+
+    p.plot_east_west_paper_part(east2['xa'], west2['xa'], de2, dw2, p_e_ens2, p_w_ens2,
+                                y_label=r'Cumulative fluxes (g C m$^{-2}$)', axes=ax2)
+    ax2.set_title(r'b) Experiment C')#, y=1.06)
+
+    f.tight_layout()
+    #f.subplots_adjust(hspace=.5)
+    return f
+
+
+def calc_exp_vals(exp_name):
+    east = pickle.load(open(exp_name+'east_assim', 'r'))
+    west = pickle.load(open(exp_name+'west_assim', 'r'))
+    b = 1.5*east['b_mat']
+    # east data
+    de = dc.DalecData(2015, 2016, 'clma',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
+    de.B = b
+    de.ob_dict = east['obs']
+    de.ob_err_dict = east['obs_err']
+    # obs err scaling
+    # west data
+    dw = dc.DalecData(2015, 2016, 'clma',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
+    dw.B = b
+    dw.ob_dict = west['obs']
+    dw.ob_err_dict = west['obs_err']
+    # obs err scaling
+    # setup model
+    me = mc.DalecModel(de)
+    me.rmatrix = r_mat_corr(me.yerroblist, me.ytimestep, me.y_strlst, me.rmatrix, corr=0.3, tau=2.)[1]
+    mw = mc.DalecModel(dw)
+    mw.rmatrix = r_mat_corr(mw.yerroblist, mw.ytimestep, mw.y_strlst, mw.rmatrix, corr=0.3, tau=2.)[1]
+    # a_east = pickle.load(open('a_east.p', 'r'))
+    # a_west = pickle.load(open('a_west.p', 'r'))
+    a_east = me.acovmat(east['xa'])
+    a_west = mw.acovmat(west['xa'])
+    e_ens = p.create_ensemble(de, a_east, east['xa'])
+    w_ens = p.create_ensemble(de, a_west, west['xa'])
+    p_e_ens = p.plist_ens(de, e_ens)
+    p_w_ens = p.plist_ens(dw, w_ens)
+    return east, west, de, dw, p_e_ens, p_w_ens
+
+
 def save_paper_plots(f_name, exp_name, f_typ='pdf', exp='a'):
     if not os.path.exists(f_name):
         os.makedirs(f_name)
     east = pickle.load(open(exp_name+'east_assim', 'r'))
     west = pickle.load(open(exp_name+'west_assim', 'r'))
-    b = 2*east['b_mat']
+    b = 1.5*east['b_mat']
     # east data
     de = dc.DalecData(2015, 2016, 'clma',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)

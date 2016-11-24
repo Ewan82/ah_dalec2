@@ -899,7 +899,8 @@ def plot_east_west_paper_cum(ob, xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_lab
                               y_lim=y_lim)
 
 
-def plot_east_west_paper_part(xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label='NEE partitioning', y_lim='None'):
+def plot_east_west_paper_part(xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label='NEE partitioning', y_lim='None',
+                              axes='None'):
     nee_ens_e = ob_plist(d_e, e_ens, 'nee')
     nee_ens_w = ob_plist(d_w, w_ens, 'nee')
     gpp_ens_e = ob_plist(d_e, e_ens, 'gpp')
@@ -914,7 +915,8 @@ def plot_east_west_paper_part(xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label=
     ob_std_w.append(ob_mean_std_cum(gpp_ens_w)[1])
     ob_std_e.append(ob_mean_std_cum(rt_ens_e)[1])
     ob_std_w.append(ob_mean_std_cum(rt_ens_w)[1])
-    return plot_obs_east_west_cum_part(xa_east, xa_west, d_e, d_w, ob_std_e, ob_std_w, y_label=y_label, y_lim=y_lim)
+    return plot_obs_east_west_cum_part(xa_east, xa_west, d_e, d_w, ob_std_e, ob_std_w, y_label=y_label, y_lim=y_lim,
+                                       axes=axes)
 
 
 def plot_east_west_paper2(ob, xa_east, xa_west, d_e, d_w, y_label='None'):
