@@ -1001,7 +1001,9 @@ def ob_mean_std(ob_ens):
 
 
 def ob_mean_std_cum(ob_ens):
-    nee_cum = np.cumsum(ob_ens, axis=0)
+    nee_cum = np.zeros_like(ob_ens)
+    for x in xrange(len(ob_ens)):
+        nee_cum[x] = np.cumsum(ob_ens[x])
     nee_mean = np.nanmean(nee_cum, axis=0)
     nee_std = np.nanstd(nee_cum, axis=0)
     return nee_mean, nee_std

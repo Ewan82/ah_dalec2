@@ -129,9 +129,9 @@ def exp_paper(f_name):
     experiment(f_name, b)
     for folder in enumerate(['nee_needn/', 'nee_needn_lai/', 'lai_cw/', 'nee_needn_lai_cw/']):
         if folder[0] <= 1:
-            save_paper_plots(f_name+folder[1], f_name+folder[1][0:-1]+'_pp/', exp='a')
+            save_paper_plots(f_name+folder[1][0:-1]+'_pp/', f_name+folder[1], exp='a')
         else:
-            save_paper_plots(f_name+folder[1], f_name+folder[1][0:-1]+'_pp/', exp='c')
+            save_paper_plots(f_name+folder[1][0:-1]+'_pp/', f_name+folder[1], exp='c')
     return 'done!'
 
 
