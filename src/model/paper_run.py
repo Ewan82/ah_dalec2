@@ -388,6 +388,23 @@ def part_plot(exp_name1, exp_name2):
     return f
 
 
+def plot_pheno_lai(exp_name):
+    sns.set_context('poster', font_scale=1., rc={'lines.linewidth': .8, 'lines.markersize': 1.})
+    sns.set_style('whitegrid')
+    f, ax1 = plt.subplots()
+    # Observed values
+    east1, west1, de1, dw1, p_e_ens1, p_w_ens1 = calc_exp_vals(exp_name)
+    p.plot_east_west_paper('lai', east1['xa'], west1['xa'], de1, dw1, p_e_ens1, p_w_ens1,
+                                y_label=r'LAI', axes=ax1)
+
+    ax2 = ax1.twinx()
+    p.plot_pheno_obs(de1, ax2)
+
+    f.tight_layout()
+    #f.subplots_adjust(hspace=.5)
+    return f, ax1
+
+
 def calc_exp_vals(exp_name):
     east = pickle.load(open(exp_name+'east_assim', 'r'))
     west = pickle.load(open(exp_name+'west_assim', 'r'))

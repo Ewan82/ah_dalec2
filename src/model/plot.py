@@ -394,21 +394,27 @@ def part_plot(xa_east, xa_west, d_e, d_w):
     return f
 
 
-def plot_pheno_obs(d):
+def plot_pheno_obs(d, axes='None'):
     """Plots a specified observation using obs eqn in obs module. Takes an
     observation string, a dataClass (dC) and a start and finish point.
     """
     sns.set_context(rc={'lines.linewidth': .8, 'lines.markersize': 6})
     pheno = mlab.csv2rec('/Users/ewan/projects/ah_data/pheno_obs_15.csv')
-    fig, ax = plt.subplots(nrows=1, ncols=1)
+    if axes == 'None':
+        fig, ax = plt.subplots(nrows=1, ncols=1)
+        ret_val = ax, fig
+    else:
+        ax = axes
+        ret_val = ax
     palette = sns.color_palette("colorblind", 11)
 
-    ax.plot(d.dates, pheno['canopy_roi'][0:-1], 'o', color=palette[0])
+    ax.plot(d.dates, pheno['canopy_roi'][0:-1], 'o', color=palette[1])
 
     ax.set_xlabel('Date')
     ax.set_ylabel(r'Green fraction')
+    #ax.set_ylim([0.34, 0.4])
     plt.gcf().autofmt_xdate()
-    return ax, fig
+    return ret_val
 
 
 def plot_4dvar(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=None):
@@ -474,8 +480,11 @@ def plot_scatter(ob, pvals, dC, awindl, bfa='a'):
         raise Exception('Please check function input for bfa variable')
     ob_lst = plt_ob_lst[selection][np.isnan(y_obs[selection]) != True]
     y_obs = y_obs[selection][np.isnan(y_obs[selection]) != True]
+    if ob in ['lai', 'c_woo']:
+        ob_lst = ob_lst.compressed()
+        y_obs = y_obs.compressed()
 
-    one_one = np.arange(int(min(min(y_obs), min(ob_lst))),int(max(max(y_obs), max(ob_lst))))
+    one_one = np.arange((min(min(y_obs), min(ob_lst))),(max(max(y_obs), max(ob_lst))))
     plt.plot(one_one, one_one, color=palette[0])
 
     ax.plot(y_obs, ob_lst, 'o', color=palette[1])
@@ -495,7 +504,7 @@ def plot_scatter(ob, pvals, dC, awindl, bfa='a'):
     print bfa+'_error=%f, mean(y-hx)=%f, rms=%f, corr_coef=%f' %(error, yhx, rms, corr_coef)
     #plt.xlim((-20, 15))
     #plt.ylim((-20, 15))
-    return ax, fig
+    return ax, fig,
 
 
 def plot_a_inc(xb, xa, lab='a_inc'):
