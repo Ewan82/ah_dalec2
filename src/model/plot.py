@@ -281,6 +281,42 @@ def plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='N
         return ax, fig
 
 
+
+def plot_obs_cum(ob, xa, d, y_label='None', ob_std=0, y_lim='None'):
+    """Plots a specified observation using obs eqn in obs module. Takes an
+    observation string, a dataClass (dC) and a start and finish point.
+    """
+    sns.set_context(rc={'lines.linewidth': .8, 'lines.markersize': 6})
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    m = mc.DalecModel(d)
+    mod_lst = m.mod_list(xa)
+    obs_lst = m.oblist(ob, mod_lst)
+
+    palette = sns.color_palette("colorblind", 11)
+
+    ax.plot(d.dates, np.cumsum(obs_lst), color=palette[0], label='Unthinned')
+    if ob_std is not 0:
+        ax.fill_between(d.dates, np.cumsum(obs_lst)-ob_std, np.cumsum(obs_lst)+ob_std, facecolor=palette[0],
+                        alpha=0.5, linewidth=0.0)
+        cum_east = y_label+'_east: ' + str(np.cumsum(obs_lst)[-1])+' +/- ' + str(ob_std[-1])
+        print cum_east
+    #plt.legend()
+    ax.set_xlabel('Date')
+    if y_label == 'None':
+        ax.set_ylabel(ob)
+    else:
+        ax.set_ylabel(y_label)
+    if y_lim != 'None':
+        axes = plt.gca()
+        axes.set_ylim(y_lim)
+    plt.gcf().autofmt_xdate()
+    if ob_std is not 0:
+        return ax, fig, cum_east
+    else:
+        return ax, fig
+
+
+
 def plot_obs_east_west_cum_part(xa_east, xa_west, d_e, d_w, ob_std_e, ob_std_w, y_label='None', xb='None',
                                 y_lim='None', axes='None'):
     """Plots a specified observation using obs eqn in obs module. Takes an
@@ -384,10 +420,10 @@ def part_plot(xa_east, xa_west, d_e, d_w):
     f, ((ax1, ax2)) = plt.subplots(1, 2)
     # Observed values
     plot_obs_east_west_part(xa_east, d_e, axes=ax1)
-    ax1.set_title(r'a) Unthinned side')#, y=1.06)
+    ax1.set_title(r'a) Unthinned forest')#, y=1.06)
 
     plot_obs_east_west_part(xa_west, d_w, axes=ax2)
-    ax2.set_title(r'b) Thinned side')#, y=1.06)
+    ax2.set_title(r'b) Thinned forest')#, y=1.06)
 
     f.tight_layout()
     #f.subplots_adjust(hspace=.5)
@@ -417,7 +453,7 @@ def plot_pheno_obs(d, axes='None'):
     return ret_val
 
 
-def plot_4dvar(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=None):
+def plot_4dvar(ob, dC, xb=None, xa=None, erbars=1, y_label='None', awindl=None, obdict_a=None):
     """Plots a model predicted observation value for two initial states (xb,xa)
     and also the actual observations taken of the physical quantity. Takes a ob
     string, two initial states (xb,xa), a dataClass and a start and finish
@@ -451,9 +487,11 @@ def plot_4dvar(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=None):
         ax.axvline(x=dC.dates[awindl], color='k', ls='dashed')
 
     ax.set_xlabel('Year')
-    ax.set_ylabel(ob)
+    if y_label == 'None':
+        ax.set_ylabel(ob)
+    else:
+        ax.set_ylabel(y_label)
     plt.gcf().autofmt_xdate()
-
     return ax, fig
 
 
@@ -494,6 +532,9 @@ def plot_scatter(ob, pvals, dC, awindl, bfa='a'):
     std_mod_obs = np.nanstd(ob_lst)
     obs_bar = np.mean(y_obs)
     std_obs = np.std(y_obs)
+    sse = np.sum([(y_obs[x]-ob_lst[x])**2 for x in xrange(len(y_obs))])
+    sst = np.sum([(y_obs[x]-obs_bar)**2 for x in xrange(len(y_obs))])
+    r2 = 1 - (sse/sst)
     rms = np.sqrt(np.sum([((ob_lst[x]-mod_obs_bar)-(y_obs[x]-obs_bar))**2 for x in range(len(y_obs))]) / len(y_obs))
     corr_coef = (np.sum([((ob_lst[x]-mod_obs_bar)*(y_obs[x]-obs_bar)) for x in range(len(y_obs))]) / len(y_obs)) / \
                 (std_mod_obs*std_obs)
@@ -501,7 +542,7 @@ def plot_scatter(ob, pvals, dC, awindl, bfa='a'):
     plt.xlabel(ob.upper()+r' observations (g C m$^{-2}$ day$^{-1}$)')
     plt.ylabel(ob.upper()+' model (g C m$^{-2}$ day$^{-1}$)')
     plt.title('mean(y-hx)=%.2f, rms=%.2f, corr_coef=%.2f' %( yhx, rms, corr_coef))
-    print bfa+'_error=%f, mean(y-hx)=%f, rms=%f, corr_coef=%f' %(error, yhx, rms, corr_coef)
+    print bfa+'_error=%f, mean(y-hx)=%f, rms=%f, corr_coef=%f, r2=%f' %(error, yhx, rms, corr_coef, r2)
     #plt.xlim((-20, 15))
     #plt.ylim((-20, 15))
     return ax, fig,
