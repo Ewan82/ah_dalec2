@@ -147,7 +147,7 @@ def plot_obs(ob, pvals, dC):
 
 
 def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None', ob_std_e=0, ob_std_w=0, y_lim='None',
-                       axes='None'):
+                       axes='None', de_obdic='None', dw_obdic='None'):
     """Plots a specified observation using obs eqn in obs module. Takes an
     observation string, a dataClass (dC) and a start and finish point.
     """
@@ -184,6 +184,15 @@ def plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='None'
                     markeredgecolor='black', markeredgewidth=0.5)
         ax.errorbar(d_w.dates, d_w.ob_dict[ob], yerr=d_w.ob_err_dict[ob], fmt='o', color=palette[2],
                     markeredgecolor='black', markeredgewidth=0.5)
+    elif de_obdic != 'None':
+        ax.plot(d_e.dates, de_obdic.ob_dict[ob], 'o', markerfacecolor="None",
+                    markeredgecolor=palette[0], markeredgewidth=1.5)
+        ax.plot(d_w.dates, dw_obdic.ob_dict[ob], 'o', markerfacecolor="None",
+                    markeredgecolor=palette[2], markeredgewidth=1.5)
+        #ax.errorbar(d_e.dates, de_obdic.ob_dict[ob], yerr=de_obdic.ob_err_dict[ob], fmt='o', markerfacecolor="None",
+        #            markeredgecolor=palette[0], markeredgewidth=0.5)
+        #ax.errorbar(d_w.dates, dw_obdic.ob_dict[ob], yerr=dw_obdic.ob_err_dict[ob], fmt='o', markerfacecolor="None",
+        #            markeredgecolor=palette[2], markeredgewidth=0.5)
     plt.legend()
     ax.set_xlabel('Date')
     if y_label == 'None':
@@ -249,18 +258,20 @@ def plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label='None', xb='N
 
     palette = sns.color_palette("colorblind", 11)
 
-    ax.plot(d_e.dates, np.cumsum(obs_lst_e), color=palette[0], label='Unthinned')
+    #ax.plot(d_e.dates, np.cumsum(obs_lst_e), color=palette[0], label='Unthinned')
     if ob_std_e is not 0:
         ax.fill_between(d_e.dates, np.cumsum(obs_lst_e)-ob_std_e, np.cumsum(obs_lst_e)+ob_std_e, facecolor=palette[0],
-                        alpha=0.5, linewidth=0.0)
+                        alpha=0.4, linewidth=0.0)
         cum_east = y_label+'_east: ' + str(np.cumsum(obs_lst_e)[-1])+' +/- ' + str(ob_std_e[-1])
         print cum_east
-    ax.plot(d_w.dates, np.cumsum(obs_lst_w), color=palette[2], label='Thinned')
+    #ax.plot(d_w.dates, np.cumsum(obs_lst_w), color=palette[2], label='Thinned')
     if ob_std_w is not 0:
         ax.fill_between(d_w.dates, np.cumsum(obs_lst_w)-ob_std_w, np.cumsum(obs_lst_w)+ob_std_w, facecolor=palette[2],
-                        alpha=0.5, linewidth=0.0)
+                        alpha=0.4, linewidth=0.0)
         cum_west = y_label+'_west: ' + str(np.cumsum(obs_lst_w)[-1])+' +/- ' + str(ob_std_w[-1])
         print cum_west
+    ax.plot(d_e.dates, np.cumsum(obs_lst_e), color=palette[0], label='Unthinned', linewidth=2.5)
+    ax.plot(d_w.dates, np.cumsum(obs_lst_w), color=palette[2], label='Thinned', linewidth=2.5)
     if xb != 'None':
         mod_lst_xb = mw.mod_list(xb)
         obs_lst_xb = mw.oblist(ob, mod_lst_xb)
@@ -729,7 +740,7 @@ def plot_4dvar_twin(ob, dC, xb=None, xa=None, erbars=1, awindl=None, obdict_a=No
     return ax, fig
 
 
-def plottwinerr(truth, xb, xa, xb_lab='xb', xa_lab='xa'):
+def plottwinerr(truth, xb, xa, xb_lab='prior', xa_lab='posterior'):
     """Plot error between truth and xa/xb shows as a bar chart.
     """
     sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth': 1, 'lines.markersize': 10})
@@ -749,6 +760,110 @@ def plottwinerr(truth, xb, xa, xb_lab='xb', xa_lab='xa'):
             r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
     ax.set_xticklabels(keys, rotation=90)
     ax.legend()
+    return ax, fig
+
+
+def plot_twinerr_red(truth, xb, xa, xb_lab='prior', xa_lab='posterior'):
+    """Plot error between truth and xa/xb shows as a bar chart.
+    """
+    sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth': 1, 'lines.markersize': 10})
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 5))
+    sns.set_style('ticks')
+    palette = sns.color_palette("colorblind", 11)
+    n = 23
+    width = 0.5
+    ind = np.arange(n)
+    #fig = plt.figure()
+    #ax = fig.add_subplot(111)
+    xb_err = abs(truth-xb)/truth
+    xa_err = abs(truth-xa)/truth
+    rects1 = ax.bar(ind, 100*abs(xb_err-xa_err)/xb_err, width, color=sns.xkcd_rgb["faded green"])
+    ax.set_ylabel('Reduction in error (%)')
+    print np.mean(100*abs(xb_err-xa_err)/xb_err)
+    #ax.set_title('% error in parameter values for xa and xb')
+    ax.set_xticks(ind+0.5*width)
+    keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
+            r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
+            r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
+            r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
+    ax.set_xticklabels(keys, rotation=90)
+    ax.set_ylim([0,100])
+    ax.legend(loc=2)
+    return ax, fig
+
+
+def plot_twin_err(truth, xb, xa, xb_lab='prior', xa_lab='posterior'):
+    """Plot error between truth and xa/xb shows as a bar chart.
+    """
+    sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth': 1, 'lines.markersize': 10})
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 5))
+    sns.set_style('ticks')
+    palette = sns.color_palette("colorblind", 11)
+    n = 23
+    width = 0.5
+    ind = np.arange(n)
+    #fig = plt.figure()
+    #ax = fig.add_subplot(111)
+    xa_err = abs(truth-xa)/truth
+    xb_err = abs(truth-xb)/truth
+    print (xb_err-xa_err)/xb_err
+    rects1 = ax.bar(ind, 100*xa_err, width, color=sns.xkcd_rgb["faded green"])
+    ax.set_ylabel('Error (%)')
+    print np.mean(100*xa_err)
+    print np.mean(100*xb_err)
+    d = dc.DalecData(2015, 2016, ob_str='clma')
+    m = mc.DalecModel(d)
+    mod_t = m.mod_list(truth)
+    mod_b = m.mod_list(xb)
+    mod_a = m.mod_list(xa)
+    nee_t = m.oblist('nee', mod_t)
+    gpp_t = m.oblist('gpp', mod_t)
+    rt_t = m.oblist('rt', mod_t)
+    nee_a = m.oblist('nee', mod_a)
+    gpp_a = m.oblist('gpp', mod_a)
+    rt_a = m.oblist('rt', mod_a)
+    print np.sum(nee_t), np.sum(gpp_t), np.sum(rt_t)
+    print np.sum(nee_a), np.sum(gpp_a), np.sum(rt_a)
+    #ax.set_title('% error in parameter values for xa and xb')
+    ax.set_xticks(ind+0.5*width)
+    keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
+            r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
+            r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
+            r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
+    ax.set_xticklabels(keys, rotation=90)
+    ax.set_ylim([0,50])
+    ax.legend(loc=2)
+    return ax, fig
+
+
+def plot_twin_err_all(xt, xb, xaA, xaB, xaC):
+    """Plot error between truth and xa/xb shows as a bar chart.
+    """
+    sns.set_context('poster', font_scale=1.5, rc={'lines.linewidth':1, 'lines.markersize':10})
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15,5))
+    #sns.set_style('ticks')
+    n = 23
+    width = 0.22
+    ind = np.arange(n)
+    #fig = plt.figure()
+    #ax = fig.add_subplot(111)
+    rects1 = ax.bar(ind, 100*abs(xt-xb)/xt, width, color=sns.xkcd_rgb["faded green"],
+                    label=r'$\mathbf{x}^{b}$')
+    rects2 = ax.bar(ind+width, 100*abs(xt-xaA)/xt, width, color=sns.xkcd_rgb["pale red"],
+                    label='A')
+    rects3 = ax.bar(ind+width*2, 100*abs(xt-xaB)/xt, width, color=sns.xkcd_rgb["dusty purple"],
+                    label='B')
+    rects4 = ax.bar(ind+width*3, 100*abs(xt-xaC)/xt, width, color=sns.xkcd_rgb["amber"],
+                    label='C')
+    ax.set_ylabel('Error (%)')
+    #ax.set_title('% error in parameter values for xa and xb')
+    ax.set_xticks(ind+width*2)
+    keys = [r'$\theta_{min}$', r'$f_{auto}$', r'$f_{fol}$', r'$f_{roo}$', r'$c_{lspan}$', r'$\theta_{woo}$',
+            r'$\theta_{roo}$', r'$\theta_{lit}$', r'$\theta_{som}$', r'$\Theta$', r'$c_{eff}$', r'$d_{onset}$',
+            r'$f_{lab}$', r'$c_{ronset}$', r'$d_{fall}$', r'$c_{rfall}$', r'$c_{lma}$', r'$C_{lab}$', r'$C_{fol}$',
+            r'$C_{roo}$', r'$C_{woo}$', r'$C_{lit}$', r'$C_{som}$']
+    ax.set_xticklabels(keys, rotation=90)
+    ax.legend(loc=0)
     return ax, fig
 
 
@@ -931,13 +1046,14 @@ def plot_bmat(bmat):
 
 # Paper Plots disturbance
 
-def plot_east_west_paper(ob, xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label='None', y_lim='None', axes='None'):
+def plot_east_west_paper(ob, xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label='None', y_lim='None', axes='None',
+                         de_obdic='None', dw_obdic='None'):
     ob_ens_e = ob_plist(d_e, e_ens, ob)
     ob_ens_w = ob_plist(d_w, w_ens, ob)
     ob_std_e = ob_mean_std(ob_ens_e)[1]
     ob_std_w = ob_mean_std(ob_ens_w)[1]
     return plot_obs_east_west(ob, xa_east, xa_west, d_e, d_w, y_label=y_label, ob_std_e=ob_std_e, ob_std_w=ob_std_w,
-                              y_lim=y_lim, axes=axes)
+                              y_lim=y_lim, axes=axes, de_obdic=de_obdic, dw_obdic=dw_obdic)
 
 
 def plot_east_west_paper_cum(ob, xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label='None', y_lim='None'):
@@ -947,6 +1063,15 @@ def plot_east_west_paper_cum(ob, xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_lab
     ob_std_w = ob_mean_std_cum(ob_ens_w)[1]
     return plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label=y_label, ob_std_e=ob_std_e, ob_std_w=ob_std_w,
                               y_lim=y_lim)
+
+
+def plot_east_west_paper_cum2(ob, xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label='None', y_lim='None'):
+    ob_ens_e = ob_plist(d_e, e_ens, ob)
+    ob_ens_w = ob_plist(d_w, w_ens, ob)
+    ob_std_e = ob_mean_std_cum(ob_ens_e)[1]
+    ob_std_w = ob_mean_std_cum(ob_ens_w)[1]
+    return plot_obs_east_west_cum(ob, xa_east, xa_west, d_e, d_w, y_label=y_label, ob_std_e=ob_std_e, ob_std_w=ob_std_w,
+                              y_lim=y_lim), ob_std_e, ob_std_w
 
 
 def plot_east_west_paper_part(xa_east, xa_west, d_e, d_w, e_ens, w_ens, y_label='NEE partitioning', y_lim='None',

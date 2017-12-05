@@ -52,6 +52,26 @@ def test_cost(alph=1e-8, vect=0):
     print j
     print np.dot(alph*h, gradj)
     return (jalph-j) / (np.dot(alph*h, gradj))
+
+
+def test_cost_ens(alph=1e-8, vect=0):
+    """Test for cost and gradcost functions.
+    """
+    d=dC.DalecDataTwin(1999, 2000, 'nee, nee_day, nee_night',
+                       nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
+    obdict = d.obdict
+    oberrdict = d.oberrdict
+    gradj = var.gradcost(d.pvals, obdict, oberrdict, d, 0, 365)
+    if vect == True:
+        h = d.pvals*(np.linalg.norm(d.pvals))**(-1)
+    else:
+        h = gradj*(np.linalg.norm(gradj))**(-1)
+    j = var.cost(d.pvals, obdict, oberrdict, d, 0, 365)
+    jalph = var.cost(d.pvals + alph*h, obdict, oberrdict, d, 0, 365)
+    print jalph
+    print j
+    print np.dot(alph*h, gradj)
+    return (jalph-j) / (np.dot(alph*h, gradj))
     
     
 def test_costsum(alph=1e-8):

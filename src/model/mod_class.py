@@ -14,7 +14,7 @@ import my_email
 
 class DalecModel():
 
-    def __init__(self, dataclass, time_step=0, strtrun=0):
+    def __init__(self, dataclass, time_step=0, strtrun=0, size_ens=23):
         """dataClass and timestep at which to run the dalecv2 model.
         """
         self.dC = dataclass
@@ -42,6 +42,8 @@ class DalecModel():
         self.diag_b = np.diag(np.diag(self.dC.B))
         self.b_tilda = np.dot(np.dot(np.linalg.inv(np.sqrt(self.diag_b)), self.dC.B),
                               np.linalg.inv(np.sqrt(self.diag_b)))
+        self.xb_mat, self.hmx_mat = self.create_ensemble2(size_ens)
+        self.xb_mat_inv = np.linalg.pinv(self.xb_mat.T)
         self.nume = 100
 
 
@@ -901,6 +903,131 @@ class DalecModel():
 
 
 # ------------------------------------------------------------------------------
+# 4D-En-Var functions
+# ------------------------------------------------------------------------------
+
+    def create_ensemble(self, size=25):
+        xbs = np.random.multivariate_normal(self.xb, self.dC.B, size=size)
+        xb_mat = (1./(np.sqrt(size-1)))*np.array([xb - self.xb for xb in xbs])
+        pval_ens = np.array([self.mod_list(xb) for xb in xbs])
+        xb_pval_lst = self.mod_list(self.xb)
+        hmx_mat = np.array([self.hxcost(pval_lst) - self.hxcost(xb_pval_lst) for pval_lst in pval_ens])
+        obs_len=self.obs_time_step[self.obs_time_step > 0.]
+        idxes = np.append([0], np.cumsum(obs_len))
+        hmx_mat_split = [hmx_mat[:, idxes[x]:idxes[x+1]] for x in xrange(len(idxes)-1)]
+        rmat_split = [self.rmatrix[idxes[x]:idxes[x+1], idxes[x]:idxes[x+1]] for x in xrange(len(idxes)-1)]
+        return xb_mat, hmx_mat_split, rmat_split, idxes
+
+    def create_ensemble2(self, size=25):
+        xbs = []
+        while len(xbs) < size:
+            xbi = np.random.multivariate_normal(self.xb, self.dC.B)
+            if self.test_pvals_bnds(xbi) is True:
+                xbs.append(xbi)
+            else:
+                continue
+        xbs = np.array(xbs)
+        # xbs = np.random.multivariate_normal(self.xb, 0.1*self.dC.B, size=size)
+        xb_mean = self.xb  # np.mean(xbs, axis=0)
+        print xb_mean
+        xb_mat = (1./(np.sqrt(size-1)))*np.array([xbi - xb_mean for xbi in xbs])
+        pval_ens = np.array([self.mod_list(xbi) for xbi in xbs])
+        xb_pval_lst = self.mod_list(xb_mean)
+        hmx_mat = (1./(np.sqrt(size-1)))*np.array([self.hxcost(pval_lst) - self.hxcost(xb_pval_lst)
+                                                   for pval_lst in pval_ens])
+        return xb_mat, hmx_mat
+
+    def xvals2wvals(self, xvals):
+        return np.dot(self.xb_mat_inv, (xvals - self.xb))
+
+    def wvals2xvals(self, wvals):
+        return self.xb + np.dot(self.xb_mat.T, wvals)
+
+    def obcost_ens(self, wvals):
+        """Observational part of cost fn.
+        """
+        pvals = self.wvals2xvals(wvals)
+        pvallist = self.mod_list(pvals)
+        hx = self.hxcost(pvallist)
+        return np.dot(np.dot((self.yoblist-hx), np.linalg.inv(self.rmatrix)), (self.yoblist-hx).T)
+
+    def cost_ens(self, wvals):
+        modcost = np.dot(wvals, wvals.T)
+
+        obcost = self.obcost_ens(wvals)
+        return 0.5*modcost + 0.5*obcost
+
+    def gradcost_ens(self, wvals):
+        """Gradient of 4DVAR cost fn to be passed to optimization routine.
+        Takes an initial state (pvals), an obs dictionary, an obs error
+        dictionary, a dataClass and a start and finish time step.
+        """
+        pvals = self.wvals2xvals(wvals)
+        pvallist = self.mod_list(pvals)
+        hx = self.hxcost(pvallist)
+        obcost = np.dot(self.hmx_mat, np.dot(np.linalg.inv(self.rmatrix),
+                                          (self.yoblist-hx).T))
+
+        gradcost = - obcost + wvals  # + bnd_cost
+        return gradcost
+
+    def gradcost2_ens(self, wvals):
+        """Gradient of 4DVAR cost fn to be passed to optimization routine.
+        Takes an initial state (pvals), an obs dictionary, an obs error
+        dictionary, a dataClass and a start and finish time step. Using Lagrange
+        multipliers to increase speed, method updated to allow for temporally
+        correlated R matrix. Uses method of Lagrange multipliers!
+        """
+        pvals = self.wvals2xvals(wvals)
+        pvallist = self.mod_list(pvals)
+        hx = self.hxcost(pvallist)
+        r_yhx = np.dot(np.linalg.inv(self.rmatrix), (self.yoblist-hx).T)
+        idx1 = len(self.yoblist) - sum(self.obs_time_step[self.lenrun-1:])
+        idx2 = len(self.yoblist) - sum(self.obs_time_step[self.lenrun-1+1:])
+        obcost = np.dot(self.hmx_mat[:,idx1:idx2], r_yhx[idx1:idx2])
+        for i in xrange(self.lenrun-2, -1, -1):
+            if self.obs_time_step[i] != 0:
+                idx1 = len(self.yoblist) - sum(self.obs_time_step[i:])
+                idx2 = len(self.yoblist) - sum(self.obs_time_step[i+1:])
+                obcost = obcost + np.dot(self.hmx_mat[:,idx1:idx2], r_yhx[idx1:idx2])
+            else:
+                obcost = obcost
+        obcost = obcost
+
+        if self.modcoston is True:
+            modcost = wvals
+        else:
+            modcost = 0
+        gradcost = - obcost + modcost
+        return gradcost
+
+    def wvalbnds(self, bnds):
+        """Calculates bounds for transformed problem.
+        """
+        lower_bnds = []
+        upper_bnds = []
+        for t in bnds:
+            lower_bnds.append(t[0])
+            upper_bnds.append(t[1])
+        wval_lowerbnds = self.xvals2wvals(np.array(lower_bnds))
+        wval_upperbnds = self.xvals2wvals(np.array(upper_bnds))
+        new_bnds = []
+        for t in xrange(len(bnds)):
+            new_bnds.append((wval_lowerbnds[t],wval_upperbnds[t]))
+        return tuple(new_bnds)
+
+    def test_pvals_bnds(self, pvals):
+        """Tests pvals to see if they are within the correct bnds.
+        """
+        x = 0
+        for bnd in self.dC.bnds:
+            if bnd[0] < pvals[x] < bnd[1]:
+                x += 1
+            else:
+                return False
+        return True
+
+# ------------------------------------------------------------------------------
 # Minimization Routines.
 # ------------------------------------------------------------------------------
 
@@ -935,11 +1062,23 @@ class DalecModel():
                                 disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         xa = self.zvals2pvals(find_min[0])
         if f_name != None:
-            if email == 0:
-                self.pickle_exp(pvals, find_min, xa, f_name)
-            elif email == 1:
-                exp = self.exp_dict(pvals, find_min, xa)
-                my_email.send_email(exp, f_name)
+            self.pickle_exp(pvals, find_min, xa, f_name)
+        return find_min, xa
+
+    def find_min_tnc_ens(self, pvals, f_name='None', bnds='strict', dispp=5, maxits=2000,
+                         mini=0, f_tol=1e-4):
+        """Function which minimizes 4DVAR cost fn. Takes an initial state
+        (pvals).
+        """
+        self.xb = pvals
+
+        wvals = self.xvals2wvals(pvals)
+        find_min = spop.fmin_tnc(self.cost_ens, wvals,
+                                fprime=self.gradcost2_ens,
+                                disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
+        xa = self.wvals2xvals(find_min[0])
+        if f_name != None:
+            self.pickle_exp(pvals, find_min, xa, f_name)
         return find_min, xa
 
     def findminglob(self, pvals, meth='TNC', bnds='strict', it=300,

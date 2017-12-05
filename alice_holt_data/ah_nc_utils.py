@@ -292,7 +292,7 @@ def clip_co2_flux_u_star(co2_flux, clipped_co2_flux, u_star, is_day):
     # Value of +/- 70 u mol m-2 s-1 chosen for upper and lower limit to clip.
     for x in xrange(len(clip_nee)):
         if is_day[x, 0, 0] == 1:
-            if u_star[x, 0, 0] < 0.2:
+            if u_star[x, 0, 0] < 0.3:
                 clip_nee[x] = float('NaN')
         elif is_day[x, 0, 0] == 0:
             if u_star[x, 0, 0] < 0.5:
@@ -311,13 +311,13 @@ def clip_co2_flux_u_star2(co2_flux, clipped_co2_flux, u_star):
     clip_nee = clipped_co2_flux[:, 0, 0]
     # Value of +/- 70 u mol m-2 s-1 chosen for upper and lower limit to clip.
     for x in xrange(len(clip_nee)):
-        if u_star[x, 0, 0] < 0.2:
+        if u_star[x, 0, 0] < 0.3:
             clip_nee[x] = float('NaN')
     clipped_co2_flux[:, 0, 0] = clip_nee
     return 'yay'
 
 
-def clip_co2_flux_mean(co2_flux, clipped_co2_flux, idx1, idx2):
+def clip_co2_flux_mean(co2_flux, clipped_co2_flux, idx1, idx2, clip_scale=3):
     """ Clips co2_flux data and saves in clipped_co2_flux netcdf variable
     :param co2_flux: co2 flux measurements from tower as netcdf variable
     :param clipped_co2_flux: netcdf variable to save clipped measurements in
@@ -330,8 +330,8 @@ def clip_co2_flux_mean(co2_flux, clipped_co2_flux, idx1, idx2):
     clip_std_pos = np.nanstd(clip_nee[clip_nee > 0])
     clip_mean_neg = np.nanmean(clip_nee[clip_nee < 0])
     clip_std_neg = np.nanstd(clip_nee[clip_nee < 0])
-    clip_nee[clip_nee > clip_mean_pos+3*clip_std_pos] = float('NaN')
-    clip_nee[clip_nee < clip_mean_neg-3*clip_std_neg] = float('NaN')
+    clip_nee[clip_nee > clip_mean_pos+clip_scale*clip_std_pos] = float('NaN')
+    clip_nee[clip_nee < clip_mean_neg-clip_scale*clip_std_neg] = float('NaN')
     clipped_co2_flux[idx1:idx2, 0, 0] = clip_nee
     return 'yay'
 
@@ -383,6 +383,23 @@ def clip_co2_flux_wrapper(co2_flux, clipped_co2_flux, times):
         for month in np.arange(1, 13):
             month_idx1, month_idx2 = find_indices_month(times_yr, month, times.units)
             clip_co2_flux_mean(co2_flux, clipped_co2_flux, yr_idx1+month_idx1, yr_idx1+month_idx2)
+    return 'yay'
+
+
+def clip_co2_flux_wrapper2(co2_flux, clipped_co2_flux, times):
+    """ Clips co2 flux data by year and month using clip_co2_flux_mean fn
+    :param co2_flux: co2 flux netcdf variable
+    :param clipped_co2_flux: netcdf variable to put clipped flux observations
+    :param times: time netcdf variable
+    :return:
+    """
+    yr_lst = make_year_lst(times)
+    for yr in yr_lst:
+        yr_idx1, yr_idx2 = find_indices_year(times, yr)
+        times_yr = times[yr_idx1:yr_idx2]
+        for month in np.arange(1, 13):
+            month_idx1, month_idx2 = find_indices_month(times_yr, month, times.units)
+            clip_co2_flux_mean(co2_flux, clipped_co2_flux, yr_idx1+month_idx1, yr_idx1+month_idx2, clip_scale=4)
     return 'yay'
 
 
@@ -577,12 +594,12 @@ def quality_control_co2_flux_daily(clipped_co2_flux, qc_co2_flux, nee, nee_std, 
             qc_flag1 += 1
             if qc_flag1 > qc1_tol:
                 break
-        if fill > 2:
+        if fill > 4:
             break
         else:
             continue
 
-    if fill > 2:
+    if fill > 4:
         nee[idx, 0, 0] = float('NaN')
         nee_std[idx, 0, 0] = float('NaN')
         origin[idx, 0, 0] = float('NaN')
@@ -759,15 +776,15 @@ def add_data2daily_netcdf_nee(half_hourly_nc, daily_nc):
     # update daily NEE values and origins
     process_co2_flux_daily_d(co2_flux, qc_co2_flux, nee, nee_std, is_day, wind_dir, nee_origin, foot_print, hh_times,
                              time_lst, 12, 25)
-    print 'daily nee done'
+    #print 'daily nee done'
     # update daytime NEE values and origins
-    process_co2_flux_daytime_d(co2_flux, qc_co2_flux, nee_day,nee_day_std, is_day, wind_dir, nee_origin_day, foot_print,
-                               hh_times, time_lst, 6, 12)
-    print 'daytime nee done'
+    #process_co2_flux_daytime_d(co2_flux, qc_co2_flux, nee_day, nee_day_std, is_day, wind_dir, nee_origin_day,
+    #                           foot_print, hh_times, time_lst, 6, 12)
+    #print 'daytime nee done'
     # update nighttime NEE values and origins
-    process_co2_flux_nighttime_d(co2_flux, qc_co2_flux, nee_night, nee_night_std, is_day, wind_dir, nee_origin_night,
-                                 foot_print, hh_times, time_lst, 1, 3)
-    print 'nighttime nee done'
+    #process_co2_flux_nighttime_d(co2_flux, qc_co2_flux, nee_night, nee_night_std, is_day, wind_dir, nee_origin_night,
+    #                             foot_print, hh_times, time_lst, 1, 3)
+    #print 'nighttime nee done'
     hh_data.close()
     d_data.close()
     return 'yay'

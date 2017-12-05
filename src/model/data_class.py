@@ -14,6 +14,7 @@ class DalecData:
     """
     def __init__(self, start_date=None, end_date=None, ob_str=None,
                  nc_file='../../alice_holt_data/ah_data_daily_test.nc', scale_nee=0, delta_t=None, k=None):
+        # originally using '../../alice_holt_data/ah_data_daily_test.nc'
         """ Extracts data from netcdf file
         :param start_date: date for model runs to begin as an integer (year) or tuple (year, month, day)
         :param end_date: date for model runs to end as an integer (year) or tuple (year, month, day)
@@ -157,7 +158,7 @@ class DalecData:
                                 1.43000000e+01,   5.01480167e+02,   7.26249788e+03,
                                 6.26033838e+02,   2.35514838e+03])
 
-        self.xb = self.pvals
+        self.xb = self.edinburgh_mean  # self.pvals
         self.xb_ew = np.array([6.28988509e-04,   4.03500221e-01,   2.71662772e-01,
                                3.49284334e-01,   1.00194789e+00,   9.39391318e-05,
                                6.72893955e-03,   1.80302080e-03,   7.59935575e-05,
@@ -416,6 +417,8 @@ class DalecDataTwin(DalecData):
                 raise Exception('Invalid observations entered, please check \
                                  function input')
             else:
+                if ob[-5:] == '_east':
+                    ob = ob[:-5]
                 obs = self.ob_dict[ob]  # actual observations
                 mod_obs = (obs/obs) * self.m.oblist(ob, mod_lst)  # modelled observation corresponding to same
                 # position as actual obs

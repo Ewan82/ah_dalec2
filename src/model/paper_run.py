@@ -597,10 +597,50 @@ def save_paper_plots(f_name, exp_name, f_typ='pdf', exp='a'):
     f.close()
     return 'done!'
 
+def plot_cum_nee(f_name, exp_name, f_typ='pdf', exp='a'):
+    sns.set_context('poster', font_scale=1., rc={'lines.linewidth': 1.5, 'lines.markersize': 1.})
+    sns.set_style('whitegrid')
+    if not os.path.exists(f_name):
+        os.makedirs(f_name)
+    east = pickle.load(open(exp_name+'east_assim', 'r'))
+    west = pickle.load(open(exp_name+'west_assim', 'r'))
+    b = 1.5*east['b_mat']
+    # east data
+    de = dc.DalecData(2015, 2016, 'clma',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
+    de.B = b
+    de.ob_dict = east['obs']
+    de.ob_err_dict = east['obs_err']
+    # obs err scaling
+    # west data
+    dw = dc.DalecData(2015, 2016, 'clma',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
+    dw.B = b
+    dw.ob_dict = west['obs']
+    dw.ob_err_dict = west['obs_err']
+    # obs err scaling
+    # setup model
+    me = mc.DalecModel(de)
+    me.rmatrix = r_mat_corr(me.yerroblist, me.ytimestep, me.y_strlst, me.rmatrix, corr=0.3, tau=2.)[1]
+    mw = mc.DalecModel(dw)
+    mw.rmatrix = r_mat_corr(mw.yerroblist, mw.ytimestep, mw.y_strlst, mw.rmatrix, corr=0.3, tau=2.)[1]
+    # a_east = pickle.load(open('a_east.p', 'r'))
+    # a_west = pickle.load(open('a_west.p', 'r'))
+    a_east = me.acovmat(east['xa'])
+    a_west = mw.acovmat(west['xa'])
+    e_ens = p.create_ensemble(de, a_east, east['xa'])
+    w_ens = p.create_ensemble(de, a_west, west['xa'])
+    p_e_ens = p.plist_ens(de, e_ens)
+    p_w_ens = p.plist_ens(dw, w_ens)
+    plot, ob_std_e, ob_std_w = p.plot_east_west_paper_cum2('nee', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+                                                     y_label='Cumulative NEE (g C m$^{-2}$)')
+    plot[1].savefig(f_name+'nee_cum.'+f_typ, bbox_inches='tight')
+    return east['xa'], west['xa'], de, dw, ob_std_e, ob_std_w
+
 
 def do_plots(f_name):
     for item in ['nee_needn', 'nee_needn_lai', 'nee_needn_lai_cw']:
-        save_paper_plots(f_name+item+'_pp/', f_name+item+'/')
+        save_paper_plots_test(f_name+item+'_pp/', f_name+item+'/')
     return 'done'
 
 
@@ -613,12 +653,16 @@ def save_paper_plots_test(f_name, exp_name):
     # east data
     de = dc.DalecData(2015, 2016, 'clma',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
+    de_all = dc.DalecData(2015, 2016, 'clma, nee_day_east, nee_night_east, lai_east, c_woo_east',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
     de.B = b
     de.ob_dict = east['obs']
     de.ob_err_dict = east['obs_err']
     # obs err scaling
     # west data
     dw = dc.DalecData(2015, 2016, 'clma',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
+    dw_all = dc.DalecData(2015, 2016, 'clma, nee_day_west, nee_night_west, lai_west, c_woo_west',
                       nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
     dw.B = b
     dw.ob_dict = west['obs']
@@ -639,51 +683,114 @@ def save_paper_plots_test(f_name, exp_name):
     p_w_ens = p.plist_ens(dw, w_ens)
 
     ax, fig = p.plot_var_red_east_west(b, a_east, a_west)
+    ax.set_ylim([0, 100])
     fig.savefig(f_name+'var_red.png', bbox_inches='tight')
     sns.set_context('poster', font_scale=1., rc={'lines.linewidth': .8, 'lines.markersize': 1.})
     sns.set_style('whitegrid')
+    #de.ob_err_dict['lai']=np.sqrt(de.ob_err_dict['lai'])
+    #dw.ob_err_dict['lai']=np.sqrt(dw.ob_err_dict['lai'])
 
-    ax, fig = p.plot_east_west_paper_part(east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
-                                     y_label='Cumulative NEE partitioning (g C m$^{-2}$)')
-    fig.savefig(f_name+'nee_cum_part.png', bbox_inches='tight')
+    #ax, fig = p.plot_east_west_paper_part(east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+    #                                 y_label='Cumulative NEE partitioning (g C m$^{-2}$)')
+    #fig.savefig(f_name+'nee_cum_part.png', bbox_inches='tight')
 
-    f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
+    #f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
     # Observed values
-    p.plot_east_west_paper('nee_day', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
-                                     y_label=r'NEE$_{day}$ (g C m$^{-2}$ day$^{-1}$)', y_lim=[-15, 5], axes=ax1)
-    ax1.set_title(r'a) Daytime NEE')#, y=1.06)
-    p.plot_east_west_paper('nee_night', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
-                                     y_label=r'NEE$_{night}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax2)
-    ax2.set_title(r'b) Nighttime NEE')#, y=1.06)
-    p.plot_east_west_paper('lai', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
-                                     y_label=r'Leaf area index', axes=ax3)
-    ax3.set_title(r'c) Leaf area index')#, y=1.06)
-    p.plot_east_west_paper('c_woo', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
-                                     y_label=r'C$_{woo}$ (g C m$^{-2}$)',
-                                     y_lim=[9000, 14500], axes=ax4)
-    ax4.set_title(r'd) Woody and coarse root carbon')#, y=1.06)
-    f.tight_layout()
+    #p.plot_east_west_paper('nee_day', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+    #                                 y_label=r'NEE$_{day}$ (g C m$^{-2}$ day$^{-1}$)', y_lim=[-14, 6], axes=ax1,
+    #                       de_obdic=de_all,dw_obdic=dw_all)
+    #ax1.set_ylim([-14, 6])
+    #ax1.set_title(r'a) Daytime NEE')#, y=1.06)
+    #p.plot_east_west_paper('nee_night', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+    #                                 y_label=r'NEE$_{night}$ (g C m$^{-2}$ day$^{-1}$)', y_lim=[-14, 6],
+    #                       axes=ax2, de_obdic=de_all,
+    #                       dw_obdic=dw_all)
+    #ax2.set_ylim([-14, 6])
+    #ax2.set_title(r'b) Nighttime NEE')#, y=1.06)
+    #p.plot_east_west_paper('lai', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+    #                                 y_label=r'Leaf area index', y_lim=[0, 5], axes=ax3, de_obdic=de_all,
+    #                       dw_obdic=dw_all)
+    #ax3.set_ylim([0, 5])
+    #ax3.set_title(r'c) Leaf area index')#, y=1.06)
+    #p.plot_east_west_paper('c_woo', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+    #                                 y_label=r'C$_{woo}$ (g C m$^{-2}$)',
+    #                                 y_lim=[9000, 14500], axes=ax4, de_obdic=de_all,
+    #                       dw_obdic=dw_all)
+    #ax4.set_ylim([0, 18000])
+    #ax4.set_title(r'd) Woody and coarse root carbon')#, y=1.06)
+    #f.tight_layout()
     #f.subplots_adjust(hspace=.5)
-    f.savefig(f_name+'obs_comp.pdf') #, bbox_inches='tight')
+    #f.savefig(f_name+'obs_comp.pdf') #, bbox_inches='tight')
 
-    f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
+    #f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
     # Fluxes
-    p.plot_east_west_paper('gpp', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
-                                     y_label=r'GPP (g C m$^{-2}$ day$^{-1}$)', axes=ax1)
-    ax1.set_title(r'a) Gross primary productivity')#, y=1.06)
+    #p.plot_east_west_paper('gpp', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+    #                                 y_label=r'GPP (g C m$^{-2}$ day$^{-1}$)', axes=ax1)
+    #ax1.set_title(r'a) Gross primary productivity')#, y=1.06)
 
-    p.plot_east_west_paper('rt', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
-                                     y_label=r'R$_{eco}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax2)
-    ax2.set_title(r'b) Total ecosystem respiration')#, y=1.06)
+    #p.plot_east_west_paper('rt', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+    #                                 y_label=r'R$_{eco}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax2)
+    #ax2.set_title(r'b) Total ecosystem respiration')#, y=1.06)
 
-    p.plot_east_west_paper('ra', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
-                                     y_label=r'R$_{a}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax3)
-    ax3.set_title(r'c) Autotrophic respiration')#, y=1.06)
+    #p.plot_east_west_paper('ra', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+    #                                 y_label=r'R$_{a}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax3)
+    #ax3.set_title(r'c) Autotrophic respiration')#, y=1.06)
 
-    p.plot_east_west_paper('rh', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
-                                     y_label=r'R$_{h}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax4)
-    ax4.set_title(r'd) Heterotrophic respiration')#, y=1.06)
-    f.tight_layout()
+    #p.plot_east_west_paper('rh', east['xa'], west['xa'], de, dw, p_e_ens, p_w_ens,
+    #                                 y_label=r'R$_{h}$ (g C m$^{-2}$ day$^{-1}$)', axes=ax4)
+    #ax4.set_title(r'd) Heterotrophic respiration')#, y=1.06)
+    #f.tight_layout()
     #f.subplots_adjust(hspace=.5)
-    f.savefig(f_name+'flux_comp.pdf') #, bbox_inches='tight')
+    #f.savefig(f_name+'flux_comp.pdf') #, bbox_inches='tight')
     return 'done!'
+
+
+def return_a_mat(pick_dict):
+    b = pick_dict['b_mat'] #1.5*pick_dict['b_mat']
+    # east data
+    d = dc.DalecData(2015, 2016, 'clma',
+                      nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1)
+    d.B = b
+    d.ob_dict = pick_dict['obs']
+    d.ob_err_dict = pick_dict['obs_err']
+    # obs err scaling
+    # west data
+
+    # obs err scaling
+    # setup model
+    m = mc.DalecModel(d)
+    m.rmatrix = pick_dict['rmat']
+    a_cov = m.acovmat(pick_dict['xa'])
+    return a_cov
+
+
+def twin_exps(exp, f_name):
+    if not os.path.exists(f_name):
+        os.makedirs(f_name)
+    if exp == 'a':
+        obs = 'nee_day_east, nee_night_east'
+        lab = '/twin_a'
+        ob_dic = pickle.load(open('twin_obs_a025'))
+    elif exp == 'b':
+        obs = 'nee_day_east, nee_night_east, lai_east, clma'
+        ob_dic = pickle.load(open('twin_obs_b025'))
+        lab = '/twin_b'
+    elif exp == 'c':
+        obs = 'nee_day_east, nee_night_east, lai_east, clma, c_woo_east'
+        ob_dic = pickle.load(open('twin_obs_c025'))
+        lab = '/twin_c'
+    d = dc.DalecDataTwin(2015, 2016, obs, nc_file='../../alice_holt_data/ah_data_daily_test_nee2.nc', scale_nee=1,
+                         err_scale=0.25)
+    d.ob_dict = ob_dic
+    m = mc.DalecModel(d)
+    m.rmatrix = r_mat_corr(m.yerroblist, m.ytimestep, m.y_strlst, m.rmatrix, corr=0.3, tau=2.)[1]
+    # run DA scheme
+    xa = m.find_min_tnc_cvt(d.xb, f_name+lab)
+    ax, fig = p.plottwinerr(d.x_truth, d.xb, xa[1])
+    fig.savefig(f_name+lab+'twin_err.pdf')
+    ax, fig = p.plot_twinerr_red(d.x_truth, d.xb, xa[1])
+    fig.savefig(f_name+lab+'twin_err_red.pdf')
+    ax, fig = p.plot_twin_err(d.x_truth, d.xb, xa[1])
+    fig.savefig(f_name+lab+'twin_err2.pdf', bbox_inches='tight')
+    return xa
+
