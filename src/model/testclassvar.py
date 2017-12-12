@@ -132,10 +132,10 @@ def test_cost_cvt(alph=1e-8, vect=0):
 def test_cost_ens(m, alph=1e-8, vect=0):
     """Test for cost and gradcost functions.
     """
-    pvals = m.dC.edinburgh_median
+    pvals = m.dC.edinburgh_mean
     wvals = m.xvals2wvals(pvals)
     #wvals = np.array([0.]*len(m.xb_mat))
-    gradj = m.gradcost2_ens(wvals)
+    gradj = m.gradcost3_ens(wvals)
     if vect == 0:
         h = wvals*(np.linalg.norm(wvals))**(-1)
     elif vect == 1:
@@ -179,8 +179,8 @@ def plotcost_ens(vect=1, sizee=20):
     sns.set_style('ticks')
     power=np.arange(1,10,1)
     xlist = [10**(-x) for x in power]
-    d = dC.DalecData(1999, 2000, 'nee',
-                         nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc')
+    d=dC.DalecDataTwin(1999, 2010, 'nee',
+                       nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=0)
     m = mc.DalecModel(d, size_ens=sizee)
     tstlist = [abs(test_cost_ens(m, x, vect)-1) for x in xlist]
     ax.loglog(xlist, tstlist, 'k', marker='x', mew=1, ms=8)
@@ -203,8 +203,8 @@ def plotcostone_ens(vect=1, sizee=20):
     sns.set_style('ticks')
     power=np.arange(1,14,1)
     xlist = [10**(-x) for x in power]
-    d = dC.DalecData(1999, 2000, 'nee',
-                     nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc',)
+    d=dC.DalecDataTwin(1999, 2010, 'nee',
+                       nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=0)
     m = mc.DalecModel(d, size_ens=sizee)
     tstlist = [test_cost_ens(m, x, vect) for x in xlist]
     ax.semilogx(xlist, tstlist, 'k', marker='x', mew=1, ms=8)

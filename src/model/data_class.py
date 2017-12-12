@@ -37,7 +37,7 @@ class DalecData:
 
         # I.C. for carbon pools gCm-2     range
         self.clab = 75.0               # (10,1e3)
-        self.cf = 0.0                  # (10,1e3)
+        self.cf = 12.0                  # (10,1e3)
         self.cr = 135.0                # (10,1e3)
         self.cw = 14313.0              # (3e3,3e4)
         self.cl = 70.                  # (10,1e3)

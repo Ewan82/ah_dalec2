@@ -301,7 +301,6 @@ class DalecModel():
         self.x -= self.endrun
         return mod_list, matlist
 
-
     def mfac(self, matlist, timestep):
         """matrix factorial function, takes a list of matrices and a time step,
         returns the matrix factoral.
