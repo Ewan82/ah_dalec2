@@ -2,6 +2,7 @@ import numpy as np
 import collections as col
 import re
 import random
+import copy as cp
 import mod_class as mc
 import netCDF4 as nC
 import datetime as dt
@@ -398,37 +399,39 @@ class DalecData:
 
 class DalecDataTwin(DalecData):
     def __init__(self, start_date, end_date, ob_str, scale_nee=0, err_scale=0.25,
-                 nc_file='../../alice_holt_data/ah_data_daily_test.nc', params4opt=(9, 10, 16)):
+                 nc_file='../../alice_holt_data/ah_data_daily_test.nc', params4opt=(10, 11, 14)):
 
         DalecData.__init__(self, start_date, end_date, ob_str, nc_file, scale_nee)
         self.m = mc.DalecModel(self)
 
         # Define truth and background
-        self.x_truth = self.edinburgh_median
-        self.st_dev = 0.1*self.x_truth
-        # self.B = self.make_b(self.st_dev)
+        self.x_truth = self.xb_ew_lai  # self.edinburgh_median
+        self.st_dev = 0.1*cp.copy(self.x_truth)
+        self.B = self.make_b(self.st_dev)
 
         # Make EDC B
-        b_cor = pickle.load(open('b_edc_cor.p', 'r'))  # load correlation matrix from 2016 paper
-        b_std = self.make_b(np.sqrt(self.st_dev))  # Create diagonal matrix of standard deviations
-        self.B = np.dot(np.dot(b_std, b_cor), b_std)  # Create correlated B
+        # b_cor = pickle.load(open('b_edc_cor.p', 'r'))  # load correlation matrix from 2016 paper
+        # b_std = self.make_b(np.sqrt(self.st_dev))  # Create diagonal matrix of standard deviations
+        # self.B = np.dot(np.dot(b_std, b_cor), b_std)  # Create correlated B
         # self.xb = self.random_pert(self.random_pert(self.x_truth))
-        self.xb = np.array([2.53533992e-04,   5.85073161e-01,   7.43127332e-02,
-                            4.99707798e-01,   1.38993876e+00,   6.11913792e-05,
-                            2.58484324e-03,   2.79379720e-03,   8.72422101e-05,
-                            4.35144260e-02,   8.73669864e+01,   1.29813051e+02,
-                            3.87867223e-01,   4.69894281e+01,   2.78080852e+02,
-                            9.15080347e+01,   1.36269157e+02,   1.44176657e+02,
-                            6.71153814e+01,   2.42199267e+02,   4.96249386e+03,
-                            4.15128028e+02,   1.90797697e+03])
+        #self.xb = np.array([2.53533992e-04,   5.85073161e-01,   7.43127332e-02,
+        #                    4.99707798e-01,   1.38993876e+00,   6.11913792e-05,
+        #                    2.58484324e-03,   2.79379720e-03,   8.72422101e-05,
+        #                    4.35144260e-02,   8.73669864e+01,   1.29813051e+02,
+        #                    3.87867223e-01,   4.69894281e+01,   2.78080852e+02,
+        #                    9.15080347e+01,   1.36269157e+02,   1.44176657e+02,
+        #                    6.71153814e+01,   2.42199267e+02,   4.96249386e+03,
+        #                    4.15128028e+02,   1.90797697e+03])
         # Extract observations for assimilation
         self.ob_dict, self.ob_err_dict = self.create_twin_data(ob_str, err_scale)
 
+        self.params4opt = np.array(params4opt)
         self.opt_bnds = tuple([self.bnds_tst[x] for x in params4opt])
 
-        self.opt_xb = np.array([self.xb_ew_lai[x] for x in params4opt])
-
-        self.B = pickle.load(open('b_edc.p', 'r'))
+        self.opt_xb = np.array([60.3, 149.17, 276.1])  # np.array([0.0966, 59.3, 142.17, 276.1])# np.array([self.xb_ew_lai[x] for x in params4opt])
+        self.xb = cp.copy(self.xb_ew_lai)
+        self.xb[self.params4opt] = self.opt_xb
+        # self.B = pickle.load(open('b_edc.p', 'r'))
 
         self.opt_B = np.zeros((len(self.params4opt), len(self.params4opt)))
         for i in range(len(self.params4opt)):

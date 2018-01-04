@@ -47,7 +47,7 @@ class DalecModel():
                               np.linalg.inv(np.sqrt(self.diag_b)))
         if size_ens is not 'None':
             self.size_ens = size_ens
-            self.xbs, self.xb_mat, self.hmx_mat = self.create_ensemble2(size_ens)
+            self.xbs, self.xb_mat = self.create_ensemble2(size_ens)
             self.xb_mat_inv = np.linalg.pinv(self.xb_mat.T)
         self.nume = 100
 
@@ -631,7 +631,13 @@ class DalecModel():
         pvallist, matlist = self.linmod_list(pvals)
         hx, hmatrix = self.hmat(pvallist, matlist)
         hmat_opt = hmatrix[:, self.dC.params4opt]
-        obcost = np.dot(hmat_opt.T, np.dot(np.linalg.inv(self.rmatrix),
+
+        d_xb_mat = np.array([pvals_opt + np.sqrt(self.size_ens-1)*xi for xi in self.xb_mat])
+        pval_ens = np.array([self.mod_list(self.long_pvals(xbi)) for xbi in d_xb_mat])
+        hmx_mat = np.array([self.hxcost(pval_lst) for pval_lst in pval_ens])
+        finite_mat = np.dot((1./(np.sqrt(self.size_ens-1)))*np.array([hxi - hx for hxi in hmx_mat]).T, self.xb_mat_inv)
+
+        obcost = np.dot(finite_mat.T, np.dot(np.linalg.inv(self.rmatrix),
                                           (self.yoblist-hx).T))
         if self.modcoston is True:
             modcost = np.dot(np.linalg.inv(self.dC.opt_B), (pvals_opt-self.opt_xb).T)
@@ -819,20 +825,18 @@ class DalecModel():
         #xbs = np.array(xbs)
         xbs = np.random.multivariate_normal(self.opt_xb, self.opt_B, size=size)
         xb_mean = self.opt_xb  # np.mean(xbs, axis=0)
-        print xb_mean
-        xb_mat = (1./(np.sqrt(size-1)))*np.array([xbi - xb_mean for xbi in xbs])
-        pvals = cp.copy(self.xb)
-        pvals[self.dC.params4opt] = self.opt_xb
-        pval_ens = np.array([self.mod_list(self.long_pvals(xbi)) for xbi in xbs])
-        xb_pval_lst = self.mod_list(self.long_pvals(xb_mean))
-        hmx_mat = (1./(np.sqrt(size-1)))*np.array([self.hxcost(pval_lst) - self.hxcost(xb_pval_lst)
-                                                   for pval_lst in pval_ens])
-        return xbs, xb_mat, hmx_mat
+        xb_mat = (1./(np.sqrt(self.size_ens-1)))*np.array([xbi - xb_mean for xbi in xbs])
+        pval_ens = np.array([self.mod_list(xb) for xb in xbs])
+        xb_pval_lst = self.mod_list(self.xb)
+        hxb = self.hxcost(xb_pval_lst)
+        hm_xbs = np.array([self.hxcost(pval_lst) for pval_lst in pval_ens])
+        hmx_mat = (1./(np.sqrt(self.size_ens-1)))*np.array([hmxb - hxb for hmxb in hm_xbs])
+        return xbs, xb_mat, hxb, hm_xbs, hmx_mat
 
     def run_ensemble(self, xb_opt):
         self.opt_xb = xb_opt
         self.size_ens = self.size_ens
-        self.xbs, self.xb_mat, self.hmx_mat = self.create_ensemble2(self.size_ens)
+        self.xbs, self.xb_mat, self.hxb, self.hm_xbs, self.hmx_mat = self.create_ensemble2(self.size_ens)
         self.xb_mat_inv = np.linalg.pinv(self.xb_mat.T)
         return 'done'
 
@@ -840,14 +844,9 @@ class DalecModel():
         self.opt_xb = self.wvals2xvals(wvals)
         self.opt_B = self.a_cov_mat_ens()
         self.size_ens = self.size_ens
-        self.xbs, self.xb_mat, self.hmx_mat = self.create_ensemble2(self.size_ens)
+        self.xbs, self.xb_mat, self.hxb, self.hm_xbs, self.hmx_mat = self.create_ensemble2(self.size_ens)
         self.xb_mat_inv = np.linalg.pinv(self.xb_mat.T)
         return 'done'
-
-    def a_cov_mat_ens(self):
-        wmat = np.linalg.inv(np.eye(self.size_ens) +
-                       np.dot(self.hmx_mat, np.dot(np.linalg.inv(self.rmatrix),self.hmx_mat.T)))
-        return self.wmat2xmat(wmat)
 
     def xvals2wvals(self, xvals):
         # return np.dot(self.xb_mat_inv, (xvals - np.mean(self.xbs, axis=0)))
@@ -857,61 +856,88 @@ class DalecModel():
         # return np.mean(self.xbs, axis=0) + np.dot(self.xb_mat.T, wvals)
         return self.opt_xb + np.dot(self.xb_mat.T, wvals)
 
-    def wmat2xmat(self, wmat):
-        return np.dot(self.xb_mat.T, np.dot(wmat, self.xb_mat))
-
     def obcost_ens(self, wvals):
         """Observational part of cost fn.
         """
         pvals = self.wvals2xvals(wvals)
         pvallist = self.mod_list(self.long_pvals(pvals))
         hx = self.hxcost(pvallist)
-        return np.dot(np.dot((hx - self.yoblist), np.linalg.inv(self.rmatrix)), (hx - self.yoblist).T)
+        return np.dot(np.dot((self.yoblist - hx), np.linalg.inv(self.rmatrix)), (self.yoblist - hx).T)
 
     def obcost_ens_inc(self, wvals):
         """Observational part of cost fn.
         """
-        pvals = self.wvals2xvals(wvals)
-        pvallist = self.mod_list(self.long_pvals(pvals))
-        hx = self.hxcost(pvallist)
-        return np.dot(np.dot((np.dot(self.hmx_mat.T, wvals) + hx - self.yoblist), np.linalg.inv(self.rmatrix)),
-                      (np.dot(self.hmx_mat.T, wvals) + hx - self.yoblist).T)
+        #pvals = self.wvals2xvals(wvals)
+        #pvallist = self.mod_list(self.long_pvals(pvals))
+        #hx = self.hxcost(pvallist)
+        #d_xb_mat = np.array([pvals + np.sqrt(self.size_ens-1)*xi for xi in self.xb_mat])
+        #pval_ens = np.array([self.mod_list(self.long_pvals(xbi)) for xbi in d_xb_mat])
+        #hmx_mat = np.array([self.hxcost(pval_lst) for pval_lst in pval_ens])
+        #finite_mat = (1./(np.sqrt(self.size_ens-1)))*np.array([hxi - hx for hxi in hmx_mat])
+        #return np.dot(np.dot((np.dot(finite_mat.T, wvals) + hx - self.yoblist), np.linalg.inv(self.rmatrix)),
+        #              (np.dot(finite_mat.T, wvals) + hx - self.yoblist).T)
 
     def cost_ens(self, wvals):
-        modcost = np.dot(wvals, wvals.T)
-
+        modcost = (self.size_ens - 1) * np.dot(wvals, wvals.T)
         obcost = self.obcost_ens(wvals)
-        if self.test_pval_opt_bnds(self.wvals2xvals(wvals)) is False:
-            ret_val = 1e10
-        else:
-            ret_val = 0.5 * (self.size_ens-1) * modcost + 0.5*obcost
+        ret_val = 0.5 * modcost + 0.5 * obcost
         # print 'cost: %d' %ret_val
         return ret_val
 
     def cost_ens_inc(self, wvals):
         modcost = np.dot(wvals, wvals.T)
-
         obcost = self.obcost_ens_inc(wvals)
         #if self.test_pval_opt_bnds(self.wvals2xvals(wvals)) is False:
         #    ret_val = 1e10
         #else:
-        ret_val = 0.5 * (self.size_ens-1) * modcost + 0.5*obcost
+        ret_val = 0.5 * modcost + 0.5*obcost
         # print 'cost: %d' %ret_val
         return ret_val
 
-    def gradcost_ens(self, wvals):
+    def gradcost_ens(self, wvals, fact=1e-3):
         """Gradient of 4DVAR cost fn to be passed to optimization routine.
         Takes an initial state (pvals), an obs dictionary, an obs error
         dictionary, a dataClass and a start and finish time step.
         """
         pvals = self.wvals2xvals(wvals)
+        esp = fact
         pvallist = self.mod_list(self.long_pvals(pvals))
         hx = self.hxcost(pvallist)
-        obcost = np.dot(self.hmx_mat, np.dot(np.linalg.inv(self.rmatrix),
+        d_xb_mat = np.array([pvals + xi for xi in self.xb_mat])
+        pval_ens = np.array([self.mod_list(self.long_pvals(xbi)) for xbi in d_xb_mat])
+        hmx_mat = np.array([self.hxcost(pval_lst) for pval_lst in pval_ens])
+        finite_mat = (1./(np.sqrt(self.size_ens-1)))*np.array([hxi - np.mean(hmx_mat, axis=0) for hxi in hmx_mat])
+        obcost = np.dot(finite_mat, np.dot(np.linalg.inv(self.rmatrix),
                                           (hx - self.yoblist).T))
 
-        gradcost = obcost + (self.size_ens-1) * wvals  # + bnd_cost
+        gradcost = - obcost + (self.size_ens-1) * wvals
         return gradcost
+
+    def hesscost_ens(self, wvals, fact=1e-3):
+        pvals = self.wvals2xvals(wvals)
+        esp = np.sqrt(self.size_ens - 1) * fact
+        d_xb_mat = np.array([pvals + esp*xi for xi in self.xb_mat])
+        pval_ens = np.array([self.mod_list(self.long_pvals(xbi)) for xbi in d_xb_mat])
+        hmx_mat = np.array([self.hxcost(pval_lst) for pval_lst in pval_ens])
+        finite_mat = (1. / esp) * np.array([hxi - np.mean(hmx_mat, axis=0) for hxi in hmx_mat])
+        hess = (self.size_ens - 1) * np.eye(self.size_ens) + \
+               np.dot(finite_mat, np.dot(np.linalg.inv(self.rmatrix), finite_mat.T))
+        return hess
+
+    def minim(self, wvals, tol=1e-1, j_max=20):
+        gradj = self.gradcost_ens(wvals)
+        hessj = self.hesscost_ens(wvals)
+        delt_w = np.dot(np.linalg.inv(hessj), gradj)
+        j = 0
+        while np.linalg.norm(delt_w) >= tol and j < j_max:
+            wvals = wvals + delt_w
+            gradj = self.gradcost_ens(wvals)
+            hessj = self.hesscost_ens(wvals)
+            delt_w = np.dot(np.linalg.inv(hessj), gradj)
+            print np.linalg.norm(delt_w)
+            j += 1
+        return wvals, self.wvals2xvals(wvals)
+
 
     def gradcost_ens_inc(self, wvals):
         """Gradient of 4DVAR cost fn to be passed to optimization routine.
@@ -921,10 +947,14 @@ class DalecModel():
         pvals = self.wvals2xvals(wvals)
         pvallist = self.mod_list(self.long_pvals(pvals))
         hx = self.hxcost(pvallist)
-        obcost = np.dot(self.hmx_mat, np.dot(np.linalg.inv(self.rmatrix),
-                        (np.dot(self.hmx_mat.T, wvals) + hx - self.yoblist).T))
+        d_xb_mat = np.array([pvals + np.sqrt(self.size_ens-1)*xi for xi in self.xb_mat])
+        pval_ens = np.array([self.mod_list(self.long_pvals(xbi)) for xbi in d_xb_mat])
+        hmx_mat = np.array([self.hxcost(pval_lst) for pval_lst in pval_ens])
+        finite_mat = (1./(np.sqrt(self.size_ens-1)))*np.array([hxi - hx for hxi in hmx_mat])
+        obcost = np.dot(finite_mat, np.dot(np.linalg.inv(self.rmatrix),
+                        (np.dot(finite_mat.T, wvals) + hx - self.yoblist).T))
 
-        gradcost = obcost + (self.size_ens-1) * wvals  # + bnd_cost
+        gradcost = obcost + wvals  # + bnd_cost
         return gradcost
 
     def gradcost2_ens(self, wvals):
@@ -983,13 +1013,15 @@ class DalecModel():
 # Minimization Routines.
 # ------------------------------------------------------------------------------
 
-    def find_min_tnc(self, pvals_opt, pvals, bnds='strict', dispp=None, maxits=2000,
+    def find_min_tnc(self, pvals_opt, pvals, size_ens=24, bnds='strict', dispp=None, maxits=2000,
                      mini=0, f_tol=-1):
         """Function which minimizes 4DVAR cost fn. Takes an initial state
         (pvals).
         """
         self.xb = pvals
         self.opt_xb = pvals[self.dC.params4opt]
+        self.size_ens = size_ens
+        self.run_ensemble(self.opt_xb)
         if bnds == 'strict':
             bnds = self.dC.opt_bnds
         else:
@@ -1028,10 +1060,10 @@ class DalecModel():
         self.opt_xb = pvals[self.dC.params4opt]
         self.size_ens = size_ens
         self.run_ensemble(self.opt_xb)
-        wvals = self.xvals2wvals(pvals_opt)
+        wvals = np.zeros(self.size_ens)
         find_min = spop.fmin_tnc(self.cost_ens, wvals,
-                                fprime=self.gradcost2_ens,
-                                disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
+                                 fprime=self.gradcost_ens,
+                                 disp=dispp, fmin=mini, maxfun=maxits, ftol=f_tol)
         xa = cp.copy(pvals)
         xa[self.dC.params4opt] = self.wvals2xvals(find_min[0])
         if f_name != None:

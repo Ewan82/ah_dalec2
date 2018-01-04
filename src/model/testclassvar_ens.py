@@ -2,7 +2,8 @@
 """
 import numpy as np
 import data_class_ens as dC
-import mod_class_ens as mc
+import mod_class_ens2 as mc
+import copy as cp
 import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -132,17 +133,21 @@ def test_cost_cvt(alph=1e-8, vect=0):
 def test_cost_ens(m, alph=1e-8, vect=0):
     """Test for cost and gradcost functions.
     """
-    pvals = m.dC.edinburgh_mean
+    pvals = np.array([60.3, 149.17, 276.1])
     wvals = m.xvals2wvals(pvals)
-    #wvals = np.array([0.]*len(m.xb_mat))
+    #print wvals
+    wvals = np.array([0.]*len(m.xb_mat))
     gradj = m.gradcost_ens_inc(wvals)
+    #print gradj
     if vect == 0:
         h = wvals*(np.linalg.norm(wvals))**(-1)
     elif vect == 1:
         h = gradj*(np.linalg.norm(gradj))**(-1)
     elif vect == 2:
         h = np.ones(len(wvals))*(np.sqrt(len(wvals))**-1)
+    print h
     j = m.cost_ens_inc(wvals)
+    print j
     jalph = m.cost_ens_inc(wvals + alph*h)
     print jalph - j
     print np.dot(alph*h.T, gradj)
@@ -163,6 +168,7 @@ def test_cost_opt(m, alph=1e-8, vect=0):
     elif vect == 2:
         h = np.ones(len(pvals))*(np.sqrt(len(pvals))**-1)
     j = m.cost(pvals)
+    print j
     jalph = m.cost(pvals + alph*h)
     print jalph - j
     print np.dot(alph*h.T, gradj)
@@ -199,9 +205,13 @@ def plotcost_ens(vect=1, sizee=20):
     sns.set_style('ticks')
     power=np.arange(1,10,1)
     xlist = [10**(-x) for x in power]
-    d=dC.DalecDataTwin(1999, 2010, 'nee',
-                       nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=0)
+    xb_opt = np.array([60.3, 149.17, 276.1])
+    d = dC.DalecDataTwin(1999, 2000, 'nee_day', err_scale=0.25)
+    d.xb = cp.copy(d.x_truth)
+    d.xb[d.params4opt] = xb_opt
+    d.opt_xb = xb_opt
     m = mc.DalecModel(d, size_ens=sizee)
+    m.run_ensemble(xb_opt)
     tstlist = [abs(test_cost_ens(m, x, vect)-1) for x in xlist]
     ax.loglog(xlist, tstlist, 'k', marker='x', mew=1, ms=8)
     #font = {'size'   : 24}
@@ -223,10 +233,14 @@ def plotcostone_ens(vect=1, sizee=20):
     sns.set_style('ticks')
     power=np.arange(1,14,1)
     xlist = [10**(-x) for x in power]
-    d=dC.DalecDataTwin(1999, 2000, 'nee_day',
-                       nc_file='../../alice_holt_data/ah_data_daily_test_nee3.nc', scale_nee=1)
+    xb_opt = np.array([60.3, 149.17, 276.1])
+    d = dC.DalecDataTwin(1999, 2000, 'nee_day', err_scale=0.25)
+    d.xb = cp.copy(d.x_truth)
+    d.xb[d.params4opt] = xb_opt
+    d.opt_xb = xb_opt
     m = mc.DalecModel(d, size_ens=sizee)
-    tstlist = [test_cost_ens(m, x, vect) for x in xlist]
+    m.run_ensemble(xb_opt)
+    tstlist = [abs(test_cost_ens(m, x, vect)) for x in xlist]
     ax.semilogx(xlist, tstlist, 'k', marker='x', mew=1, ms=8)
     #ax.semilogx(xlist, tstlist, 'k', 'x')
     plt.xlabel(r'$\alpha$')
